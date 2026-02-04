@@ -1,0 +1,15 @@
+from django.contrib import admin
+from .models import Subscription, EmailMessage
+
+# Register your models here.
+@admin.register(Subscription)
+class SubscriptionAdmin(admin.ModelAdmin):
+    list_display = ("user", "platform_name", "service_name", "start_date", "end_date")
+    search_fields = ("user", "platform_name", "service_name", "start_date", "end_date")
+    ordering     = ("user", "-end_date", "-start_date", "platform_name", "service_name")
+
+@admin.register(EmailMessage)
+class EmailMessageAdmin(admin.ModelAdmin):
+    list_display = ("user", "message_id", "subject", "received_date")
+    search_fields = ("user", "message_id", "subject", "received_date")
+    ordering     = ("user", "-received_date")
