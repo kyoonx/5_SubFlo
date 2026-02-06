@@ -1,0 +1,43 @@
+<!-- templates/dashboard/email_message_detail.html -->
+{% extends "dashboard/base.html" %}
+
+{% block title %}
+    Email Detail: {{ email_message.subject }}
+{% endblock %}
+
+{% block student_content %}
+    <div class="bg-white shadow-md rounded-lg p-6 mb-4">
+        <h2 class="text-2xl font-semibold mb-4">Email Details</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <p class="text-gray-700"><strong>Subject:</strong> {{ email_message.subject }}</p>
+                <p class="text-gray-700"><strong>Sender:</strong> {{ email_message.sender }}</p>
+                <p class="text-gray-700"><strong>Received Date:</strong> {{ email_message.received_date|date:"M d, Y H:i" }}</p>
+                <p class="text-gray-700"><strong>Created At:</strong> {{ email_message.created_at|date:"M d, Y H:i" }}</p>
+                <p class="text-gray-700"><strong>Message ID:</strong> {{ email_message.message_id }}</p>
+                <p class="text-gray-700"><strong>User:</strong> {{ email_message.user.username }}</p>
+            </div>
+            <div>
+                <p class="text-gray-700"><strong>Parsed Data:</strong></p>
+                {% if email_message.parsed_data %}
+                  <pre class="bg-gray-100 p-2 rounded-md overflow-auto" style="max-height: 200px;">{{ email_message.parsed_data|json_script:"json_data"|safe }}</pre>
+                  <script>
+                      const jsonData = JSON.parse(document.getElementById('json_data').textContent);
+                      console.log(jsonData);
+                  </script>
+                {% else %}
+                  <p class="text-gray-500">No parsed data available.</p>
+                {% endif %}
+                <p class="text-gray-700"><strong>Raw Email Body:</strong></p>
+                <div class="bg-gray-100 p-2 rounded-md overflow-auto" style="max-height: 200px;">{{ email_message.raw_email_body }}</div>
+            </div>
+        </div>
+        <div class="mt-6">
+            <a href="{% url 'subscription-list-url' %}"
+               class="inline-block bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-md transition duration-200">
+                Back to Subscription List
+            </a>
+        </div>
+    </div>
+{% endblock %}

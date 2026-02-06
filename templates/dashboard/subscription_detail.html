@@ -12,14 +12,12 @@
         <div>
             <p class="text-gray-700"><strong>Start Date:</strong> {{ subscription.start_date|date:"M d, Y" }}</p>
             <p class="text-gray-700"><strong>End Date:</strong> {{ subscription.end_date|date:"M d, Y" }}</p>
-            <p class="text-gray-700"><strong>Price:</strong> ${{ subscription.price|floatformat:2 }} {{
-                subscription.currency }}</p>
+            <p class="text-gray-700"><strong>Price:</strong> ${{ subscription.price|floatformat:2 }}</p>
             <p class="text-gray-700"><strong>Payment Method:</strong> {{ subscription.payment_method|default:"N/A" }}
             </p>
         </div>
         <div>
-            <p class="text-gray-700"><strong>Already Canceled:</strong> {{ subscription.already_canceled|yesno:"Yes,No"
-                }}</p>
+            <p class="text-gray-700"><strong>Already Canceled:</strong> {{ subscription.already_canceled|yesno:"Yes,No" }}</p>
             <p class="text-gray-700"><strong>Notes:</strong> {{ subscription.notes|default:"N/A" }}</p>
         </div>
     </div>

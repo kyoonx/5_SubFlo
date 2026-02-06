@@ -1,10 +1,13 @@
 from django.urls import path
 from . import views
-from dashboard.views import (subscription_list, subscription_detail)
+from dashboard.views import (SubscriptionList, subscription_detail, email_message_detail)
 
 urlpatterns = [
-    path("subscription", subscription_list, name="subscription-list-url"),
+    path("subscription", SubscriptionList.as_view(), name="subscription-list-url"),  
+    
     path("subscription/<int:pk>", subscription_detail, name="subscription-detail-url"),
+    
+    path("email_message/<uuid:pk>", email_message_detail, name="email_message_detail-url"),
     
     
     # Function-Based Views
