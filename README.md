@@ -13,9 +13,14 @@
 - `EmailMessage` Represents a user's email message.
 
 # Current Status
-- [x] Wireframes completed
-- [x] Data models and ER diagrams designed
-- [x] Initial Django applications created
+- Week 1
+  - [x] Wireframes completed
+  - [x] Data models and ER diagrams designed
+  - [x] Initial Django applications created
+- Week 2
+  - [x] Dashboard to display all subscription (Note: Still need to be enhanced to handle displaying for a specific user after auth feature is completed)
+  - [x] Separate settings: development and production
+  - [x] Create a note regarding the branching strategy
 
 
 # References

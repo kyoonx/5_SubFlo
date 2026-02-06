@@ -1,7 +1,6 @@
 from django.http import HttpResponse
 from django.template import loader
 from django.shortcuts import render, get_object_or_404
-from django.views import View
 from django.views.generic import ListView
 from subscriptions.models import Subscription, EmailMessage
 
