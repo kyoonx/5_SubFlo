@@ -11,7 +11,7 @@ class Subscription(models.Model):
     This model will be filled after a LLM processes users' emails.
     Ensure that each user can subscribe to only "one" service from a specific platform during a given period.
     """
-    id = models.AutoField(primary_key=True, editable=False)
+    id = models.AutoField(primary_key=True, editable=False, verbose_name="Id")
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='subscriptions', verbose_name="User")
     platform_name = models.CharField(max_length=255, verbose_name="Platform Name")
     service_name = models.CharField(max_length=255, verbose_name="Service Name")
