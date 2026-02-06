@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+  <body style="font-family: Arial;">
+    <h1>SubFlo — Subscriptions (render FBV)</h1>
+    <p>Total: {{ subscriptions|length }}</p>
+
+    <ul>
+      {% for s in subscriptions %}
+        <li>
+          <b>{{ s.name|default:"Subscription" }}</b>
+        </li>
+      {% empty %}
+        <li>No subscriptions found.</li>
+      {% endfor %}
+    </ul>
+  </body>
+</html>
