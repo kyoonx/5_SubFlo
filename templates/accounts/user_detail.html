@@ -1,0 +1,37 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}
+    User Detail: {{ user_detail.user.username }}
+{% endblock %}
+
+{% block student_content %}
+    <div class="bg-white shadow-md rounded-lg p-6 mb-4">
+        <h2 class="text-2xl font-semibold mb-4">User Details</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <p class="text-gray-700"><strong>Username:</strong> {{ user_detail.user.username }}</p>
+                <p class="text-gray-700"><strong>First Name:</strong> {{ user_detail.user.first_name|default:"N/A" }}</p>
+                <p class="text-gray-700"><strong>Last Name:</strong> {{ user_detail.user.last_name|default:"N/A" }}</p>
+                <p class="text-gray-700"><strong>Email:</strong> {{ user_detail.user.email|default:"N/A" }}</p>
+                <p class="text-gray-700"><strong>Date Joined:</strong> {{ user_detail.user.date_joined|date:"M d, Y" }}</p>
+            </div>
+            <div>
+                <p class="text-gray-700"><strong>Profile Picture:</strong></p>
+                {% if user_detail.profile_picture %}
+                    <img src="{{ user_detail.profile_picture.url }}" alt="Profile Picture" class="rounded-full w-24 h-24 object-cover">
+                {% else %}
+                    <div class="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center text-gray-700 font-medium">
+                        {{ user_detail.user.username|slice:':1'|upper }}
+                    </div>
+                {% endif %}
+                <p class="text-gray-700"><strong>Bio:</strong> {{ user_detail.bio|default:"N/A" }}</p>
+            </div>
+        </div>
+        <div class="mt-6">
+            <a href="#" class="inline-block bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-md transition duration-200">
+                Back to List
+            </a>
+        </div>
+    </div>
+{% endblock %}
