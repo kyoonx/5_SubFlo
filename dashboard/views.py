@@ -5,6 +5,18 @@ from django.views import View
 from django.views.generic import ListView
 from subscriptions.models import Subscription
 
+
+def subscription_list(request):
+    subscriptions = Subscription.objects.all()
+    template = loader.get_template("dashboard/subscription_list.html")
+    context = {"subscriptions": subscriptions}
+    output = template.render(context, request)
+    return HttpResponse(output)
+
+   
+
+
+
 # View 1 (FBV): HttpResponse
 def subscriptions_manual_html(request):
     """

@@ -1,7 +1,10 @@
 from django.urls import path
 from . import views
+from dashboard.views import (subscription_list)
 
 urlpatterns = [
+    path("subscription", subscription_list, name="subscription-list-url"),
+    
     # Function-Based Views
     path(
         "subscriptions/manual/",
