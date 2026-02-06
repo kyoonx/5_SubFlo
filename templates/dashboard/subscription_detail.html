@@ -1,0 +1,39 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}
+{{ subscription.platform_name }} - {{ subscription.service_name }}
+{% endblock %}
+
+{% block student_content %}
+<div class="bg-white shadow-md rounded-lg p-6 mb-4">
+    <h2 class="text-2xl font-semibold mb-4">{{ subscription.platform_name }} - {{ subscription.service_name }}</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+            <p class="text-gray-700"><strong>Start Date:</strong> {{ subscription.start_date|date:"M d, Y" }}</p>
+            <p class="text-gray-700"><strong>End Date:</strong> {{ subscription.end_date|date:"M d, Y" }}</p>
+            <p class="text-gray-700"><strong>Price:</strong> ${{ subscription.price|floatformat:2 }} {{
+                subscription.currency }}</p>
+            <p class="text-gray-700"><strong>Payment Method:</strong> {{ subscription.payment_method|default:"N/A" }}
+            </p>
+        </div>
+        <div>
+            <p class="text-gray-700"><strong>Already Canceled:</strong> {{ subscription.already_canceled|yesno:"Yes,No"
+                }}</p>
+            <p class="text-gray-700"><strong>Notes:</strong> {{ subscription.notes|default:"N/A" }}</p>
+        </div>
+    </div>
+    <div class="mt-6 flex items-center justify-between">
+        <a href="{% url 'subscription-list-url' %}"
+            class="inline-block bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-md transition duration-200">Back
+            to List</a>
+        {% if subscription.unsubscribe_link %}
+        <a href="{{ subscription.unsubscribe_link }}" target="_blank"
+            class="inline-block bg-red-500 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md transition duration-200">Cancel</a>
+        {% else %}
+        <button class="bg-gray-400 text-white font-medium py-2 px-4 rounded-md cursor-not-allowed"
+            disabled>Cancel</button>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

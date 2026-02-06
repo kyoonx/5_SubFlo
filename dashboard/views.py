@@ -1,6 +1,6 @@
 from django.http import HttpResponse
 from django.template import loader
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.views import View
 from django.views.generic import ListView
 from subscriptions.models import Subscription
@@ -13,8 +13,10 @@ def subscription_list(request):
     output = template.render(context, request)
     return HttpResponse(output)
 
-   
-
+def subscription_detail(request, pk):
+    subscription = get_object_or_404(Subscription, pk=pk)
+    return render(request, "dashboard/subscription_detail.html", {"subscription": subscription})
+    
 
 
 # View 1 (FBV): HttpResponse
