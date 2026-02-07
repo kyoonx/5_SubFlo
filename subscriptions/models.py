@@ -1,6 +1,7 @@
 # subscriptions/models.py
 from django.db import models
 from django.contrib.auth.models import User
+import uuid
 
 class Subscription(models.Model):
     """
@@ -10,6 +11,7 @@ class Subscription(models.Model):
     This model will be filled after a LLM processes users' emails.
     Ensure that each user can subscribe to only "one" service from a specific platform during a given period.
     """
+    id = models.AutoField(primary_key=True, editable=False, verbose_name="Id")
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='subscriptions', verbose_name="User")
     platform_name = models.CharField(max_length=255, verbose_name="Platform Name")
     service_name = models.CharField(max_length=255, verbose_name="Service Name")
@@ -46,7 +48,7 @@ class EmailMessage(models.Model):
     `parsed_data` and `created_at` will be filled after the LLM processes emails.
     """
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='email_messages', verbose_name="User")
-    message_id = models.CharField(max_length=255, verbose_name="Message ID")
+    message_id = models.CharField(max_length=255, verbose_name="Message ID", primary_key=True)
     subject = models.CharField(max_length=255, verbose_name="Subject")
     sender = models.CharField(max_length=255, verbose_name="Sender")
     received_date = models.DateTimeField(verbose_name="Received Date")
