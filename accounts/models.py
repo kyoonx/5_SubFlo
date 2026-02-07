@@ -11,7 +11,7 @@ class UserProfile(models.Model):
     Used to keep track of the latest date a LLM processes emails, so the LLM knows where it left off.
     `user` is globally unique automatically due to Django User model.
     """
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile') # Link to Django's built-in User model
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile', primary_key=True) # Link to Django's built-in User model
     email_access_granted = models.BooleanField(default=False, verbose_name="Email Access Granted") # Flag for email access permission
     last_processed_date = models.DateTimeField(null=True, blank=True, verbose_name="Last Processed Date") # Timestamp of last email processing
 

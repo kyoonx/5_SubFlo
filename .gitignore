@@ -15,6 +15,7 @@ env.py
 venv/
 env/
 .venv/
+!.env.example
 
 # ================================
 # Django

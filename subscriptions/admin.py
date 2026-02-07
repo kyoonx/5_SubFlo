@@ -4,7 +4,7 @@ from .models import Subscription, EmailMessage
 # Register your models here.
 @admin.register(Subscription)
 class SubscriptionAdmin(admin.ModelAdmin):
-    list_display = ("user", "platform_name", "service_name", "start_date", "end_date")
+    list_display = ("id", "user", "platform_name", "service_name", "start_date", "end_date")
     search_fields = ("user", "platform_name", "service_name", "start_date", "end_date")
     ordering     = ("user", "-end_date", "-start_date", "platform_name", "service_name")
 

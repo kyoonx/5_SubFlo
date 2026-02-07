@@ -1,0 +1,35 @@
+Progress
+- Week 1
+  - [x] Wireframes completed
+  - [x] Data models and ER diagrams designed
+  - [x] Initial Django applications created
+- Week 2
+  - [x] Dashboard to display all subscription (Note: Still need to be enhanced to handle displaying for a specific user after auth feature is completed)
+  - [x] Separate settings: development and production
+  - [x] Create a note regarding the branching strategy
+
+
+Assignment 2 - Section 2 — Views (FBV + CBV) for SubFlo
+
+A) Function-Based Views (FBVs)
+  - HttpResponse (Manual)
+    - `email_message_detail`: Display the email message information by a given message_id (http://127.0.0.1:8000/dashboard/email_message/30d5782b-5a34-4125-bcea-99d83d37a589)
+  - render() (Shortcut)
+    - `subscription_detail`: Display the subscription information by a given id (http://127.0.0.1:8000/dashboard/11)
+
+
+B) Class-Based Views (CBVs)
+  - Base CBV (inherit from View)
+    - `AccountDetail`: Display user profile information by a given id (http://127.0.0.1:8000/accounts/5)
+  - Generic CBV (inherit from Django generic views)
+    - `SubscriptionList`: Display all subscriptions in a dashboard (http://127.0.0.1:8000/dashboard/)
+
+
+When each was useful:
+- HttpResponse vs render:
+  HttpResponse is quick for simple debugging / proof-of-concept output.
+  render() is best for real pages because templates keep logic and HTML cleanly separated.
+
+- Base CBV vs Generic CBV:
+  Base CBV is useful when you want custom logic per HTTP method but still prefer class structure.
+  Generic CBV is ideal for standard CRUD/list/detail pages because it reduces boilerplate and follows conventions.
