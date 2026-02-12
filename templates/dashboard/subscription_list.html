@@ -12,7 +12,7 @@
                 {% for sub in subscriptions %}
                     <li class="flex items-center justify-between py-3 border-b border-gray-200 last:border-b-0 hover:bg-gray-50">
                         <div>
-                            <div class="text-lg font-medium">{{ sub.platform_name }} - {{ sub.service_name }}</div>
+                            <a href="" class="text-lg font-medium">{{ sub.platform_name }} - {{ sub.service_name }}</a>
                             <div class="text-sm text-gray-500">Renews {{ sub.end_date|date:"M d, Y" }}</div>
                         </div>
                         <div class="flex items-center space-x-4">
