@@ -4,83 +4,145 @@
     Subscription List
 {% endblock %}
 
+{% block summary %}
+  <div class="bg-white border border-gray-200 rounded-3xl p-8 mb-8">
 
-{% block search_service_or_platform %}
-  <form method="get" class="mb-4 flex items-center space-x-2">
-    <div class="flex-1">
-      <input type="search" name="q" value="{{ q }}"
-             class="w-full px-4 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-             placeholder="Search by service, platform, or sender email...">
-    </div>
+    <h3 class="text-2xl font-semibold tracking-tight text-black mb-8">
+      Subscription Summary
+    </h3>
 
-    <div>
-      <button type="submit"
-              class="bg-blue-500 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md">
-          Search
-      </button>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-      {% if q or text %}
-        <a href="{% url 'subscription-list-url' %}"
-           class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-md ml-2">Clear</a>
-      {% endif %}
-
-    </div>
-
-  </form>
-{% endblock %}
-
-{% block search_note %}
-  <div class="bg-white shadow-md rounded-lg p-4 mb-4">
-    <h3 class="text-lg font-semibold mb-2">Search by Notes</h3>
-    <form method="post" class="flex items-center space-x-2">
-      {% csrf_token %}
-
-      <div class="flex-1">
-        <input type="search" name="text" value="{{ text }}"
-               class="w-full px-4 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-               placeholder="Search by note...">
+      <div class="border border-gray-200 rounded-2xl p-6 
+                  hover:bg-gray-50 transition duration-200">
+        <div class="text-4xl font-semibold text-black">
+          {{ total_subscriptions }}
+        </div>
+        <div class="text-sm text-gray-500 mt-2">
+          Total Subscriptions
+        </div>
       </div>
 
-      <div>
-        <button type="submit"
-                class="bg-blue-500 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md">
-            Search
-        </button>
+      <div class="border border-gray-200 rounded-2xl p-6 
+                  hover:bg-gray-50 transition duration-200">
+        <div class="text-4xl font-semibold text-black">
+          {{ total_active_subscriptions }}
+        </div>
+        <div class="text-sm text-gray-500 mt-2">
+          Active Subscriptions
+        </div>
       </div>
 
-    </form>
+      <div class="border border-gray-200 rounded-2xl p-6 
+                  hover:bg-gray-50 transition duration-200">
+        <div class="text-4xl font-semibold text-black">
+          {{ total_soon_to_expire_subscriptions }}
+        </div>
+        <div class="text-sm text-gray-500 mt-2">
+          Expiring Soon
+        </div>
+      </div>
+
+    </div>
   </div>
 {% endblock %}
 
 
 
-{% block content %}
-    <div class="bg-white shadow-md rounded-lg mb-4">
-        <div class="px-6 py-4">
-            <h2 class="text-xl font-semibold">Subscription List</h2>
-            <ul class="mt-2">
+{% block search %}
+  <div class="bg-white border border-gray-200 rounded-3xl p-8 mb-8">
 
-                {% for sub in subscriptions %}
-                    <li class="flex items-center justify-between py-3 border-b border-gray-200 last:border-b-0 hover:bg-gray-50">
-                        <div>
-                            <a href="{{ sub.get_absolute_url }}" class="text-lg font-medium">{{ sub.platform_name }} - {{ sub.service_name }}</a>
-                            <div class="text-sm text-gray-500">Renews {{ sub.end_date|date:"M d, Y" }}</div>
-                        </div>
-                        <div class="flex items-center space-x-4">
-                            <div class="text-md font-medium">${{ sub.price|floatformat:2 }}/mo</div>
-                            <button class="bg-red-500 hover:bg-red-700 text-white font-medium py-1 px-3 rounded-md transition duration-200">Cancel</button>
-                        </div>
-                    </li>
-                {% empty %}
-                    {% if q or text %}
-                        <li class="py-2">No subscriptions found.</li>
-                    {% else %}
-                    <li class="py-2">No subscriptions yet!</li>
-                    {% endif %}
-                {% endfor %}
+    <h3 class="text-2xl font-semibold tracking-tight text-black mb-6">
+      Search
+    </h3>
 
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-            </ul>
-        </div>
+      <!-- Service / Platform -->
+      <form method="get" class="flex items-center gap-3">
+        <input type="search" name="q" value="{{ q }}"
+          class="flex-1 px-4 py-3 border border-gray-200 rounded-xl 
+                 focus:outline-none focus:border-black transition appearance-none"
+          placeholder="Service, platform, email...">
+
+        <button type="submit"
+          class="px-6 py-3 rounded-xl bg-neutral-900 text-white border border-neutral-900
+                 hover:bg-neutral-700 hover:border-neutral-700
+                 transition duration-200 whitespace-nowrap">
+          Search
+        </button>
+      </form>
+
+      <!-- Notes -->
+      <form method="post" class="flex items-center gap-3">
+        {% csrf_token %}
+
+        <input type="search" name="text" value="{{ text }}"
+          class="flex-1 px-4 py-3 border border-gray-200 rounded-xl 
+                 focus:outline-none focus:border-black transition appearance-none"
+          placeholder="Search notes...">
+
+        <button type="submit"
+          class="px-6 py-3 rounded-xl bg-neutral-900 text-white border border-neutral-900
+                 hover:bg-neutral-700 hover:border-neutral-700
+                 transition duration-200 whitespace-nowrap">
+          Search
+        </button>
+      </form>
+
     </div>
+
+  </div>
+{% endblock %}
+
+
+{% block content %}
+  <div class="bg-white border border-gray-200 rounded-3xl">
+
+    <div class="px-8 py-6 border-b border-gray-200">
+      <h2 class="text-2xl font-semibold tracking-tight text-black">
+        Subscriptions
+      </h2>
+    </div>
+
+    <ul>
+
+      {% for sub in subscriptions %}
+        <li class="flex items-center justify-between px-8 py-6 border-b border-gray-100 hover:bg-gray-50 transition">
+
+          <div>
+            <a href="{{ sub.get_absolute_url }}"
+               class="text-lg font-medium text-black hover:underline">
+               {{ sub.platform_name }} — {{ sub.service_name }}
+            </a>
+            <div class="text-sm text-gray-500 mt-1">
+              Renews {{ sub.end_date|date:"M d, Y" }}
+            </div>
+          </div>
+
+          <div class="flex items-center gap-6">
+            <div class="text-lg font-medium text-black">
+              ${{ sub.price|floatformat:2 }}/mo
+            </div>
+
+            <button class="px-5 py-2 rounded-xl bg-neutral-900 text-white border border-neutral-900
+                           hover:bg-neutral-700 hover:border-neutral-700
+                           transition duration-200">
+              Cancel
+            </button>
+          </div>
+
+        </li>
+      {% empty %}
+        <li class="px-8 py-6 text-gray-500">
+          {% if q or text %}
+            No subscriptions found.
+          {% else %}
+            No subscriptions yet.
+          {% endif %}
+        </li>
+      {% endfor %}
+
+    </ul>
+  </div>
 {% endblock %}

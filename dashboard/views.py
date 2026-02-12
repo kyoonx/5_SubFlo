@@ -1,3 +1,5 @@
+from datetime import timedelta
+from django.utils import timezone
 from django.http import HttpResponse
 from django.template import loader
 from django.shortcuts import render, get_object_or_404
@@ -27,6 +29,23 @@ class SubscriptionList(ListView):
         ctx = super().get_context_data(**kwargs)
         ctx["q"] = self.request.GET.get("q", "").strip()
         ctx["text"] = self.request.POST.get("text", "").strip()
+        
+        ctx["total_subscriptions"] = Subscription.objects.count()
+        ctx["total_active_subscriptions"] = Subscription.objects.filter(already_canceled=False).count()
+        
+        today = timezone.now().date()
+        soon = today + timedelta(days=7)
+
+        ctx["total_soon_to_expire_subscriptions"] = (
+            Subscription.objects.filter(
+                user=self.request.user,
+                already_canceled=False,
+                end_date__gte=today,
+                end_date__lte=soon,
+            ).count()
+        )
+
+        
         return ctx
 
     def post(self, request, *args, **kwargs):
