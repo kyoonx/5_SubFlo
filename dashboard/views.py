@@ -3,11 +3,20 @@ from django.template import loader
 from django.shortcuts import render, get_object_or_404
 from django.views.generic import ListView
 from subscriptions.models import Subscription, EmailMessage
+from django.db.models import Q
 
 class SubscriptionList(ListView):
     model = Subscription
     context_object_name = "subscriptions"
     template_name = "dashboard/subscription_list.html"
+    
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        q = self.request.GET.get("q", "").strip()
+        if q:
+            ctx["subscriptions"]  = Subscription.objects.filter( Q(platform_name__icontains=q) | Q(service_name__icontains=q) )
+        ctx["q"] = q
+        return ctx
 
 def subscription_detail(request, pk):
     subscription = get_object_or_404(Subscription, pk=pk)

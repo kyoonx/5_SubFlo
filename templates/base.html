@@ -32,8 +32,17 @@
     </nav>
 </header>
 
+
+
+
+
 <!-- Content -->
 <main class="container mx-auto py-6 px-4">
+    {% block search %}
+
+    {% endblock %}
+
+
     {% block content %}
         <p class="text-gray-600">This is default content.</p>
     {% endblock %}
