@@ -1,6 +1,7 @@
 # subscriptions/models.py
 from django.db import models
 from django.contrib.auth.models import User
+from django.urls import reverse
 import uuid
 
 class Subscription(models.Model):
@@ -40,6 +41,11 @@ class Subscription(models.Model):
             )
         ]
         ordering = ["user", "-end_date", "-start_date", "platform_name", "service_name"]
+    
+    def get_absolute_url(self):
+        return reverse('subscription-detail-url',
+                       kwargs={'pk': self.pk}
+                       )
 
 class EmailMessage(models.Model):
     """
