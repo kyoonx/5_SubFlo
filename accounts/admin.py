@@ -5,5 +5,5 @@ from .models import UserProfile
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
     list_display = ( "user", "email_access_granted", "last_processed_date")
-    search_fields = ("user", "email_access_granted", "last_processed_date")
+    search_fields = ("user",)
     ordering     = ("user",)

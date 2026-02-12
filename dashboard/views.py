@@ -17,8 +17,7 @@ class SubscriptionList(ListView):
         text = self.request.POST.get("text", "").strip()
 
         if q:
-            queryset = queryset.filter(Q(platform_name__icontains=q) | Q(service_name__icontains=q))
-
+            queryset = queryset.filter(Q(platform_name__icontains=q) | Q(service_name__icontains=q) | Q(email_message_id__sender__icontains=q))
         if text:
             queryset = queryset.filter(notes__icontains=text)
 
@@ -36,7 +35,7 @@ class SubscriptionList(ListView):
 
         queryset = Subscription.objects.all()
         if q:
-            queryset = queryset.filter(Q(platform_name__icontains=q) | Q(service_name__icontains=q))
+            queryset = queryset.filter(Q(platform_name__icontains=q) | Q(service_name__icontains=q) | Q(email_message_id__sender__icontains=q))
         if text:
             queryset = queryset.filter(notes__icontains=text)
         

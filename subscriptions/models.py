@@ -12,7 +12,7 @@ class Subscription(models.Model):
     This model will be filled after a LLM processes users' emails.
     Ensure that each user can subscribe to only "one" service from a specific platform during a given period.
     """
-    id = models.AutoField(primary_key=True, editable=False, verbose_name="Id")
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, verbose_name="Subscription ID")
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='subscriptions', verbose_name="User")
     platform_name = models.CharField(max_length=255, verbose_name="Platform Name")
     service_name = models.CharField(max_length=255, verbose_name="Service Name")
@@ -29,7 +29,7 @@ class Subscription(models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Updated At")
 
     def __str__(self):
-        return f"{self.platform_name} - {self.user.username}"
+        return f"{self.platform_name} ({self.service_name}) - {self.user.username}"
 
     class Meta:
         verbose_name = "Subscription"
@@ -53,8 +53,8 @@ class EmailMessage(models.Model):
     Ensure that `message_id` is unique for every user.
     `parsed_data` and `created_at` will be filled after the LLM processes emails.
     """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, verbose_name="Message ID")
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='email_messages', verbose_name="User")
-    message_id = models.CharField(max_length=255, verbose_name="Message ID", primary_key=True)
     subject = models.CharField(max_length=255, verbose_name="Subject")
     sender = models.CharField(max_length=255, verbose_name="Sender")
     received_date = models.DateTimeField(verbose_name="Received Date")
@@ -69,10 +69,4 @@ class EmailMessage(models.Model):
     class Meta:
         verbose_name = "Email Message"
         verbose_name_plural = "Email Messages"
-        constraints = [
-            models.UniqueConstraint(
-                fields=["message_id"],
-                name="unique_message_id",
-            )
-        ]
         ordering = ["user", "-received_date"]
