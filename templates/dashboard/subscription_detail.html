@@ -32,7 +32,7 @@
             class="inline-block bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-md transition duration-200">Back
             to List</a>
         {% if subscription.unsubscribe_link %}
-        <a href="{{ subscription.unsubscribe_link }}" target="_blank"
+        <a href="{% if subscription.unsubscribe_link|slice:':4' != 'http' %}https://{% endif %}{{ subscription.unsubscribe_link }}" target="_blank"
             class="inline-block bg-red-500 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md transition duration-200">Cancel</a>
         {% else %}
         <button class="bg-gray-400 text-white font-medium py-2 px-4 rounded-md cursor-not-allowed"
