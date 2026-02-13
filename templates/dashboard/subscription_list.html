@@ -13,20 +13,8 @@ Subscription List
 
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
 
-        <!-- Total Subscriptions -->
-        <div class="border border-gray-200 rounded-2xl p-6 
-                    hover:bg-gray-50 transition duration-200
-                    flex flex-col justify-center h-40">
-
-            <div class="text-4xl font-semibold text-black">
-                {{ total_subscriptions }}
-            </div>
-            <div class="text-sm text-gray-500 mt-2">
-                Total Subscriptions
-            </div>
-        </div>
-
-        <!-- Active Subscriptions -->
+        
+        <!-- Total Active Subscriptions -->
         <div class="border border-gray-200 rounded-2xl p-6 
                     hover:bg-gray-50 transition duration-200
                     flex flex-col justify-center h-40">
@@ -35,7 +23,20 @@ Subscription List
                 {{ total_active_subscriptions }}
             </div>
             <div class="text-sm text-gray-500 mt-2">
-                Active Subscriptions
+                Total Active Subscriptions
+            </div>
+        </div>
+
+        <!-- Active Trial Subscriptions -->
+        <div class="border border-gray-200 rounded-2xl p-6 
+                    hover:bg-gray-50 transition duration-200
+                    flex flex-col justify-center h-40">
+
+            <div class="text-4xl font-semibold text-black">
+                {{ total_active_trial_subscriptions }}
+            </div>
+            <div class="text-sm text-gray-500 mt-2">
+                Active Trial Subscriptions
             </div>
         </div>
 
@@ -48,7 +49,7 @@ Subscription List
                 {{ total_soon_to_expire_subscriptions }}
             </div>
             <div class="text-sm text-gray-500 mt-2">
-                Expiring Soon
+                Expiring Soon (in next 7 days)
             </div>
         </div>
 

@@ -31,7 +31,7 @@ class SubscriptionList(ListView):
         ctx["text"] = self.request.POST.get("text", "").strip()
         
         ctx["total_subscriptions"] = Subscription.objects.count()
-        ctx["total_trial_subscriptions"] = Subscription.objects.filter(is_trial=True).count()
+        ctx["total_active_trial_subscriptions"] = Subscription.objects.filter(is_trial=True, already_canceled=False).count()
         ctx["total_active_subscriptions"] = Subscription.objects.filter(already_canceled=False).count()
         
         today = timezone.now().date()
