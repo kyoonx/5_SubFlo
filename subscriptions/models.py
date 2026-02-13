@@ -18,6 +18,7 @@ class Subscription(models.Model):
     service_name = models.CharField(max_length=255, verbose_name="Service Name")
     start_date = models.DateField(null=True, blank=True, verbose_name="Start Date")
     end_date = models.DateField(null=True, blank=True, verbose_name="End Date")
+    is_trial = models.BooleanField(default=False, verbose_name="Is Trial")
     already_canceled = models.BooleanField(default=False, verbose_name="Already Canceled")
     price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name="Price")
     currency = models.CharField(max_length=10, default="USD", verbose_name="Currency")
