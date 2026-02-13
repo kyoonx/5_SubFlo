@@ -1,3 +1,4 @@
+from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.views import View
 from accounts.models import UserProfile
@@ -16,3 +17,17 @@ class AccountDetail(View):
             },
         )
 
+def api_verify_user_id(request):
+    """
+    GET /api/accounts/verify/?user_id=<profile_uuid>
+    """
+    profile_uuid = request.GET.get("user_id")
+    
+    if not profile_uuid:
+        return HttpResponse("No user_id provided.", status=400)
+
+    try:
+        _ = UserProfile.objects.select_related("user").get(id=profile_uuid)
+        return HttpResponse(f"This user_id ({profile_uuid}) is existing/valid.", status=200)
+    except UserProfile.DoesNotExist:
+        return HttpResponse(f"This user_id ({profile_uuid}) does not exist.", status=404)
