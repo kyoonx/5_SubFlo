@@ -11,10 +11,13 @@ Subscription List
         Subscription Summary
     </h3>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
 
+        <!-- Total Subscriptions -->
         <div class="border border-gray-200 rounded-2xl p-6 
-                  hover:bg-gray-50 transition duration-200">
+                    hover:bg-gray-50 transition duration-200
+                    flex flex-col justify-center h-40">
+
             <div class="text-4xl font-semibold text-black">
                 {{ total_subscriptions }}
             </div>
@@ -23,8 +26,11 @@ Subscription List
             </div>
         </div>
 
+        <!-- Active Subscriptions -->
         <div class="border border-gray-200 rounded-2xl p-6 
-                  hover:bg-gray-50 transition duration-200">
+                    hover:bg-gray-50 transition duration-200
+                    flex flex-col justify-center h-40">
+
             <div class="text-4xl font-semibold text-black">
                 {{ total_active_subscriptions }}
             </div>
@@ -33,14 +39,45 @@ Subscription List
             </div>
         </div>
 
+        <!-- Expiring Soon -->
         <div class="border border-gray-200 rounded-2xl p-6 
-                  hover:bg-gray-50 transition duration-200">
+                    hover:bg-gray-50 transition duration-200
+                    flex flex-col justify-center h-40">
+
             <div class="text-4xl font-semibold text-black">
                 {{ total_soon_to_expire_subscriptions }}
             </div>
             <div class="text-sm text-gray-500 mt-2">
                 Expiring Soon
             </div>
+        </div>
+
+        <!-- Total Cost Per Payment Method (Premium Style) -->
+        <div class="bg-black text-white rounded-2xl p-6 
+                    transition duration-200 hover:scale-[1.02]
+                    flex flex-col justify-center h-40 shadow-lg">
+
+            <div class="text-lg font-medium mb-4 tracking-wide">
+                Payment Breakdown
+            </div>
+
+            <div class="space-y-1 text-sm">
+                {% for item in total_cost_per_payment_method %}
+                    <div class="flex justify-between border-b border-white/20 pb-1">
+                        <span class="opacity-80">
+                            {{ item.payment_method }}
+                        </span>
+                        <span class="font-semibold">
+                            ${{ item.total_cost|floatformat:2 }}
+                        </span>
+                    </div>
+                {% empty %}
+                    <div class="text-white/60">
+                        No payment data
+                    </div>
+                {% endfor %}
+            </div>
+
         </div>
 
     </div>

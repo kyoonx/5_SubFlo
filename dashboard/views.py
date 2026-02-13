@@ -5,7 +5,7 @@ from django.template import loader
 from django.shortcuts import render, get_object_or_404
 from django.views.generic import ListView
 from subscriptions.models import Subscription, EmailMessage
-from django.db.models import Q
+from django.db.models import Q, Sum
 
 
 class SubscriptionList(ListView):
@@ -31,6 +31,7 @@ class SubscriptionList(ListView):
         ctx["text"] = self.request.POST.get("text", "").strip()
         
         ctx["total_subscriptions"] = Subscription.objects.count()
+        ctx["total_trial_subscriptions"] = Subscription.objects.filter(is_trial=True).count()
         ctx["total_active_subscriptions"] = Subscription.objects.filter(already_canceled=False).count()
         
         today = timezone.now().date()
@@ -43,6 +44,13 @@ class SubscriptionList(ListView):
                 end_date__gte=today,
                 end_date__lte=soon,
             ).count()
+        )
+        
+        # Credit/Debit card, PayPal, etc.
+        ctx["total_cost_per_payment_method"] = (
+            Subscription.objects.
+            values("payment_method")
+            .annotate(total_cost=Sum("price"))
         )
 
         
