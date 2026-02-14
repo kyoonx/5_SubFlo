@@ -11,7 +11,7 @@ Progress
   - [x] Create a summary at the top of dashboard
   - [x] Search functionality
   - [x] Redesign database (add `is_trial`, add `id` in `UserProfile`)
-  - [x] Add hyperlinks in navbar (Note: Still need to be enhanced to show emails, subscriptions, and user profile of a specific user once auth feature is completed)
+  - [x] Add hyperlinks + Logo in navbar (Note: Still need to be enhanced to show emails, subscriptions, and user profile of a specific user once auth feature is completed)
 
 ==============================================
 
@@ -45,8 +45,14 @@ When each was useful:
 
 Assignment 3 - Section 1
 
-For which feature you've implemented get_absolute_url() is useful
+For which feature you've implemented get_absolute_url() is useful?
 The hyperlink in dashboard that will navigate users to each subscription detail.
+
+
+Assignment 3 - Section 2
+
+Static file organization choice
+- We decided to use "Project Level" since our app needs a few pictures and no separated CSS files (we use TailwindCSS for styling.)
 
 
 Assignment 3 - Section 6
