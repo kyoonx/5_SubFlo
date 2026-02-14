@@ -57,8 +57,9 @@ class SubscriptionList(ListView):
         
         # Credit/Debit card, PayPal, etc.
         ctx["total_cost_per_payment_method"] = (
-            total_subscriptions.
-            values("payment_method")
+            total_active_subscriptions
+            .filter(is_trial=False)
+            .values("payment_method")
             .annotate(total_cost=Sum("price"))
         )
     

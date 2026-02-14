@@ -35,7 +35,9 @@
                 {% for email in email_messages %}
                 <tr class="hover:bg-gray-50 transition duration-150">
                     <td class="px-6 py-4 font-medium text-gray-900">
+                        <a href="{% url 'email_message_detail-url' email.id %}" class="hover:underline">
                         {{ email.subject }}
+                        </a>
                     </td>
 
                     <td class="px-6 py-4">
