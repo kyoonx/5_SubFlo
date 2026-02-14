@@ -22,12 +22,27 @@
 <header>
     <nav class="bg-black/90 py-4 shadow-md">
         <div class="container mx-auto flex items-center justify-between px-4">
-            <a href="{% url 'subscription-list-url' %}" class="text-white text-2xl font-semibold">SubFlo</a>
-            <div class="flex items-center">
-                <div class="w-9 h-9 rounded-full bg-gray-300 flex items-center justify-center text-gray-700 font-medium">
-                    U <!-- TODO: replace with user initials or image later -->
-                </div>
+            
+            <!-- Left Section -->
+            <div class="flex items-center space-x-6">
+                <a href="{% url 'subscription-list-url' %}" 
+                   class="text-white text-3xl font-bold tracking-tight">
+                    SubFlo
+                </a>
+
+                <a href="{% url 'email_message_list-url' %}" 
+                   class="text-gray-300 text-base font-medium hover:text-white transition">
+                    All Emails
+                </a>
             </div>
+
+            <!-- Right Section -->
+            <div class="flex items-center">
+                <a href="{% url 'account-detail-url' 'b0d8db4a-1292-4192-ac60-b5793a19eaeb' %}" class="w-9 h-9 rounded-full bg-gray-300 flex items-center justify-center text-gray-700 font-medium">
+                    U
+                </a>
+            </div>
+
         </div>
     </nav>
 </header>

@@ -98,6 +98,14 @@ def email_message_detail(request, pk):
     return HttpResponse(output)
 
 
+def email_message_list(request):
+    email_messages = EmailMessage.objects.all().values("id", "subject", "sender", "received_date")
+    template = loader.get_template("dashboard/email_message_list.html")
+    context = {"email_messages": email_messages}
+    output = template.render(context, request)
+    return HttpResponse(output)
+
+
 
 ############################################################
 #################### External API Views ####################

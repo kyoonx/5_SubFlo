@@ -11,6 +11,7 @@ Progress
   - [x] Create a summary at the top of dashboard
   - [x] Search functionality
   - [x] Redesign database (add `is_trial`, add `id` in `UserProfile`)
+  - [x] Add hyperlinks in navbar (Note: Still need to be enhanced to show emails, subscriptions, and user profile of a specific user once auth feature is completed)
 
 ==============================================
 

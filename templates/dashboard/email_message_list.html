@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}All Emails | SubFlo{% endblock %}
+
+{% block content %}
+
+<div class="bg-white shadow-lg rounded-3xl border border-gray-200 overflow-hidden">
+
+    <!-- Header Section -->
+    <div class="px-6 py-5 border-b border-gray-200 flex justify-between items-center">
+        <div>
+            <h2 class="text-2xl font-semibold text-gray-800">All Emails</h2>
+            <p class="text-sm text-gray-500 mt-1">
+                View and manage all received email messages.
+            </p>
+        </div>
+
+        <div class="text-sm text-gray-500">
+            Total: <span class="font-medium text-gray-700">{{ email_messages|length }}</span>
+        </div>
+    </div>
+
+    <!-- Table Section -->
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50 text-gray-600 text-sm uppercase tracking-wider">
+                <tr>
+                    <th class="px-6 py-3 text-left">Subject</th>
+                    <th class="px-6 py-3 text-left">Sender</th>
+                    <th class="px-6 py-3 text-left">Received Date</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-100 text-sm text-gray-700">
+
+                {% for email in email_messages %}
+                <tr class="hover:bg-gray-50 transition duration-150">
+                    <td class="px-6 py-4 font-medium text-gray-900">
+                        {{ email.subject }}
+                    </td>
+
+                    <td class="px-6 py-4">
+                        {{ email.sender }}
+                    </td>
+
+                    <td class="px-6 py-4 text-gray-500">
+                        {{ email.received_date|date:"M d, Y • h:i A" }}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" class="px-6 py-6 text-center text-gray-500">
+                        No email messages found.
+                    </td>
+                </tr>
+                {% endfor %}
+
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}
