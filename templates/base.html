@@ -1,3 +1,5 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -25,8 +27,8 @@
             
             <!-- Left Section -->
             <div class="flex items-center space-x-6">
-                <a href="{% url 'subscription-list-url' %}" 
-                   class="text-white text-3xl font-bold tracking-tight">
+                <a href="{% url 'subscription-list-url' %}" class="text-white text-2xl font-bold tracking-tight">
+                   <img src="{% static 'subflo_logo.jpg' %}" alt="SubFlo logo" class="w-8 h-8 inline-block mr-2">
                     SubFlo
                 </a>
 
