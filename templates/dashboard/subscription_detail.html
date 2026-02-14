@@ -23,6 +23,7 @@
             </p>
         </div>
         <div>
+            <p class="text-gray-700"><strong>Email Message ID:</strong> <a href="{% url 'email_message_detail-url' subscription.email_message_id %}" class="hover:underline">{{ subscription.email_message_id|default:"N/A" }}</a></p>
             <p class="text-gray-700"><strong>Is Trial:</strong> {{ subscription.is_trial|yesno:"Yes,No" }}</p>
             <p class="text-gray-700"><strong>Already Canceled:</strong> {{ subscription.already_canceled|yesno:"Yes,No" }}</p>
             <p class="text-gray-700"><strong>Notes:</strong> {{ subscription.notes|default:"N/A" }}</p>

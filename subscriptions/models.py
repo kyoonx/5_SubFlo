@@ -64,8 +64,9 @@ class EmailMessage(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Created At")    # Time when `parsed_data` is filled
 
     def __str__(self):
-        name = f"Email from {self.sender} - {self.subject}" if len(self.subject) <= 50 else f"Email from {self.sender} - {self.subject[:50]}..."
-        return name
+        return str(self.id)
+        # name = f"Email from {self.sender} - {self.subject}" if len(self.subject) <= 50 else f"Email from {self.sender} - {self.subject[:50]}..."
+        # return name
 
     class Meta:
         verbose_name = "Email Message"
