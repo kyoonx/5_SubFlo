@@ -119,13 +119,19 @@ def api_all_active_subscriptions(request):
 
     today = timezone.now().date()
 
+    fields = [
+        field.name
+        for field in Subscription._meta.fields
+        if field.name != "user"
+    ]
+    
     rows = Subscription.objects.filter(
         user=profile.user,
         already_canceled=False
     ).filter(
         Q(end_date__isnull=True) |
         Q(end_date__gte=today)
-    )
+    ).values(*fields)
 
-    data = list(rows.values())
-    return JsonResponse({"subscriptions": data})
+    data = list(rows)
+    return JsonResponse({"user_id": profile_uuid, "num_active_subscriptions": len(data), "subscriptions": data})

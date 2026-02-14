@@ -3,6 +3,12 @@ from django.shortcuts import render, get_object_or_404
 from django.views import View
 from accounts.models import UserProfile
 
+
+############################################################
+#################### Internal API Views ####################
+############################################################
+
+
 # Create your views here.
 class AccountDetail(View):
 
@@ -16,6 +22,12 @@ class AccountDetail(View):
                 'user_detail': user_detail,
             },
         )
+
+
+
+############################################################
+#################### External API Views ####################
+############################################################
 
 def api_verify_user_id(request):
     """
