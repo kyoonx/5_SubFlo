@@ -3,6 +3,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+import uuid
 
 class UserProfile(models.Model):
     """
@@ -11,7 +12,8 @@ class UserProfile(models.Model):
     Used to keep track of the latest date a LLM processes emails, so the LLM knows where it left off.
     `user` is globally unique automatically due to Django User model.
     """
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile', primary_key=True) # Link to Django's built-in User model
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, verbose_name="Profile ID")
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile') # Link to Django's built-in User model
     email_access_granted = models.BooleanField(default=False, verbose_name="Email Access Granted") # Flag for email access permission
     last_processed_date = models.DateTimeField(null=True, blank=True, verbose_name="Last Processed Date") # Timestamp of last email processing
 
