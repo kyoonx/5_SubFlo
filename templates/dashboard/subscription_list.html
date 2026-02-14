@@ -5,179 +5,570 @@ Subscription List
 {% endblock %}
 
 {% block summary %}
-<div class="bg-white border border-gray-200 rounded-3xl p-8 mb-8">
+<!-- Metric Cards - All on Same Line -->
+<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 md:gap-6 mb-8">
+    <!-- Total Active Subscriptions Card -->
+    <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
+        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800">
+            <svg
+                class="fill-gray-800 dark:fill-white/90"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+            >
+                <path
+                    fill-rule="evenodd"
+                    clip-rule="evenodd"
+                    d="M8.80443 5.60156C7.59109 5.60156 6.60749 6.58517 6.60749 7.79851C6.60749 9.01185 7.59109 9.99545 8.80443 9.99545C10.0178 9.99545 11.0014 9.01185 11.0014 7.79851C11.0014 6.58517 10.0178 5.60156 8.80443 5.60156ZM5.10749 7.79851C5.10749 5.75674 6.76267 4.10156 8.80443 4.10156C10.8462 4.10156 12.5014 5.75674 12.5014 7.79851C12.5014 9.84027 10.8462 11.4955 8.80443 11.4955C6.76267 11.4955 5.10749 9.84027 5.10749 7.79851ZM4.86252 15.3208C4.08769 16.0881 3.70377 17.0608 3.51705 17.8611C3.48384 18.0034 3.5211 18.1175 3.60712 18.2112C3.70161 18.3141 3.86659 18.3987 4.07591 18.3987H13.4249C13.6343 18.3987 13.7992 18.3141 13.8937 18.2112C13.9797 18.1175 14.017 18.0034 13.9838 17.8611C13.7971 17.0608 13.4132 16.0881 12.6383 15.3208C11.8821 14.572 10.6899 13.955 8.75042 13.955C6.81096 13.955 5.61877 14.572 4.86252 15.3208ZM3.8071 14.2549C4.87163 13.2009 6.45602 12.455 8.75042 12.455C11.0448 12.455 12.6292 13.2009 13.6937 14.2549C14.7397 15.2906 15.2207 16.5607 15.4446 17.5202C15.7658 18.8971 14.6071 19.8987 13.4249 19.8987H4.07591C2.89369 19.8987 1.73504 18.8971 2.05628 17.5202C2.28015 16.5607 2.76117 15.2906 3.8071 14.2549Z"
+                    fill=""
+                />
+            </svg>
+        </div>
 
-    <h3 class="text-2xl font-semibold tracking-tight text-black mb-8">
-        Subscription Summary
-    </h3>
-
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-
-        
-        <!-- Total Active Subscriptions -->
-        <div class="border border-gray-200 rounded-2xl p-6 
-                    hover:bg-gray-50 transition duration-200
-                    flex flex-col justify-center h-40">
-
-            <div class="text-4xl font-semibold text-black">
-                {{ total_active_subscriptions }}
+        <div class="mt-5 flex items-end justify-between">
+            <div>
+                <span class="text-sm text-gray-500 dark:text-gray-400">Total Active Subscriptions</span>
+                <h4 class="mt-2 text-title-sm font-bold text-gray-800 dark:text-white/90">
+                    {{ total_active_subscriptions }}
+                </h4>
             </div>
-            <div class="text-sm text-gray-500 mt-2">
-                Total Active Subscriptions
+        </div>
+    </div>
+
+    <!-- Total Trial Subscriptions Card -->
+    <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
+        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800">
+            <svg
+                class="fill-gray-800 dark:fill-white/90"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+            >
+                <path
+                    fill-rule="evenodd"
+                    clip-rule="evenodd"
+                    d="M11.665 3.75621C11.8762 3.65064 12.1247 3.65064 12.3358 3.75621L18.7807 6.97856L12.3358 10.2009C12.1247 10.3065 11.8762 10.3065 11.665 10.2009L5.22014 6.97856L11.665 3.75621ZM4.29297 8.19203V16.0946C4.29297 16.3787 4.45347 16.6384 4.70757 16.7654L11.25 20.0366V11.6513C11.1631 11.6205 11.0777 11.5843 10.9942 11.5426L4.29297 8.19203ZM12.75 20.037L19.2933 16.7654C19.5474 16.6384 19.7079 16.3787 19.7079 16.0946V8.19202L13.0066 11.5426C12.9229 11.5844 12.8372 11.6208 12.75 11.6516V20.037ZM13.0066 2.41456C12.3732 2.09786 11.6277 2.09786 10.9942 2.41456L4.03676 5.89319C3.27449 6.27432 2.79297 7.05342 2.79297 7.90566V16.0946C2.79297 16.9469 3.27448 17.726 4.03676 18.1071L10.9942 21.5857C11.6277 21.9024 12.3732 21.9024 13.0066 21.5857L19.9641 18.1071C20.7264 17.726 21.2079 16.9469 21.2079 16.0946V7.90566C21.2079 7.05342 20.7264 6.27432 19.9641 5.89319L13.0066 2.41456Z"
+                    fill=""
+                />
+            </svg>
+        </div>
+
+        <div class="mt-5 flex items-end justify-between">
+            <div>
+                <span class="text-sm text-gray-500 dark:text-gray-400">Total Trial Subscriptions</span>
+                <h4 class="mt-2 text-title-sm font-bold text-gray-800 dark:text-white/90">
+                    {{ total_active_trial_subscriptions }}
+                </h4>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monthly Subscription Costs Chart Card -->
+    <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white px-5 pt-5 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6 sm:pt-6">
+        <div class="flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
+                Monthly Subscription Costs
+            </h3>
+
+            <div x-data="{openDropDown: false}" class="relative h-fit">
+                <button
+                    @click="openDropDown = !openDropDown"
+                    :class="openDropDown ? 'text-gray-700 dark:text-white' : 'text-gray-400 hover:text-gray-700 dark:hover:text-white'"
+                >
+                    <svg
+                        class="fill-current"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <path
+                            fill-rule="evenodd"
+                            clip-rule="evenodd"
+                            d="M10.2441 6C10.2441 5.0335 11.0276 4.25 11.9941 4.25H12.0041C12.9706 4.25 13.7541 5.0335 13.7541 6C13.7541 6.9665 12.9706 7.75 12.0041 7.75H11.9941C11.0276 7.75 10.2441 6.9665 10.2441 6ZM10.2441 18C10.2441 17.0335 11.0276 16.25 11.9941 16.25H12.0041C12.9706 16.25 13.7541 17.0335 13.7541 18C13.7541 18.9665 12.9706 19.75 12.0041 19.75H11.9941C11.0276 19.75 10.2441 18.9665 10.2441 18ZM11.9941 10.25C11.0276 10.25 10.2441 11.0335 10.2441 12C10.2441 12.9665 11.0276 13.75 11.9941 13.75H12.0041C12.9706 13.75 13.7541 12.9665 13.7541 12C13.7541 11.0335 12.9706 10.25 12.0041 10.25H11.9941Z"
+                            fill=""
+                        />
+                    </svg>
+                </button>
+                <div
+                    x-show="openDropDown"
+                    @click.outside="openDropDown = false"
+                    class="absolute right-0 z-40 w-40 p-2 space-y-1 bg-white border border-gray-200 top-full rounded-2xl shadow-theme-lg dark:border-gray-800 dark:bg-gray-dark"
+                >
+                    <button
+                        class="flex w-full px-3 py-2 font-medium text-left text-gray-500 rounded-lg text-theme-xs hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+                    >
+                        View More
+                    </button>
+                    <button
+                        class="flex w-full px-3 py-2 font-medium text-left text-gray-500 rounded-lg text-theme-xs hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+                    >
+                        Delete
+                    </button>
+            </div>
             </div>
         </div>
 
-        <!-- Active Trial Subscriptions -->
-        <div class="border border-gray-200 rounded-2xl p-6 
-                    hover:bg-gray-50 transition duration-200
-                    flex flex-col justify-center h-40">
-
-            <div class="text-4xl font-semibold text-black">
-                {{ total_active_trial_subscriptions }}
-            </div>
-            <div class="text-sm text-gray-500 mt-2">
-                Active Trial Subscriptions
+        <div class="max-w-full overflow-x-auto custom-scrollbar">
+            <div class="-ml-5 min-w-[650px] pl-2 xl:min-w-full">
+                <div
+                    id="monthlyCostsChart"
+                    class="-ml-5 h-full min-w-[650px] pl-2 xl:min-w-full"
+                ></div>
             </div>
         </div>
-
-        <!-- Expiring Soon -->
-        <div class="border border-gray-200 rounded-2xl p-6 
-                    hover:bg-gray-50 transition duration-200
-                    flex flex-col justify-center h-40">
-
-            <div class="text-4xl font-semibold text-black">
-                {{ total_soon_to_expire_subscriptions }}
-            </div>
-            <div class="text-sm text-gray-500 mt-2">
-                Expiring Soon (in next 7 days)
-            </div>
-        </div>
-
-        <!-- Total Cost Per Payment Method (Premium Style) -->
-        <div class="bg-black text-white rounded-2xl p-6 
-                    transition duration-200 hover:scale-[1.02]
-                    flex flex-col justify-center h-40 shadow-lg">
-
-            <div class="text-lg font-medium mb-4 tracking-wide">
-                Payment Breakdown
-            </div>
-
-            <div class="space-y-1 text-sm">
-                {% for item in total_cost_per_payment_method %}
-                    <div class="flex justify-between border-b border-white/20 pb-1">
-                        <span class="opacity-80">
-                            {{ item.payment_method }}
-                        </span>
-                        <span class="font-semibold">
-                            ${{ item.total_cost|floatformat:2 }}
-                        </span>
-                    </div>
-                {% empty %}
-                    <div class="text-white/60">
-                        No payment data
-                    </div>
-                {% endfor %}
-            </div>
-
-        </div>
-
     </div>
 </div>
 {% endblock %}
-
-
-
-{% block search %}
-<div class="bg-white border border-gray-200 rounded-3xl p-8 mb-8">
-
-    <h3 class="text-2xl font-semibold tracking-tight text-black mb-6">
-        Search
-    </h3>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-        <!-- Service / Platform -->
-        <form method="get" class="flex items-center gap-3">
-            <input type="search" name="q" value="{{ q }}" class="flex-1 px-4 py-3 border border-gray-200 rounded-xl 
-                 focus:outline-none focus:border-black transition appearance-none"
-                placeholder="Service, platform, email...">
-
-            <button type="submit" class="px-6 py-3 rounded-xl bg-neutral-900 text-white border border-neutral-900
-                 hover:bg-neutral-700 hover:border-neutral-700
-                 transition duration-200 whitespace-nowrap">
-                Search
-            </button>
-        </form>
-
-        <!-- Notes -->
-        <form method="post" class="flex items-center gap-3">
-            {% csrf_token %}
-
-            <input type="search" name="text" value="{{ text }}" class="flex-1 px-4 py-3 border border-gray-200 rounded-xl 
-                 focus:outline-none focus:border-black transition appearance-none" placeholder="Search notes...">
-
-            <button type="submit" class="px-6 py-3 rounded-xl bg-neutral-900 text-white border border-neutral-900
-                 hover:bg-neutral-700 hover:border-neutral-700
-                 transition duration-200 whitespace-nowrap">
-                Search
-            </button>
-        </form>
-
-    </div>
-
-</div>
-{% endblock %}
-
 
 {% block content %}
-<div class="bg-white border border-gray-200 rounded-3xl">
-
-    <div class="px-8 py-6 border-b border-gray-200">
-        <h2 class="text-2xl font-semibold tracking-tight text-black">
-            Subscriptions
-        </h2>
-    </div>
-
-    <ul>
-
-        {% for sub in subscriptions %}
-        <li class="flex items-center justify-between px-8 py-6 border-b border-gray-100 hover:bg-gray-50 transition">
-
+<div class="space-y-5 sm:space-y-6">
+    <!-- Table Container -->
+    <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white px-4 pb-3 pt-4 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6">
+        <div class="flex flex-col gap-2 mb-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-                <a href="{{ sub.get_absolute_url }}" class="text-lg font-medium text-black hover:underline">
-                    {{ sub.platform_name }} — {{ sub.service_name }}
-                </a>
-                <div class="text-sm text-gray-500 mt-1">
-                    Renews {{ sub.end_date|date:"M d, Y" }}
-                </div>
+                <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
+                    Subscriptions
+    </h3>
             </div>
 
-            <div class="flex items-center gap-6">
-                <div class="text-lg font-medium text-black">
-                    ${{ sub.price|floatformat:2 }}/mo
+            <div class="flex items-center gap-3">
+                <!-- Search Form -->
+                <form method="get" class="flex items-center">
+                    <div class="relative">
+                        <span class="absolute top-1/2 left-4 -translate-y-1/2">
+                            <svg
+                                class="fill-gray-500 dark:fill-gray-400"
+                                width="20"
+                                height="20"
+                                viewBox="0 0 20 20"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                            >
+                                <path
+                                    fill-rule="evenodd"
+                                    clip-rule="evenodd"
+                                    d="M3.04175 9.37363C3.04175 5.87693 5.87711 3.04199 9.37508 3.04199C12.8731 3.04199 15.7084 5.87693 15.7084 9.37363C15.7084 12.8703 12.8731 15.7053 9.37508 15.7053C5.87711 15.7053 3.04175 12.8703 3.04175 9.37363ZM9.37508 1.54199C5.04902 1.54199 1.54175 5.04817 1.54175 9.37363C1.54175 13.6991 5.04902 17.2053 9.37508 17.2053C11.2674 17.2053 13.003 16.5344 14.357 15.4176L17.177 18.238C17.4699 18.5309 17.9448 18.5309 18.2377 18.238C18.5306 17.9451 18.5306 17.4703 18.2377 17.1774L15.418 14.3573C16.5365 13.0033 17.2084 11.2669 17.2084 9.37363C17.2084 5.04817 13.7011 1.54199 9.37508 1.54199Z"
+                                    fill=""
+                                />
+                            </svg>
+                        </span>
+                        <input
+                            type="text"
+                            name="q"
+                            value="{{ q }}"
+                            placeholder="Search subscriptions..."
+                            class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pr-4 pl-12 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden xl:w-[300px] dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30"
+                        />
+                    </div>
+        </form>
+
+                <!-- Filter Dropdown -->
+                <div
+                    class="relative"
+                    x-data="{ dropdownOpen: false }"
+                    @click.outside="dropdownOpen = false"
+                >
+                    <button
+                        @click.prevent="dropdownOpen = ! dropdownOpen"
+                        class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200"
+                    >
+                        <svg
+                            class="stroke-current fill-white dark:fill-gray-800"
+                            width="20"
+                            height="20"
+                            viewBox="0 0 20 20"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                            <path
+                                d="M2.29004 5.90393H17.7067"
+                                stroke=""
+                                stroke-width="1.5"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            />
+                            <path
+                                d="M17.7075 14.0961H2.29085"
+                                stroke=""
+                                stroke-width="1.5"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            />
+                            <path
+                                d="M12.0826 3.33331C13.5024 3.33331 14.6534 4.48431 14.6534 5.90414C14.6534 7.32398 13.5024 8.47498 12.0826 8.47498C10.6627 8.47498 9.51172 7.32398 9.51172 5.90415C9.51172 4.48432 10.6627 3.33331 12.0826 3.33331Z"
+                                fill=""
+                                stroke=""
+                                stroke-width="1.5"
+                            />
+                            <path
+                                d="M7.91745 11.525C6.49762 11.525 5.34662 12.676 5.34662 14.0959C5.34661 15.5157 6.49762 16.6667 7.91745 16.6667C9.33728 16.6667 10.4883 15.5157 10.4883 14.0959C10.4883 12.676 9.33728 11.525 7.91745 11.525Z"
+                                fill=""
+                                stroke=""
+                                stroke-width="1.5"
+                            />
+                        </svg>
+                        Filter
+                    </button>
+                    <div
+                        x-show="dropdownOpen"
+                        class="shadow-theme-lg dark:bg-gray-dark absolute right-0 mt-2 flex w-48 flex-col rounded-2xl border border-gray-200 bg-white p-3 dark:border-gray-800"
+                    >
+                        <h6 class="mb-3 text-sm font-medium text-gray-800 dark:text-white/90">Filter by Platform</h6>
+                        <ul class="space-y-2 text-sm">
+                            <li class="flex items-center">
+                                <input id="filter-all" type="checkbox" value="" checked class="w-4 h-4 bg-gray-100 border-gray-300 rounded text-brand-600 focus:ring-brand-500 dark:focus:ring-brand-600 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
+                                <label for="filter-all" class="ml-2 text-sm font-medium text-gray-800 dark:text-white/90">All Platforms</label>
+                            </li>
+                            <li class="flex items-center">
+                                <input id="filter-trial" type="checkbox" value="" class="w-4 h-4 bg-gray-100 border-gray-300 rounded text-brand-600 focus:ring-brand-500 dark:focus:ring-brand-600 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
+                                <label for="filter-trial" class="ml-2 text-sm font-medium text-gray-800 dark:text-white/90">Trial Subscriptions</label>
+                            </li>
+                            <li class="flex items-center">
+                                <input id="filter-expiring" type="checkbox" value="" class="w-4 h-4 bg-gray-100 border-gray-300 rounded text-brand-600 focus:ring-brand-500 dark:focus:ring-brand-600 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
+                                <label for="filter-expiring" class="ml-2 text-sm font-medium text-gray-800 dark:text-white/90">Expiring Soon</label>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
 
-                <button class="px-5 py-2 rounded-xl bg-neutral-900 text-white border border-neutral-900
-                           hover:bg-neutral-700 hover:border-neutral-700
-                           transition duration-200">
-                    <a href="{% if sub.unsubscribe_link|slice:':4' != 'http' %}https://{% endif %}{{ sub.unsubscribe_link }}"
-                        target="_blank">
-                        Cancel
-                    </a>
+                <!-- Add Subscription Button -->
+                <button
+                    type="button"
+                    @click="$dispatch('open-modal', 'create-subscription-modal')"
+                    class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200"
+                >
+                    <svg class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path clip-rule="evenodd" fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" />
+                    </svg>
+                    Add Subscription
                 </button>
             </div>
+        </div>
 
-        </li>
-        {% empty %}
-        <li class="px-8 py-6 text-gray-500">
-            {% if q or text %}
-            No subscriptions found.
-            {% else %}
-            No subscriptions yet.
-            {% endif %}
-        </li>
-        {% endfor %}
+        <!-- Table -->
+        <div class="w-full overflow-x-auto">
+            <table class="min-w-full">
+                <!-- table header start -->
+                <thead>
+                    <tr class="border-gray-100 border-y dark:border-gray-800">
+                        <th class="py-3">
+                            <div class="flex items-center">
+                                <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">
+                                    Service
+                                </p>
+                            </div>
+                        </th>
+                        <th class="py-3">
+                            <div class="flex items-center">
+                                <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">
+                                    Renewal Date
+                                </p>
+                            </div>
+                        </th>
+                        <th class="py-3">
+                            <div class="flex items-center">
+                                <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">
+                                    Price
+                                </p>
+                            </div>
+                        </th>
+                        <th class="py-3">
+                            <div class="flex items-center">
+                                <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">
+                                    Actions
+                                </p>
+                            </div>
+                        </th>
+                    </tr>
+                </thead>
+                <!-- table header end -->
 
-    </ul>
+                <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                    {% for sub in subscriptions %}
+                    <tr>
+                        <td class="py-3">
+                            <div class="flex items-center">
+                                <div class="flex items-center gap-3">
+                                    <!-- Square Image Placeholder -->
+                                    <div class="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded flex items-center justify-center flex-shrink-0">
+                                        <span class="text-xs font-semibold text-gray-600 dark:text-gray-300">
+                                            {{ sub.platform_name|first|upper }}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <a href="{{ sub.get_absolute_url }}" class="font-medium text-gray-800 text-theme-sm dark:text-white/90 hover:underline">
+                                            {{ sub.platform_name }} - {{ sub.service_name }}
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="py-3">
+                            <div class="flex items-center">
+                                <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                                    {% if sub.end_date %}
+                                        {{ sub.end_date|date:"M d, Y" }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </td>
+                        <td class="py-3">
+                            <div class="flex items-center">
+                                <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                                    {% if sub.price %}
+                                        ${{ sub.price|floatformat:2 }}/mo
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </td>
+                        <td class="py-3">
+                            <div class="flex items-center">
+                                {% if sub.unsubscribe_link %}
+                                <a href="{% if sub.unsubscribe_link|slice:':4' != 'http' %}https://{% endif %}{{ sub.unsubscribe_link }}" target="_blank" class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-gray-900 rounded-lg hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-800">
+                                    Cancel
+                                </a>
+                                {% else %}
+                                <span class="text-theme-sm text-gray-400 dark:text-gray-500">No cancel link</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="py-6 text-center text-gray-500 dark:text-gray-400">
+                            {% if q %}
+                            No subscriptions found matching your search.
+                            {% else %}
+                            No subscriptions yet.
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Create Subscription Modal -->
+    <div
+        x-data="{ open: false }"
+        @open-modal.window="if ($event.detail === 'create-subscription-modal') open = true"
+        x-show="open"
+        @click.away="open = false"
+        class="fixed inset-0 z-99999 flex items-center justify-center bg-black/50 dark:bg-black/70"
+        style="display: none;"
+    >
+        <div class="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white rounded-2xl shadow-theme-lg dark:bg-gray-800 m-4">
+            <div class="flex items-center justify-between p-4 md:p-5 border-b border-gray-200 dark:border-gray-700">
+                <h3 class="text-xl font-semibold text-gray-800 dark:text-white/90">
+                    Add New Subscription
+                </h3>
+                <button
+                    @click="open = false"
+                    class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                >
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                    </svg>
+                    <span class="sr-only">Close modal</span>
+                </button>
+            </div>
+            <form method="post" class="p-4 md:p-5">
+                {% csrf_token %}
+                <input type="hidden" name="form_type" value="create_subscription">
+                <div class="grid gap-4 mb-4 grid-cols-2">
+                    <div class="col-span-2">
+                        <label for="platform_name" class="block mb-2 text-sm font-medium text-gray-800 dark:text-white/90">Platform Name *</label>
+                        <input type="text" name="platform_name" id="platform_name" class="shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 px-4 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30" placeholder="e.g., Spotify" required>
+                    </div>
+                    <div class="col-span-2">
+                        <label for="service_name" class="block mb-2 text-sm font-medium text-gray-800 dark:text-white/90">Service Name *</label>
+                        <input type="text" name="service_name" id="service_name" class="shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 px-4 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30" placeholder="e.g., Spotify Premium" required>
+                    </div>
+                    <div>
+                        <label for="price" class="block mb-2 text-sm font-medium text-gray-800 dark:text-white/90">Price (USD) *</label>
+                        <input type="number" step="0.01" name="price" id="price" class="shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 px-4 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30" placeholder="10.99" required>
+                    </div>
+                    <div>
+                        <label for="payment_method" class="block mb-2 text-sm font-medium text-gray-800 dark:text-white/90">Payment Method</label>
+                        <select name="payment_method" id="payment_method" class="shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 px-4 text-sm text-gray-800 focus:ring-3 focus:outline-hidden dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90">
+                            <option value="">Select payment method</option>
+                            <option value="Credit">Credit</option>
+                            <option value="Debit">Debit</option>
+                            <option value="PayPal">PayPal</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="end_date" class="block mb-2 text-sm font-medium text-gray-800 dark:text-white/90">Renewal Date</label>
+                        <input type="date" name="end_date" id="end_date" class="shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 px-4 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30">
+                    </div>
+                    <div class="col-span-2">
+                        <label for="notes" class="block mb-2 text-sm font-medium text-gray-800 dark:text-white/90">Notes</label>
+                        <textarea name="notes" id="notes" rows="3" class="shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 px-4 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30" placeholder="Optional notes about this subscription"></textarea>
+                    </div>
+                </div>
+                <button type="submit" class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-brand-500 px-4 py-2.5 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-brand-600 hover:text-white dark:border-gray-700 dark:bg-brand-500 dark:hover:bg-brand-600">
+                    <svg class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path clip-rule="evenodd" fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" />
+                    </svg>
+                    Add Subscription
+                </button>
+            </form>
 </div>
+    </div>
+
+    <!-- Monthly Subscriptions Chart at Bottom -->
+    <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white px-5 pt-5 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6 sm:pt-6 mt-8">
+        <div class="flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
+                Monthly Subscriptions
+            </h3>
+
+            <div x-data="{openDropDown: false}" class="relative h-fit">
+                <button
+                    @click="openDropDown = !openDropDown"
+                    :class="openDropDown ? 'text-gray-700 dark:text-white' : 'text-gray-400 hover:text-gray-700 dark:hover:text-white'"
+                >
+                    <svg
+                        class="fill-current"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <path
+                            fill-rule="evenodd"
+                            clip-rule="evenodd"
+                            d="M10.2441 6C10.2441 5.0335 11.0276 4.25 11.9941 4.25H12.0041C12.9706 4.25 13.7541 5.0335 13.7541 6C13.7541 6.9665 12.9706 7.75 12.0041 7.75H11.9941C11.0276 7.75 10.2441 6.9665 10.2441 6ZM10.2441 18C10.2441 17.0335 11.0276 16.25 11.9941 16.25H12.0041C12.9706 16.25 13.7541 17.0335 13.7541 18C13.7541 18.9665 12.9706 19.75 12.0041 19.75H11.9941C11.0276 19.75 10.2441 18.9665 10.2441 18ZM11.9941 10.25C11.0276 10.25 10.2441 11.0335 10.2441 12C10.2441 12.9665 11.0276 13.75 11.9941 13.75H12.0041C12.9706 13.75 13.7541 12.9665 13.7541 12C13.7541 11.0335 12.9706 10.25 12.0041 10.25H11.9941Z"
+                            fill=""
+                        />
+                    </svg>
+                </button>
+                <div
+                    x-show="openDropDown"
+                    @click.outside="openDropDown = false"
+                    class="absolute right-0 z-40 w-40 p-2 space-y-1 bg-white border border-gray-200 top-full rounded-2xl shadow-theme-lg dark:border-gray-800 dark:bg-gray-dark"
+                >
+                    <button
+                        class="flex w-full px-3 py-2 font-medium text-left text-gray-500 rounded-lg text-theme-xs hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+                    >
+                        View More
+                    </button>
+                    <button
+                        class="flex w-full px-3 py-2 font-medium text-left text-gray-500 rounded-lg text-theme-xs hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+                    >
+                        Delete
+                    </button>
+                </div>
+            </div>
+                </div>
+
+        <div class="max-w-full overflow-x-auto custom-scrollbar pb-5">
+            <div class="-ml-5 min-w-[650px] pl-2 xl:min-w-full">
+                <img src="{% url 'subscriptions-monthly-chart-url' %}" 
+                     alt="Monthly Subscriptions Chart" 
+                     class="w-full h-auto rounded-lg">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ApexCharts for Monthly Subscription Costs -->
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const monthlyCostsData = {{ monthly_costs_data|safe }};
+    
+    const chartOptions = {
+        series: [{
+            name: "Costs",
+            data: monthlyCostsData.values
+        }],
+        colors: ["#465fff"],
+        chart: {
+            fontFamily: "Outfit, sans-serif",
+            type: "bar",
+            height: 180,
+            toolbar: {
+                show: false,
+            },
+        },
+        plotOptions: {
+            bar: {
+                horizontal: false,
+                columnWidth: "39%",
+                borderRadius: 5,
+                borderRadiusApplication: "end",
+            },
+        },
+        dataLabels: {
+            enabled: false,
+        },
+        stroke: {
+            show: true,
+            width: 4,
+            colors: ["transparent"],
+        },
+        xaxis: {
+            categories: monthlyCostsData.months,
+            axisBorder: {
+                show: false,
+            },
+            axisTicks: {
+                show: false,
+            },
+        },
+        legend: {
+            show: true,
+            position: "top",
+            horizontalAlign: "left",
+            fontFamily: "Outfit",
+            markers: {
+                radius: 99,
+            },
+        },
+        yaxis: {
+            title: false,
+        },
+        grid: {
+            yaxis: {
+                lines: {
+                    show: true,
+                },
+            },
+        },
+        fill: {
+            opacity: 1,
+        },
+        tooltip: {
+            x: {
+                show: false,
+            },
+            y: {
+                formatter: function (val) {
+                    return "$" + val.toFixed(2);
+                },
+            },
+        },
+    };
+
+    const chartSelector = document.querySelector("#monthlyCostsChart");
+    if (chartSelector) {
+        const chart = new ApexCharts(chartSelector, chartOptions);
+        chart.render();
+    }
+});
+</script>
 {% endblock %}

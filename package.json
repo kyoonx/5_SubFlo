@@ -1,0 +1,16 @@
+{
+  "scripts": {
+    "build": "npx postcss ./static/css/input.css -o ./static/css/output.css --minify",
+    "watch": "npx postcss ./static/css/input.css -o ./static/css/output.css --watch"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.0.0",
+    "postcss": "^8.4.39",
+    "postcss-cli": "^11.0.0",
+    "tailwindcss": "^4.0.0"
+  },
+  "dependencies": {
+    "alpinejs": "^3.14.1",
+    "@alpinejs/persist": "^3.14.1"
+  }
+}
