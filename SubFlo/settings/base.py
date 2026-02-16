@@ -99,7 +99,10 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-
-STATICFILES_DIRS = [BASE_DIR / "SubFlo/ui-ux/static"]
-STATIC_ROOT = BASE_DIR / "SubFlo/ui-ux/staticfiles"
+# Add both static directories
+STATICFILES_DIRS = [
+    BASE_DIR / "static",  # Root static directory
+    BASE_DIR / "SubFlo/ui-ux/static",  # Existing UI/UX static files
+]
+STATIC_ROOT = BASE_DIR / "staticfiles"  # Changed from SubFlo/ui-ux/staticfiles
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
