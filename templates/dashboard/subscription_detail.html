@@ -23,9 +23,17 @@
             </p>
         </div>
         <div>
-            <p class="text-gray-700"><strong>Email Message ID:</strong> <a href="{% url 'email_message_detail-url' subscription.email_message_id %}" class="hover:underline">{{ subscription.email_message_id|default:"N/A" }}</a></p>
+            <p class="text-gray-700"><strong>Email Message ID:</strong>
+                {% if subscription.email_message_id %}
+                <a href="{% url 'email_message_detail-url' subscription.email_message_id %}" class="hover:underline">{{
+                    subscription.email_message_id|default:"N/A" }}</a>
+                {% else %}
+                N/A
+                {% endif %}
+            </p>
             <p class="text-gray-700"><strong>Is Trial:</strong> {{ subscription.is_trial|yesno:"Yes,No" }}</p>
-            <p class="text-gray-700"><strong>Already Canceled:</strong> {{ subscription.already_canceled|yesno:"Yes,No" }}</p>
+            <p class="text-gray-700"><strong>Already Canceled:</strong> {{ subscription.already_canceled|yesno:"Yes,No"
+                }}</p>
             <p class="text-gray-700"><strong>Notes:</strong> {{ subscription.notes|default:"N/A" }}</p>
         </div>
     </div>
@@ -33,9 +41,10 @@
         <a href="{% url 'subscription-list-url' %}"
             class="inline-block bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-md transition duration-200">Back
             to List</a>
-            
+
         {% if subscription.unsubscribe_link %}
-        <a href="{% if subscription.unsubscribe_link|slice:':4' != 'http' %}https://{% endif %}{{ subscription.unsubscribe_link }}" target="_blank"
+        <a href="{% if subscription.unsubscribe_link|slice:':4' != 'http' %}https://{% endif %}{{ subscription.unsubscribe_link }}"
+            target="_blank"
             class="inline-block bg-red-500 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md transition duration-200">Cancel</a>
         {% else %}
         <button class="bg-gray-400 text-white font-medium py-2 px-4 rounded-md cursor-not-allowed"
