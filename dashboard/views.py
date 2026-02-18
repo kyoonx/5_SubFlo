@@ -27,6 +27,8 @@ class SubscriptionList(ListView):
     model = Subscription
     context_object_name = "subscriptions"
     template_name = "dashboard/subscription_list.html"
+    
+    
 
     def get_queryset(self):
         queryset = Subscription.objects.all()
@@ -40,7 +42,7 @@ class SubscriptionList(ListView):
             queryset = queryset.filter(is_trial=True)
         elif platform_filter == "expiring":
             today = timezone.now().date()
-            queryset = queryset.filter(end_date__isnull=False, end_date__lte=today + timedelta(days=30))  # Assuming "expiring soon" means within 30 days
+            queryset = queryset.filter(end_date__isnull=False, end_date__lte=today + timedelta(days=30))
 
         return queryset
 
@@ -48,6 +50,7 @@ class SubscriptionList(ListView):
         ctx = super().get_context_data(**kwargs)
         ctx["q"] = self.request.GET.get("q", "").strip()
         ctx["platform_filter"] = self.request.GET.get("platform_filter")
+        ctx["user_id"] = self.request.GET.get("user_id")
 
         today = timezone.now().date()
         # soon = today + timedelta(days=7)
@@ -345,7 +348,30 @@ def api_all_active_subscriptions(request):
 
 def api_cost_per_month(request):
     """
-    GET /api/subscriptions/cost-per-month/?user_id=<profile_uuid>
+    Return the summary of total subscription costs per month for the past 12 months for a given user.
+    
+    GET /api/subscriptions/cost_per_month/?user_id=<profile_uuid>
+    
+    Response Format:
+        {
+            "user_id": <profile_uuid>,
+            "monthly_costs": {
+                "2025-03": 24.99,
+                "2025-04": 11.45,
+                "2025-05": 20.00,
+                "2025-06": 20.00,
+                "2025-07": 20.00,
+                "2025-08": 10.99,
+                "2025-09": 10.99,
+                "2025-10": 11.49,
+                "2025-11": 12.49,
+                "2025-12": 19.99,
+                "2026-01": 24.99,
+                "2026-02": 17.98
+            }
+        }
+        
+    Where today is in February 2026, so we return costs for the past 12 months including current month (2025-03 to 2026-02).
     """
     profile_uuid = request.GET.get("user_id")
     
