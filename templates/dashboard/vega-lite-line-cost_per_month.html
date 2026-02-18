@@ -1,0 +1,70 @@
+{% block stylesheets %}
+
+<script src="https://cdn.jsdelivr.net/npm/vega@5.17.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-lite@4.17.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-embed@6.12.2"></script>
+
+<style media="screen">
+    /* Add space between Vega-Embed links  */
+    .vega-actions a {
+        margin-right: 5px;
+    }
+</style>
+
+{% endblock %}
+
+
+
+
+
+<div id="vis1"></div>
+
+<script>
+  const userId = "{{ user_id }}";
+  const apiUrl = "{% url 'api-cost-per-month-url' %}";
+
+  fetch(`${apiUrl}?user_id=${userId}`)
+    .then(response => response.json())
+    .then(data => {
+
+      const chartData = Object.entries(data.monthly_costs).map(([month, cost]) => {
+        return {
+          month: month + "-01",
+          cost: cost
+        };
+      });
+
+      const vlSpec1 = {
+        "$schema": "https://vega.github.io/schema/vega-lite/v4.json",
+        "width": 600,
+        "height": 350,
+        "data": { "values": chartData },
+        "mark": {
+            "type": "line",
+            "point": true,
+            "tooltip": true
+        },
+        "encoding": {
+            "x": {
+            "field": "month",
+            "type": "temporal",
+            "title": "Month"
+            },
+            "y": {
+            "field": "cost",
+            "type": "quantitative",
+            "title": "Total Subscription Cost ($)"
+            },
+            "color": { "value": "#4F46E5" }
+        }
+        };
+
+
+      console.log(data);
+
+      vegaEmbed('#vis1', vlSpec1, { actions: false });
+
+    })
+    .catch(error => console.error("Error loading data:", error));
+</script>
+
