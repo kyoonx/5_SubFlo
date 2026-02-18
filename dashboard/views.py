@@ -17,7 +17,6 @@ from decimal import Decimal
 import calendar
 import random
 import json
-import requests
 
 ############################################################
 #################### Internal API Views ####################
@@ -31,28 +30,20 @@ class SubscriptionList(ListView):
     def get_queryset(self):
         queryset = Subscription.objects.all()
         q = self.request.GET.get("q", "").strip()
-        platform_filter = self.request.GET.get("platform_filter")
-        
+
         if q:
             queryset = queryset.filter(Q(platform_name__icontains=q) | Q(service_name__icontains=q) | Q(email_message_id__sender__icontains=q))
-
-        if platform_filter == "trial":
-            queryset = queryset.filter(is_trial=True)
-        elif platform_filter == "expiring":
-            today = timezone.now().date()
-            queryset = queryset.filter(end_date__isnull=False, end_date__lte=today + timedelta(days=30))  # Assuming "expiring soon" means within 30 days
 
         return queryset
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx["q"] = self.request.GET.get("q", "").strip()
-        ctx["platform_filter"] = self.request.GET.get("platform_filter")
-
+        
         today = timezone.now().date()
-        # soon = today + timedelta(days=7)
-        # current_month_start = today.replace(day=1)
-        # current_month_end = (current_month_start + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+        soon = today + timedelta(days=7)
+        current_month_start = today.replace(day=1)
+        current_month_end = (current_month_start + timedelta(days=32)).replace(day=1) - timedelta(days=1)
         
         total_subscriptions = Subscription.objects
         total_active_subscriptions = total_subscriptions.filter(already_canceled=False).filter(Q(end_date__isnull=True) | Q(end_date__gte=today))
@@ -108,66 +99,47 @@ class SubscriptionList(ListView):
     
         return ctx
 
-
     def post(self, request, *args, **kwargs):
         # Check if this is a create subscription form submission
         if request.POST.get('form_type') == 'create_subscription':
-
-            # Required fields
+            # Handle subscription creation
             platform_name = request.POST.get('platform_name', '').strip()
             service_name = request.POST.get('service_name', '').strip()
-
-            # Optional fields
-            start_date_str = request.POST.get('start_date', '').strip()
-            end_date_str = request.POST.get('end_date', '').strip()
             price_str = request.POST.get('price', '').strip()
-            currency = request.POST.get('currency', 'USD').strip()
             payment_method = request.POST.get('payment_method', '').strip()
-            unsubscribe_link = request.POST.get('unsubscribe_link', '').strip()
+            end_date_str = request.POST.get('end_date', '').strip()
             notes = request.POST.get('notes', '').strip()
-
-            # Checkboxes (important: unchecked = None)
-            is_trial = request.POST.get('is_trial') == 'on'
-            already_canceled = request.POST.get('already_canceled') == 'on'
-
+            
             # Get or create a test user for demo purposes
-            user, _ = User.objects.get_or_create(
-                username='testuser',
-                defaults={'email': 'test@example.com'}
-            )
-
-            # Validate required fields (only platform_name & service_name are required in form)
-            if platform_name and service_name:
+            user, _ = User.objects.get_or_create(username='testuser', defaults={'email': 'test@example.com'})
+            
+            # Validate required fields
+            if platform_name and service_name and price_str:
                 try:
-                    # Price
-                    price = Decimal(price_str) if price_str else None
-
-                    # Dates
-                    start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date() if start_date_str else None
-                    end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date() if end_date_str else None
-
+                    price = Decimal(price_str)
+                    end_date = None
+                    if end_date_str:
+                        from datetime import datetime
+                        end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+                    
                     # Create subscription
                     Subscription.objects.create(
                         user=user,
                         platform_name=platform_name,
                         service_name=service_name,
-                        start_date=start_date,
-                        end_date=end_date,
-                        is_trial=is_trial,
-                        already_canceled=already_canceled,
                         price=price,
-                        currency=currency or "USD",
                         payment_method=payment_method or None,
-                        unsubscribe_link=unsubscribe_link or None,
+                        end_date=end_date,
                         notes=notes or None,
+                        already_canceled=False,
+                        is_trial=False
                     )
-
                     # Redirect to avoid resubmission on refresh
                     return redirect('subscription-list-url')
-
-                except (ValueError, TypeError):
+                except (ValueError, TypeError) as e:
+                    # If validation fails, continue to show form with error
                     pass
-
+        
         # If form submission was not create_subscription, just redirect to GET
         return redirect('subscription-list-url')
 
@@ -339,89 +311,3 @@ def api_all_active_subscriptions(request):
 
     data = list(rows)
     return JsonResponse({"user_id": profile_uuid, "num_active_subscriptions": len(data), "subscriptions": data})
-
-def currency_convert(request):
-    """
-    GET /dashboard/api/currency-convert/?q=EUR
-    Fetches live USD exchange rate from Frankfurter API (no key needed),
-    then combines it with internal Subscription data to return each
-    subscription's cost converted to the requested currency.
-    """
-    target_currency = request.GET.get("q", "").strip().upper()
-
-    if not target_currency:
-        return JsonResponse(
-            {"error": "Missing query parameter. Usage: ?q=EUR"},
-            status=400
-        )
-
-    # --- 1. External API call ---
-    try:
-        response = requests.get(
-            "https://api.frankfurter.app/latest",
-            params={"from": "USD", "to": target_currency},
-            timeout=5,
-        )
-        response.raise_for_status()
-        rate_data = response.json()
-    except requests.exceptions.Timeout:
-        return JsonResponse({"error": "Exchange rate API timed out."}, status=504)
-    except requests.exceptions.HTTPError as e:
-        return JsonResponse({"error": f"Exchange rate API error: {str(e)}"}, status=400)
-    except requests.exceptions.RequestException as e:
-        return JsonResponse({"error": f"Could not reach exchange rate API: {str(e)}"}, status=502)
-
-    rate = rate_data.get("rates", {}).get(target_currency)
-    if rate is None:
-        return JsonResponse(
-            {"error": f"Currency '{target_currency}' not supported. Try EUR, GBP, JPY, CAD, etc."},
-            status=400,
-        )
-
-    # --- 2. Combine with internal Subscription data ---
-    today = timezone.now().date()
-    active_subs = Subscription.objects.filter(
-        already_canceled=False,
-        price__isnull=False,
-    ).filter(
-        Q(end_date__isnull=True) | Q(end_date__gte=today)
-    )
-
-    # --- 3. Apply processing: convert each price, compute totals ---
-    converted_subs = []
-    total_usd = Decimal("0.00")
-    total_converted = Decimal("0.00")
-    trial_count = 0
-
-    for sub in active_subs:
-        price_usd = sub.price
-        price_converted = round(price_usd * Decimal(str(rate)), 2)
-        total_usd += price_usd
-        total_converted += price_converted
-        if sub.is_trial:
-            trial_count += 1
-
-        converted_subs.append({
-            "platform": sub.platform_name,
-            "service": sub.service_name,
-            "is_trial": sub.is_trial,
-            "renewal_date": str(sub.end_date) if sub.end_date else None,
-            "price_usd": float(price_usd),
-            f"price_{target_currency.lower()}": float(price_converted),
-        })
-
-    return JsonResponse({
-        "exchange_rate": {
-            "from": "USD",
-            "to": target_currency,
-            "rate": rate,
-            "date": rate_data.get("date"),
-        },
-        "summary": {
-            "total_monthly_usd": float(round(total_usd, 2)),
-            f"total_monthly_{target_currency.lower()}": float(round(total_converted, 2)),
-            "active_subscription_count": len(converted_subs),
-            "active_trial_count": trial_count,
-        },
-        "subscriptions": converted_subs,
-    })
