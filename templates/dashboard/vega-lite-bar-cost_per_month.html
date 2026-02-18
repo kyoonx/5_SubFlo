@@ -15,7 +15,7 @@
 
 
 
-
+{% block vega-lite-main %}
 
 <div id="vis1"></div>
 
@@ -62,4 +62,7 @@
     })
     .catch(error => console.error("Error loading data:", error));
 </script>
+
+
+{% endblock %}
 
