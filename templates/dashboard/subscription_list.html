@@ -716,6 +716,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 {% block vega-lite-main %}
 
+{% if user_id %}
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
     <!-- Chart 1: Line Chart -->
@@ -802,5 +803,8 @@ document.addEventListener('DOMContentLoaded', function() {
     })
     .catch(error => console.error("Error loading data:", error));
 </script>
+
+
+{% endif %}
 
 {% endblock %}
