@@ -3,7 +3,7 @@ from django.utils import timezone
 from django.http import HttpResponse, JsonResponse
 from django.template import loader
 from django.shortcuts import render, get_object_or_404, redirect
-from django.views.generic import ListView
+from django.views.generic import ListView, TemplateView
 from subscriptions.models import Subscription, EmailMessage
 from accounts.models import UserProfile
 from django.db.models import Q, Sum, Count
@@ -392,3 +392,25 @@ def api_cost_per_month(request):
     }
     
     return JsonResponse(response_data)
+
+
+
+
+class VegaLiteBarAPI(TemplateView):
+    template_name = "dashboard/vega-lite-bar-cost_per_month.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user_id = self.request.GET.get("user_id")
+        context["user_id"] = user_id
+        return context
+    
+class VegaLiteLineAPI(TemplateView):
+    template_name = "dashboard/vega-lite-line-cost_per_month.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user_id = self.request.GET.get("user_id")
+        context["user_id"] = user_id
+        return context
+    
