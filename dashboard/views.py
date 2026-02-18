@@ -17,6 +17,7 @@ from decimal import Decimal
 import calendar
 import random
 import json
+import requests
 
 ############################################################
 #################### Internal API Views ####################
@@ -338,3 +339,89 @@ def api_all_active_subscriptions(request):
 
     data = list(rows)
     return JsonResponse({"user_id": profile_uuid, "num_active_subscriptions": len(data), "subscriptions": data})
+
+def currency_convert(request):
+    """
+    GET /dashboard/api/currency-convert/?q=EUR
+    Fetches live USD exchange rate from Frankfurter API (no key needed),
+    then combines it with internal Subscription data to return each
+    subscription's cost converted to the requested currency.
+    """
+    target_currency = request.GET.get("q", "").strip().upper()
+
+    if not target_currency:
+        return JsonResponse(
+            {"error": "Missing query parameter. Usage: ?q=EUR"},
+            status=400
+        )
+
+    # --- 1. External API call ---
+    try:
+        response = requests.get(
+            "https://api.frankfurter.app/latest",
+            params={"from": "USD", "to": target_currency},
+            timeout=5,
+        )
+        response.raise_for_status()
+        rate_data = response.json()
+    except requests.exceptions.Timeout:
+        return JsonResponse({"error": "Exchange rate API timed out."}, status=504)
+    except requests.exceptions.HTTPError as e:
+        return JsonResponse({"error": f"Exchange rate API error: {str(e)}"}, status=400)
+    except requests.exceptions.RequestException as e:
+        return JsonResponse({"error": f"Could not reach exchange rate API: {str(e)}"}, status=502)
+
+    rate = rate_data.get("rates", {}).get(target_currency)
+    if rate is None:
+        return JsonResponse(
+            {"error": f"Currency '{target_currency}' not supported. Try EUR, GBP, JPY, CAD, etc."},
+            status=400,
+        )
+
+    # --- 2. Combine with internal Subscription data ---
+    today = timezone.now().date()
+    active_subs = Subscription.objects.filter(
+        already_canceled=False,
+        price__isnull=False,
+    ).filter(
+        Q(end_date__isnull=True) | Q(end_date__gte=today)
+    )
+
+    # --- 3. Apply processing: convert each price, compute totals ---
+    converted_subs = []
+    total_usd = Decimal("0.00")
+    total_converted = Decimal("0.00")
+    trial_count = 0
+
+    for sub in active_subs:
+        price_usd = sub.price
+        price_converted = round(price_usd * Decimal(str(rate)), 2)
+        total_usd += price_usd
+        total_converted += price_converted
+        if sub.is_trial:
+            trial_count += 1
+
+        converted_subs.append({
+            "platform": sub.platform_name,
+            "service": sub.service_name,
+            "is_trial": sub.is_trial,
+            "renewal_date": str(sub.end_date) if sub.end_date else None,
+            "price_usd": float(price_usd),
+            f"price_{target_currency.lower()}": float(price_converted),
+        })
+
+    return JsonResponse({
+        "exchange_rate": {
+            "from": "USD",
+            "to": target_currency,
+            "rate": rate,
+            "date": rate_data.get("date"),
+        },
+        "summary": {
+            "total_monthly_usd": float(round(total_usd, 2)),
+            f"total_monthly_{target_currency.lower()}": float(round(total_converted, 2)),
+            "active_subscription_count": len(converted_subs),
+            "active_trial_count": trial_count,
+        },
+        "subscriptions": converted_subs,
+    })
