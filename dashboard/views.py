@@ -17,6 +17,7 @@ from decimal import Decimal
 import calendar
 import random
 import json
+from dateutil.relativedelta import relativedelta
 
 ############################################################
 #################### Internal API Views ####################
@@ -338,3 +339,56 @@ def api_all_active_subscriptions(request):
 
     data = list(rows)
     return JsonResponse({"user_id": profile_uuid, "num_active_subscriptions": len(data), "subscriptions": data})
+
+
+
+
+def api_cost_per_month(request):
+    """
+    GET /api/subscriptions/cost-per-month/?user_id=<profile_uuid>
+    """
+    profile_uuid = request.GET.get("user_id")
+    
+    if not profile_uuid:
+        return JsonResponse({"error": "user_id is required"}, status=400)
+
+    try:
+        profile = UserProfile.objects.select_related("user").get(id=profile_uuid)
+    except UserProfile.DoesNotExist:
+        return JsonResponse({"error": "Invalid user_id"}, status=404)
+
+    today = timezone.now().date()
+    start_period = (today.replace(day=1) - relativedelta(months=11))  # 12 months including current month
+    end_period = today.replace(day=1)
+
+    subscriptions_per_month = (
+        Subscription.objects
+        .filter(user=profile.user, is_trial=False, price__isnull=False)
+        .annotate(month=TruncMonth('start_date'))
+        .values('month')
+        .annotate(total_cost=Sum('price'))
+        .order_by('month')
+    )
+
+
+    monthly_costs = {}
+    current = start_period
+    for _ in range(12):
+        monthly_costs[current] = Decimal("0.00")
+        current += relativedelta(months=1)
+
+    for item in subscriptions_per_month:
+        if item['month']:
+            month_date = item['month']
+            if start_period <= month_date <= end_period:
+                monthly_costs[month_date] = item['total_cost'] or Decimal("0.00")
+
+    response_data = {
+        'user_id': profile_uuid,
+        'monthly_costs': {
+            month.strftime("%Y-%m"): float(cost)
+            for month, cost in monthly_costs.items()
+        }
+    }
+    
+    return JsonResponse(response_data)
