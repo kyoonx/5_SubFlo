@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}Reports{% endblock %}
+
+{% block content %}
+<div class="space-y-5 sm:space-y-6">
+    <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white px-4 pb-3 pt-4 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6">
+        <div class="flex flex-col gap-2 mb-4 sm:flex-row sm:items-center sm:justify-between">
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Reports</h3>
+            <div class="flex items-center gap-3">
+                <a
+                    href="{% url 'subscription-export-csv-url' %}"
+                    class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200"
+                >
+                    Download CSV
+                </a>
+                <a
+                    href="{% url 'subscription-export-json-url' %}"
+                    class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200"
+                >
+                    Download JSON
+                </a>
+            </div>
+        </div>
+
+        <!-- Totals line -->
+        <div class="mb-6 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-800 dark:bg-gray-800/50">
+            <p class="text-theme-sm font-medium text-gray-800 dark:text-white/90">
+                Totals: {{ total_subscriptions }} total subscriptions; {{ total_active_subscriptions }} active; {{ total_active_trial_subscriptions }} active trial.
+            </p>
+        </div>
+
+        <!-- Summary 1: Subscriptions per platform -->
+        <h4 class="mb-2 text-base font-semibold text-gray-800 dark:text-white/90">Subscriptions per platform</h4>
+        <div class="w-full overflow-x-auto">
+            <table class="min-w-full">
+                <thead>
+                    <tr class="border-y border-gray-100 dark:border-gray-800">
+                        <th class="py-3 text-left">
+                            <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Platform</p>
+                        </th>
+                        <th class="py-3 text-left">
+                            <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Count</p>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                    {% for row in subscriptions_per_platform %}
+                    <tr>
+                        <td class="py-3 text-theme-sm text-gray-800 dark:text-white/90">{{ row.platform_name }}</td>
+                        <td class="py-3 text-theme-sm text-gray-500 dark:text-gray-400">{{ row.count }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="2" class="py-6 text-center text-gray-500 dark:text-gray-400">No subscriptions by platform.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Summary 2: Subscriptions by status -->
+        <h4 class="mt-6 mb-2 text-base font-semibold text-gray-800 dark:text-white/90">Subscriptions by status</h4>
+        <div class="w-full overflow-x-auto">
+            <table class="min-w-full">
+                <thead>
+                    <tr class="border-y border-gray-100 dark:border-gray-800">
+                        <th class="py-3 text-left">
+                            <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Status</p>
+                        </th>
+                        <th class="py-3 text-left">
+                            <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Count</p>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                    {% for row in by_status %}
+                    <tr>
+                        <td class="py-3 text-theme-sm text-gray-800 dark:text-white/90">{{ row.status }}</td>
+                        <td class="py-3 text-theme-sm text-gray-500 dark:text-gray-400">{{ row.count }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="2" class="py-6 text-center text-gray-500 dark:text-gray-400">No subscriptions by status.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
