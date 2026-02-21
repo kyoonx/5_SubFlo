@@ -607,10 +607,11 @@ Subscription List
 
 <!-- ApexCharts for Monthly Subscription Costs -->
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const monthlyCostsData = {{ monthly_costs_data|safe }};
-    
+document.addEventListener('DOMContentLoaded', function () {
+    const monthlyCostsData = JSON.parse('{{ monthly_costs_data|escapejs }}');
+
     const chartOptions = {
         series: [{
             name: "Costs",
@@ -660,7 +661,9 @@ document.addEventListener('DOMContentLoaded', function() {
             },
         },
         yaxis: {
-            title: false,
+            title: {
+                text: ""
+            },
         },
         grid: {
             yaxis: {
@@ -691,6 +694,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+
+
 {% endblock %}
 
 

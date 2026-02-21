@@ -27,7 +27,7 @@
             <div>
                 <p class="text-gray-700 dark:text-gray-300"><strong>Parsed Data:</strong></p>
                 {% if email_message.parsed_data %}
-                  <pre class="bg-gray-100 p-2 rounded-md overflow-auto dark:bg-gray-700" style="max-height: 200px; color: #333 dark:text-white;">{{ email_message.parsed_data|json_script:"json_data"|safe }}</pre>
+                  <pre class="bg-gray-100 p-2 rounded-md overflow-auto dark:bg-gray-700" style="max-height: 200px; color: #333">{{ email_message.parsed_data|json_script:"json_data"|safe }}</pre>
                   <script>
                       const jsonData = JSON.parse(document.getElementById('json_data').textContent);
                       console.log(jsonData);
