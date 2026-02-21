@@ -43,6 +43,7 @@
   - [x] Create 2 Vega-Lite Charts (Note: Still need to be enhanced to handle displaying for a specific user after auth feature is completed)
   - [x] Integrate a free public API to convert currency
   - [x] Deploy the entire web app: https://as242.pythonanywhere.com
+  - [x] Add export JSON & CSV for subscriptions
 
 # References
 - Code examples from INFO 490 classes
