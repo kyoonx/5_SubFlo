@@ -18,4 +18,6 @@ urlpatterns = [
     path("bar-charts/vega-lite/", VegaLiteBarAPI.as_view(), name="bar-chart-vega-lite"),
     path("line-charts/vega-lite/", VegaLiteLineAPI.as_view(), name="line-chart-vega-lite"),
     
+    path("api/currency-convert/", currency_convert, name="currency-convert-url"),
+    
 ]
