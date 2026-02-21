@@ -12,6 +12,11 @@ Progress
   - [x] Search functionality
   - [x] Redesign database (add `is_trial`, add `id` in `UserProfile`)
   - [x] Add hyperlinks + Logo in navbar (Note: Still need to be enhanced to show emails, subscriptions, and user profile of a specific user once auth feature is completed)
+- Week 4
+  - [x] Create 2 Vega-Lite Charts (Note: Still need to be enhanced to handle displaying for a specific user after auth feature is completed)
+  - [x] Integrate a free public API to convert currency
+  - [x] Deploy the entire web app: https://as242.pythonanywhere.com
+
 
 ==============================================
 
