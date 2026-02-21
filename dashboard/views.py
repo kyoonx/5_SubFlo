@@ -12,11 +12,12 @@ from django.db.models.functions import TruncMonth
 import matplotlib
 matplotlib.use('Agg')  # Use non-interactive backend
 import matplotlib.pyplot as plt
-from io import BytesIO
+from io import BytesIO, StringIO
 from decimal import Decimal
 import calendar
 import random
 import json
+import csv
 from dateutil.relativedelta import relativedelta
 
 ############################################################
@@ -179,9 +180,112 @@ class SubscriptionList(ListView):
 def subscription_detail(request, pk):
     subscription = get_object_or_404(Subscription, pk=pk)
     return render(request, "dashboard/subscription_detail.html", {"subscription": subscription})
-    
-    
-    
+
+
+def _subscription_export_queryset():
+    """Ordered queryset for CSV/JSON export (model default ordering)."""
+    return Subscription.objects.all().order_by("user", "-end_date", "-start_date", "platform_name", "service_name")
+
+
+def subscription_export_csv(request):
+    """Return downloadable CSV of all subscriptions."""
+    queryset = _subscription_export_queryset()
+    buffer = StringIO()
+    writer = csv.writer(buffer)
+    headers = [
+        "id", "user", "platform_name", "service_name", "start_date", "end_date",
+        "is_trial", "already_canceled", "price", "currency", "payment_method",
+        "notes", "created_at", "updated_at",
+    ]
+    writer.writerow(headers)
+    for sub in queryset:
+        row = [
+            str(sub.id),
+            sub.user.username if sub.user_id else "",
+            sub.platform_name or "",
+            sub.service_name or "",
+            sub.start_date.isoformat() if sub.start_date else "",
+            sub.end_date.isoformat() if sub.end_date else "",
+            sub.is_trial,
+            sub.already_canceled,
+            str(sub.price) if sub.price is not None else "",
+            sub.currency or "",
+            sub.payment_method or "",
+            (sub.notes or "").replace("\r", " ").replace("\n", " "),
+            sub.created_at.isoformat() if sub.created_at else "",
+            sub.updated_at.isoformat() if sub.updated_at else "",
+        ]
+        writer.writerow(row)
+    filename = f"subscriptions_{timezone.now().strftime('%Y-%m-%d_%H-%M')}.csv"
+    response = HttpResponse("\ufeff" + buffer.getvalue(), content_type="text/csv")
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return response
+
+
+def subscription_export_json(request):
+    """Return downloadable JSON of all subscriptions with metadata."""
+    queryset = _subscription_export_queryset()
+    rows = []
+    for sub in queryset:
+        rows.append({
+            "id": str(sub.id),
+            "user": sub.user.username if sub.user_id else "",
+            "platform_name": sub.platform_name or "",
+            "service_name": sub.service_name or "",
+            "start_date": sub.start_date.isoformat() if sub.start_date else None,
+            "end_date": sub.end_date.isoformat() if sub.end_date else None,
+            "is_trial": sub.is_trial,
+            "already_canceled": sub.already_canceled,
+            "price": str(sub.price) if sub.price is not None else None,
+            "currency": sub.currency or "",
+            "payment_method": sub.payment_method or "",
+            "notes": sub.notes or "",
+            "created_at": sub.created_at.isoformat() if sub.created_at else None,
+            "updated_at": sub.updated_at.isoformat() if sub.updated_at else None,
+        })
+    payload = {
+        "generated_at": timezone.now().isoformat(),
+        "record_count": len(rows),
+        "subscriptions": rows,
+    }
+    filename = f"subscriptions_{timezone.now().strftime('%Y-%m-%d_%H-%M')}.json"
+    response = JsonResponse(payload, json_dumps_params={"indent": 2})
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return response
+
+
+def reports_view(request):
+    """Reports page: grouped summaries and totals, with CSV/JSON export links."""
+    today = timezone.now().date()
+    subscriptions_per_platform = (
+        Subscription.objects.values("platform_name")
+        .annotate(count=Count("id"))
+        .order_by("-count")
+    )
+    total_all = Subscription.objects.count()
+    total_active = Subscription.objects.filter(already_canceled=False).filter(
+        Q(end_date__isnull=True) | Q(end_date__gte=today)
+    ).count()
+    total_trial = Subscription.objects.filter(already_canceled=False, is_trial=True).filter(
+        Q(end_date__isnull=True) | Q(end_date__gte=today)
+    ).count()
+    total_canceled = Subscription.objects.filter(already_canceled=True).count()
+    by_status = [
+        {"status": "Active", "count": total_active},
+        {"status": "Trial (active)", "count": total_trial},
+        {"status": "Canceled", "count": total_canceled},
+        {"status": "All", "count": total_all},
+    ]
+    context = {
+        "subscriptions_per_platform": subscriptions_per_platform,
+        "by_status": by_status,
+        "total_subscriptions": total_all,
+        "total_active_subscriptions": total_active,
+        "total_active_trial_subscriptions": total_trial,
+    }
+    return render(request, "dashboard/reports.html", context)
+
+
 def email_message_detail(request, pk):
     email_message = get_object_or_404(EmailMessage, pk=pk)
     template = loader.get_template("dashboard/email_message_detail.html")
