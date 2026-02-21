@@ -34,8 +34,7 @@ class SubscriptionList(ListView):
     def get_queryset(self):
         queryset = Subscription.objects.all()
         q = self.request.GET.get("q", "").strip()
-        platform_filter = self.request.GET.get("platform_filter")
-        
+
         if q:
             queryset = queryset.filter(Q(platform_name__icontains=q) | Q(service_name__icontains=q) | Q(email_message_id__sender__icontains=q))
 
@@ -54,9 +53,9 @@ class SubscriptionList(ListView):
         ctx["user_id"] = self.request.GET.get("user_id")
 
         today = timezone.now().date()
-        # soon = today + timedelta(days=7)
-        # current_month_start = today.replace(day=1)
-        # current_month_end = (current_month_start + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+        soon = today + timedelta(days=7)
+        current_month_start = today.replace(day=1)
+        current_month_end = (current_month_start + timedelta(days=32)).replace(day=1) - timedelta(days=1)
         
         total_subscriptions = Subscription.objects
         total_active_subscriptions = total_subscriptions.filter(already_canceled=False).filter(Q(end_date__isnull=True) | Q(end_date__gte=today))
@@ -112,66 +111,47 @@ class SubscriptionList(ListView):
     
         return ctx
 
-
     def post(self, request, *args, **kwargs):
         # Check if this is a create subscription form submission
         if request.POST.get('form_type') == 'create_subscription':
-
-            # Required fields
+            # Handle subscription creation
             platform_name = request.POST.get('platform_name', '').strip()
             service_name = request.POST.get('service_name', '').strip()
-
-            # Optional fields
-            start_date_str = request.POST.get('start_date', '').strip()
-            end_date_str = request.POST.get('end_date', '').strip()
             price_str = request.POST.get('price', '').strip()
-            currency = request.POST.get('currency', 'USD').strip()
             payment_method = request.POST.get('payment_method', '').strip()
-            unsubscribe_link = request.POST.get('unsubscribe_link', '').strip()
+            end_date_str = request.POST.get('end_date', '').strip()
             notes = request.POST.get('notes', '').strip()
-
-            # Checkboxes (important: unchecked = None)
-            is_trial = request.POST.get('is_trial') == 'on'
-            already_canceled = request.POST.get('already_canceled') == 'on'
-
+            
             # Get or create a test user for demo purposes
-            user, _ = User.objects.get_or_create(
-                username='testuser',
-                defaults={'email': 'test@example.com'}
-            )
-
-            # Validate required fields (only platform_name & service_name are required in form)
-            if platform_name and service_name:
+            user, _ = User.objects.get_or_create(username='testuser', defaults={'email': 'test@example.com'})
+            
+            # Validate required fields
+            if platform_name and service_name and price_str:
                 try:
-                    # Price
-                    price = Decimal(price_str) if price_str else None
-
-                    # Dates
-                    start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date() if start_date_str else None
-                    end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date() if end_date_str else None
-
+                    price = Decimal(price_str)
+                    end_date = None
+                    if end_date_str:
+                        from datetime import datetime
+                        end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+                    
                     # Create subscription
                     Subscription.objects.create(
                         user=user,
                         platform_name=platform_name,
                         service_name=service_name,
-                        start_date=start_date,
-                        end_date=end_date,
-                        is_trial=is_trial,
-                        already_canceled=already_canceled,
                         price=price,
-                        currency=currency or "USD",
                         payment_method=payment_method or None,
-                        unsubscribe_link=unsubscribe_link or None,
+                        end_date=end_date,
                         notes=notes or None,
+                        already_canceled=False,
+                        is_trial=False
                     )
-
                     # Redirect to avoid resubmission on refresh
                     return redirect('subscription-list-url')
-
-                except (ValueError, TypeError):
+                except (ValueError, TypeError) as e:
+                    # If validation fails, continue to show form with error
                     pass
-
+        
         # If form submission was not create_subscription, just redirect to GET
         return redirect('subscription-list-url')
 

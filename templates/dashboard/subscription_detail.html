@@ -11,38 +11,31 @@
 
 
 {% block content %}
-<div class="bg-white shadow-md rounded-lg p-6 mb-4 dark:bg-gray-800 dark:shadow-gray-700">
-    <h2 class="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">{{ subscription.platform_name }} - {{ subscription.service_name }}</h2>
+<div class="bg-white shadow-md rounded-lg p-6 mb-4">
+    <h2 class="text-2xl font-semibold mb-4">{{ subscription.platform_name }} - {{ subscription.service_name }}</h2>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-            <p class="text-gray-700 dark:text-gray-300"><strong>Start Date:</strong> {{ subscription.start_date|date:"M d, Y" }}</p>
-            <p class="text-gray-700 dark:text-gray-300"><strong>End Date:</strong> {{ subscription.end_date|date:"M d, Y" }}</p>
-            <p class="text-gray-700 dark:text-gray-300"><strong>Price:</strong> ${{ subscription.price|floatformat:2 }}</p>
-            <p class="text-gray-700 dark:text-gray-300"><strong>Payment Method:</strong> {{ subscription.payment_method|default:"N/A" }}
+            <p class="text-gray-700"><strong>Start Date:</strong> {{ subscription.start_date|date:"M d, Y" }}</p>
+            <p class="text-gray-700"><strong>End Date:</strong> {{ subscription.end_date|date:"M d, Y" }}</p>
+            <p class="text-gray-700"><strong>Price:</strong> ${{ subscription.price|floatformat:2 }}</p>
+            <p class="text-gray-700"><strong>Payment Method:</strong> {{ subscription.payment_method|default:"N/A" }}
             </p>
         </div>
         <div>
-            <p class="text-gray-700 dark:text-gray-300"><strong>Email Message ID:</strong>
-                {% if subscription.email_message_id %}
-                <a href="{% url 'email_message_detail-url' subscription.email_message_id %}" class="hover:underline text-blue-500 dark:text-blue-400">{{subscription.email_message_id }}</a>
-                {% else %}
-                <span class="text-gray-700 dark:text-gray-300">N/A</span>
-                {% endif %}
-            </p>
-            <p class="text-gray-700 dark:text-gray-300"><strong>Is Trial:</strong> {{ subscription.is_trial|yesno:"Yes,No" }}</p>
-            <p class="text-gray-700 dark:text-gray-300"><strong>Already Canceled:</strong> {{ subscription.already_canceled|yesno:"Yes,No"}}</p>
-            <p class="text-gray-700 dark:text-gray-300"><strong>Notes:</strong> {{ subscription.notes|default:"N/A" }}</p>
+            <p class="text-gray-700"><strong>Email Message ID:</strong> <a href="{% url 'email_message_detail-url' subscription.email_message_id %}" class="hover:underline">{{ subscription.email_message_id|default:"N/A" }}</a></p>
+            <p class="text-gray-700"><strong>Is Trial:</strong> {{ subscription.is_trial|yesno:"Yes,No" }}</p>
+            <p class="text-gray-700"><strong>Already Canceled:</strong> {{ subscription.already_canceled|yesno:"Yes,No" }}</p>
+            <p class="text-gray-700"><strong>Notes:</strong> {{ subscription.notes|default:"N/A" }}</p>
         </div>
     </div>
     <div class="mt-6 flex items-center justify-between">
         <a href="{% url 'subscription-list-url' %}"
-            class="inline-block bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-md transition duration-200 dark:bg-gray-300 dark:hover:bg-gray-500 dark:text-gray-200">Back
+            class="inline-block bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-md transition duration-200">Back
             to List</a>
-
+            
         {% if subscription.unsubscribe_link %}
-        <a href="{% if subscription.unsubscribe_link|slice:':4' != 'http' %}https://{% endif %}{{ subscription.unsubscribe_link }}"
-            target="_blank"
+        <a href="{% if subscription.unsubscribe_link|slice:':4' != 'http' %}https://{% endif %}{{ subscription.unsubscribe_link }}" target="_blank"
             class="inline-block bg-red-500 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md transition duration-200">Cancel</a>
         {% else %}
         <button class="bg-gray-400 text-white font-medium py-2 px-4 rounded-md cursor-not-allowed"

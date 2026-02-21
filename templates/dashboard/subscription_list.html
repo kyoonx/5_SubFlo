@@ -1,8 +1,5 @@
 {% extends "base.html" %}
 
-
-
-
 {% block title %}
 Subscription List
 {% endblock %}
@@ -132,12 +129,12 @@ Subscription List
 {% block content %}
 <div class="space-y-5 sm:space-y-6">
     <!-- Table Container -->
-    <div class="overflow-y-visible rounded-2xl border border-gray-200 bg-white px-4 pb-3 pt-4 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6">
+    <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white px-4 pb-3 pt-4 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6">
         <div class="flex flex-col gap-2 mb-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
                     Subscriptions
-                </h3>
+    </h3>
             </div>
 
             <div class="flex items-center gap-3">
@@ -145,23 +142,33 @@ Subscription List
                 <form method="get" class="flex items-center">
                     <div class="relative">
                         <span class="absolute top-1/2 left-4 -translate-y-1/2">
-                            <svg class="fill-gray-500 dark:fill-gray-400" width="20" height="20" viewBox="0 0 20 20" fill="none"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <path fill-rule="evenodd" clip-rule="evenodd"
+                            <svg
+                                class="fill-gray-500 dark:fill-gray-400"
+                                width="20"
+                                height="20"
+                                viewBox="0 0 20 20"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                            >
+                                <path
+                                    fill-rule="evenodd"
+                                    clip-rule="evenodd"
                                     d="M3.04175 9.37363C3.04175 5.87693 5.87711 3.04199 9.37508 3.04199C12.8731 3.04199 15.7084 5.87693 15.7084 9.37363C15.7084 12.8703 12.8731 15.7053 9.37508 15.7053C5.87711 15.7053 3.04175 12.8703 3.04175 9.37363ZM9.37508 1.54199C5.04902 1.54199 1.54175 5.04817 1.54175 9.37363C1.54175 13.6991 5.04902 17.2053 9.37508 17.2053C11.2674 17.2053 13.003 16.5344 14.357 15.4176L17.177 18.238C17.4699 18.5309 17.9448 18.5309 18.2377 18.238C18.5306 17.9451 18.5306 17.4703 18.2377 17.1774L15.418 14.3573C16.5365 13.0033 17.2084 11.2669 17.2084 9.37363C17.2084 5.04817 13.7011 1.54199 9.37508 1.54199Z"
-                                    fill="" />
+                                    fill=""
+                                />
                             </svg>
                         </span>
-                        <input type="text" name="q" value="{{ q }}" placeholder="Search subscriptions..."
-                            class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pr-4 pl-12 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden xl:w-[300px] dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30" />
+                        <input
+                            type="text"
+                            name="q"
+                            value="{{ q }}"
+                            placeholder="Search subscriptions..."
+                            class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pr-4 pl-12 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden xl:w-[300px] dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30"
+                        />
                     </div>
-                </form>
+        </form>
 
-
-
-
-
-               <!-- Filter Dropdown -->
+                <!-- Filter Dropdown -->
                 <div
                     class="relative"
                     x-data="{ dropdownOpen: false }"
@@ -208,31 +215,27 @@ Subscription List
                         </svg>
                         Filter
                     </button>
-
                     <div
                         x-show="dropdownOpen"
-                        class="shadow-theme-lg dark:bg-gray-dark absolute right-0 mt-2 flex w-48 flex-col rounded-2xl border border-gray-200 bg-white p-3 dark:border-gray-800 z-50 overflow-visible"
+                        class="shadow-theme-lg dark:bg-gray-dark absolute right-0 mt-2 flex w-48 flex-col rounded-2xl border border-gray-200 bg-white p-3 dark:border-gray-800"
                     >
                         <h6 class="mb-3 text-sm font-medium text-gray-800 dark:text-white/90">Filter by Platform</h6>
                         <ul class="space-y-2 text-sm">
                             <li class="flex items-center">
-                                <a href="{% url 'subscription-list-url' %}" class="block w-full px-3 py-2 font-medium text-left text-gray-500 rounded-lg text-theme-xs hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300">All Platforms</a>
+                                <input id="filter-all" type="checkbox" value="" checked class="w-4 h-4 bg-gray-100 border-gray-300 rounded text-brand-600 focus:ring-brand-500 dark:focus:ring-brand-600 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
+                                <label for="filter-all" class="ml-2 text-sm font-medium text-gray-800 dark:text-white/90">All Platforms</label>
                             </li>
                             <li class="flex items-center">
-                                <a href="?{% if q %}q={{ q }}&{% endif %}platform_filter=trial" class="block w-full px-3 py-2 font-medium text-left text-gray-500 rounded-lg text-theme-xs hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300">Trial Subscriptions</a>
+                                <input id="filter-trial" type="checkbox" value="" class="w-4 h-4 bg-gray-100 border-gray-300 rounded text-brand-600 focus:ring-brand-500 dark:focus:ring-brand-600 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
+                                <label for="filter-trial" class="ml-2 text-sm font-medium text-gray-800 dark:text-white/90">Trial Subscriptions</label>
                             </li>
                             <li class="flex items-center">
-                                <a href="?{% if q %}q={{ q }}&{% endif %}platform_filter=expiring" class="block w-full px-3 py-2 font-medium text-left text-gray-500 rounded-lg text-theme-xs hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300">Expiring Soon</a>
+                                <input id="filter-expiring" type="checkbox" value="" class="w-4 h-4 bg-gray-100 border-gray-300 rounded text-brand-600 focus:ring-brand-500 dark:focus:ring-brand-600 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
+                                <label for="filter-expiring" class="ml-2 text-sm font-medium text-gray-800 dark:text-white/90">Expiring Soon</label>
                             </li>
                         </ul>
                     </div>
-
                 </div>
-
-
-
-
-
 
                 <!-- Add Subscription Button -->
                 <button
@@ -380,171 +383,48 @@ Subscription List
                     <span class="sr-only">Close modal</span>
                 </button>
             </div>
-
             <form method="post" class="p-4 md:p-5">
                 {% csrf_token %}
                 <input type="hidden" name="form_type" value="create_subscription">
-            
                 <div class="grid gap-4 mb-4 grid-cols-2">
-            
-                    <!-- Platform Name -->
                     <div class="col-span-2">
-                        <label for="platform_name" class="block mb-2 text-sm font-medium text-gray-800 dark:text-white/90">
-                            Platform Name *
-                        </label>
-                        <input type="text" name="platform_name" id="platform_name" class="shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800
-                            h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 px-4 text-sm
-                            text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden
-                            dark:border-gray-700 dark:bg-gray-900 dark:text-white dark:placeholder:text-gray-400"
-                            placeholder="e.g., Spotify" required>
+                        <label for="platform_name" class="block mb-2 text-sm font-medium text-gray-800 dark:text-white/90">Platform Name *</label>
+                        <input type="text" name="platform_name" id="platform_name" class="shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 px-4 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30" placeholder="e.g., Spotify" required>
                     </div>
-            
-                    <!-- Service Name -->
                     <div class="col-span-2">
-                        <label for="service_name" class="block mb-2 text-sm font-medium text-gray-800 dark:text-white/90">
-                            Service Name *
-                        </label>
-                        <input type="text" name="service_name" id="service_name" class="shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800
-                            h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 px-4 text-sm
-                            text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden
-                            dark:border-gray-700 dark:bg-gray-900 dark:text-white dark:placeholder:text-gray-400"
-                            placeholder="e.g., Spotify Premium" required>
+                        <label for="service_name" class="block mb-2 text-sm font-medium text-gray-800 dark:text-white/90">Service Name *</label>
+                        <input type="text" name="service_name" id="service_name" class="shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 px-4 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30" placeholder="e.g., Spotify Premium" required>
                     </div>
-            
-                    <!-- Start Date -->
                     <div>
-                        <label for="start_date" class="block mb-2 text-sm font-medium text-gray-800 dark:text-white/90">
-                            Start Date
-                        </label>
-                        <input type="date" name="start_date" id="start_date" class="shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10
-                            h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 px-4 text-sm
-                            text-gray-800 focus:ring-3 focus:outline-hidden
-                            dark:border-gray-700 dark:bg-gray-900 dark:text-white">
+                        <label for="price" class="block mb-2 text-sm font-medium text-gray-800 dark:text-white/90">Price (USD) *</label>
+                        <input type="number" step="0.01" name="price" id="price" class="shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 px-4 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30" placeholder="10.99" required>
                     </div>
-            
-                    <!-- End Date -->
                     <div>
-                        <label for="end_date" class="block mb-2 text-sm font-medium text-gray-800 dark:text-white/90">
-                            End Date
-                        </label>
-                        <input type="date" name="end_date" id="end_date" class="shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10
-                            h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 px-4 text-sm
-                            text-gray-800 focus:ring-3 focus:outline-hidden
-                            dark:border-gray-700 dark:bg-gray-900 dark:text-white">
-                    </div>
-            
-                    <!-- Price -->
-                    <div>
-                        <label for="price" class="block mb-2 text-sm font-medium text-gray-800 dark:text-white/90">
-                            Price
-                        </label>
-                        <input type="number" step="0.01" name="price" id="price" class="shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10
-                            h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 px-4 text-sm
-                            text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden
-                            dark:border-gray-700 dark:bg-gray-900 dark:text-white dark:placeholder:text-gray-400"
-                            placeholder="10.99">
-                    </div>
-            
-                    <!-- Currency -->
-                    <div>
-                        <label for="currency" class="block mb-2 text-sm font-medium text-gray-800 dark:text-white/90">
-                            Currency
-                        </label>
-                        <input type="text" name="currency" id="currency" value="USD" class="shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10
-                            h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 px-4 text-sm
-                            text-gray-800 focus:ring-3 focus:outline-hidden
-                            dark:border-gray-700 dark:bg-gray-900 dark:text-white">
-                    </div>
-            
-                    <!-- Payment Method (FIXED DARK MODE) -->
-                    <div>
-                        <label for="payment_method" class="block mb-2 text-sm font-medium text-gray-800 dark:text-white/90">
-                            Payment Method
-                        </label>
-                        <select name="payment_method" id="payment_method" class="shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10
-                            h-11 w-full rounded-lg border border-gray-200 py-2.5 px-4 text-sm
-                            text-gray-800 bg-white focus:ring-3 focus:outline-hidden
-                            dark:border-gray-700 dark:bg-gray-900 dark:text-white">
-            
-                            <option value="" class="bg-white text-gray-800 dark:bg-gray-900 dark:text-white">
-                                Select payment method
-                            </option>
-                            <option value="Credit" class="bg-white text-gray-800 dark:bg-gray-900 dark:text-white">
-                                Credit
-                            </option>
-                            <option value="Debit" class="bg-white text-gray-800 dark:bg-gray-900 dark:text-white">
-                                Debit
-                            </option>
-                            <option value="PayPal" class="bg-white text-gray-800 dark:bg-gray-900 dark:text-white">
-                                PayPal
-                            </option>
-                            <option value="Bank Transfer" class="bg-white text-gray-800 dark:bg-gray-900 dark:text-white">
-                                Bank Transfer
-                            </option>
+                        <label for="payment_method" class="block mb-2 text-sm font-medium text-gray-800 dark:text-white/90">Payment Method</label>
+                        <select name="payment_method" id="payment_method" class="shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 px-4 text-sm text-gray-800 focus:ring-3 focus:outline-hidden dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90">
+                            <option value="">Select payment method</option>
+                            <option value="Credit">Credit</option>
+                            <option value="Debit">Debit</option>
+                            <option value="PayPal">PayPal</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
                         </select>
                     </div>
-            
-                    <!-- Checkboxes stacked -->
-                    <div class="col-span-2 flex flex-col gap-3 mt-2">
-            
-                        <!-- Is Trial -->
-                        <div class="flex items-center gap-2">
-                            <input type="checkbox" name="is_trial" id="is_trial" class="w-4 h-4 rounded border-gray-300 text-brand-600
-                                focus:ring-brand-500
-                                dark:bg-gray-800 dark:border-gray-600 dark:checked:bg-brand-600 dark:checked:border-brand-600">
-                            <label for="is_trial" class="text-sm font-medium text-gray-800 dark:text-white/90">
-                                Is Trial
-                            </label>
-                        </div>
-            
-                        <!-- Already Canceled BELOW -->
-                        <div class="flex items-center gap-2">
-                            <input type="checkbox" name="already_canceled" id="already_canceled" class="w-4 h-4 rounded border-gray-300 text-brand-600
-                                focus:ring-brand-500
-                                dark:bg-gray-800 dark:border-gray-600 dark:checked:bg-brand-600 dark:checked:border-brand-600">
-                            <label for="already_canceled" class="text-sm font-medium text-gray-800 dark:text-white/90">
-                                Already Canceled
-                            </label>
-                        </div>
-            
+                    <div>
+                        <label for="end_date" class="block mb-2 text-sm font-medium text-gray-800 dark:text-white/90">Renewal Date</label>
+                        <input type="date" name="end_date" id="end_date" class="shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 px-4 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30">
                     </div>
-            
-                    <!-- Unsubscribe Link -->
                     <div class="col-span-2">
-                        <label for="unsubscribe_link" class="block mb-2 text-sm font-medium text-gray-800 dark:text-white/90">
-                            Unsubscribe Link
-                        </label>
-                        <textarea name="unsubscribe_link" id="unsubscribe_link" rows="2" class="shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10
-                            w-full rounded-lg border border-gray-200 bg-transparent py-2.5 px-4 text-sm
-                            text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden
-                            dark:border-gray-700 dark:bg-gray-900 dark:text-white dark:placeholder:text-gray-400"
-                            placeholder="https://..."></textarea>
+                        <label for="notes" class="block mb-2 text-sm font-medium text-gray-800 dark:text-white/90">Notes</label>
+                        <textarea name="notes" id="notes" rows="3" class="shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 px-4 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30" placeholder="Optional notes about this subscription"></textarea>
                     </div>
-            
-                    <!-- Notes -->
-                    <div class="col-span-2">
-                        <label for="notes" class="block mb-2 text-sm font-medium text-gray-800 dark:text-white/90">
-                            Notes
-                        </label>
-                        <textarea name="notes" id="notes" rows="3" class="shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10
-                            w-full rounded-lg border border-gray-200 bg-transparent py-2.5 px-4 text-sm
-                            text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden
-                            dark:border-gray-700 dark:bg-gray-900 dark:text-white dark:placeholder:text-gray-400"
-                            placeholder="Optional notes about this subscription"></textarea>
-                    </div>
-            
                 </div>
-            
-                <button type="submit" class="inline-flex items-center gap-2 rounded-lg border border-gray-300
-                    bg-brand-500 px-4 py-2.5 text-theme-sm font-medium text-white shadow-theme-xs
-                    hover:bg-brand-600 hover:text-white
-                    dark:border-gray-700 dark:bg-brand-500 dark:hover:bg-brand-600">
+                <button type="submit" class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-brand-500 px-4 py-2.5 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-brand-600 hover:text-white dark:border-gray-700 dark:bg-brand-500 dark:hover:bg-brand-600">
+                    <svg class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path clip-rule="evenodd" fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" />
+                    </svg>
                     Add Subscription
                 </button>
             </form>
-
-
-
 </div>
     </div>
 
