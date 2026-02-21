@@ -3,7 +3,7 @@ from .base import *
 DEBUG = False
 
 # Replace it with your name:
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'as242.pythonanywhere.com']
 
 # Database for the development server
 DATABASES = {
