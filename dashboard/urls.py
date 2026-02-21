@@ -5,6 +5,7 @@ from dashboard.views import (
     VegaLiteLineAPI,
     api_all_active_subscriptions,
     api_cost_per_month,
+    currency_convert,
     email_message_list,
     subscription_detail,
     email_message_detail,
@@ -35,5 +36,7 @@ urlpatterns = [
     
     path("bar-charts/vega-lite/", VegaLiteBarAPI.as_view(), name="bar-chart-vega-lite"),
     path("line-charts/vega-lite/", VegaLiteLineAPI.as_view(), name="line-chart-vega-lite"),
+    
+    path("api/currency-convert/", currency_convert, name="currency-convert-url"),
     
 ]
