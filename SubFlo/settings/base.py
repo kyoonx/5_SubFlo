@@ -105,3 +105,7 @@ STATICFILES_DIRS = [
 ]
 STATIC_ROOT = BASE_DIR / "staticfiles"  # Changed from SubFlo/ui-ux/staticfiles
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
+
+
+LOGIN_REDIRECT_URL = 'subscription-list-url'
+LOGOUT_REDIRECT_URL = 'login_urlpattern'
