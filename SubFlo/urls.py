@@ -32,4 +32,6 @@ urlpatterns = [
     path('logout/',
          LogoutView.as_view(),
          name='logout_urlpattern'),
+    
+    path('accounts/', include('allauth.urls')),
 ]

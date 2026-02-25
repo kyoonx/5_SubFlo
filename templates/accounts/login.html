@@ -4,6 +4,7 @@
 
 
 {% extends "base.html" %}
+{% load socialaccount %}
 
 {% block title %}
   Login
@@ -22,13 +23,26 @@
 
     <!-- Login form -->
     <form method="POST" class="card p-3 shadow-sm">
-      {% csrf_token %}
-      {{ form.as_p }}
-
-      <!-- Submit button -->
-      <div class="d-grid mt-3">
-        <button type="submit" class="btn btn-primary">Login</button>
-      </div>
+        {% csrf_token %}
+        {{ form.as_p }}
+    
+        <!-- Submit button -->
+        <div class="d-grid mt-3">
+            <button type="submit" class="btn btn-primary">Login</button>
+        </div>
+    
+        <div class="text-center my-3">
+            <span class="text-muted">OR</span>
+        </div>
+    
+        <!-- Google Login Button -->
+        <div class="d-grid">
+            <a href="{% provider_login_url 'google' %}" class="google-btn text-decoration-none text-center">
+                <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google Logo" class="google-icon">
+                Sign in with Google
+            </a>
+        </div>
+    
     </form>
 
     <!-- Helpful note for users -->
