@@ -27,19 +27,18 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 #################### Internal API Views ####################
 ############################################################
 
-class SubscriptionList(ListView, LoginRequiredMixin):
+class SubscriptionList(LoginRequiredMixin, ListView):
     model = Subscription
     context_object_name = "subscriptions"
     template_name = "dashboard/subscription_list.html"
     redirect_field_name = 'next'
-    
     
 
     def get_queryset(self):
         queryset = Subscription.objects.filter(user=self.request.user)
         q = self.request.GET.get("q", "").strip()
         platform_filter = self.request.GET.get("platform_filter")
-        
+
         if q:
             queryset = queryset.filter(Q(platform_name__icontains=q) | Q(service_name__icontains=q) | Q(email_message_id__sender__icontains=q))
 
@@ -48,7 +47,6 @@ class SubscriptionList(ListView, LoginRequiredMixin):
         elif platform_filter == "expiring":
             today = timezone.now().date()
             queryset = queryset.filter(end_date__isnull=False, end_date__lte=today + timedelta(days=30))
-
         return queryset
 
     def get_context_data(self, **kwargs):
