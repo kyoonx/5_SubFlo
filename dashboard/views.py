@@ -16,27 +16,29 @@ from io import BytesIO, StringIO
 from decimal import Decimal
 import calendar
 import random
-import json
 import csv
 from dateutil.relativedelta import relativedelta
 import requests
+
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 ############################################################
 #################### Internal API Views ####################
 ############################################################
 
-class SubscriptionList(ListView):
+class SubscriptionList(LoginRequiredMixin, ListView):
     model = Subscription
     context_object_name = "subscriptions"
     template_name = "dashboard/subscription_list.html"
-    
+    redirect_field_name = 'next'
     
 
     def get_queryset(self):
-        queryset = Subscription.objects.all()
+        queryset = Subscription.objects.filter(user=self.request.user)
         q = self.request.GET.get("q", "").strip()
         platform_filter = self.request.GET.get("platform_filter")
-        
+
         if q:
             queryset = queryset.filter(Q(platform_name__icontains=q) | Q(service_name__icontains=q) | Q(email_message_id__sender__icontains=q))
 
@@ -45,7 +47,6 @@ class SubscriptionList(ListView):
         elif platform_filter == "expiring":
             today = timezone.now().date()
             queryset = queryset.filter(end_date__isnull=False, end_date__lte=today + timedelta(days=30))
-
         return queryset
 
     def get_context_data(self, **kwargs):
@@ -59,60 +60,143 @@ class SubscriptionList(ListView):
         # current_month_start = today.replace(day=1)
         # current_month_end = (current_month_start + timedelta(days=32)).replace(day=1) - timedelta(days=1)
         
-        total_subscriptions = Subscription.objects
+        total_subscriptions = Subscription.objects.filter(user=self.request.user)
         total_active_subscriptions = total_subscriptions.filter(already_canceled=False).filter(Q(end_date__isnull=True) | Q(end_date__gte=today))
         total_active_trial_subscriptions = total_active_subscriptions.filter(is_trial=True)
-        
+
+        # Monthly spend: sum of price for active, non-trial subscriptions
+        monthly_spend_qs = total_active_subscriptions.filter(is_trial=False, price__isnull=False)
+        ctx["monthly_spend"] = monthly_spend_qs.aggregate(total=Sum("price"))["total"] or Decimal("0.00")
+
+        # Upcoming renewals: end_date in the next 30 days (active subs with end_date in range)
+        soon_end = today + timedelta(days=30)
+        upcoming_qs = Subscription.objects.filter(
+            user=self.request.user,
+            already_canceled=False,
+            end_date__isnull=False,
+            end_date__gte=today,
+            end_date__lte=soon_end,
+        ).order_by("end_date")
+        ctx["upcoming_renewals_count"] = upcoming_qs.count()
+
+        # Group upcoming renewals by relative day (Tomorrow, In Two Days, ...) for sidebar
+        day_labels = {
+            0: "Today",
+            1: "Tomorrow",
+            2: "In Two Days",
+            3: "In Three Days",
+            4: "In Four Days",
+            5: "In Five Days",
+            6: "In Six Days",
+            7: "In One Week",
+        }
+        upcoming_by_day = {}
+        for sub in upcoming_qs:
+            delta = (sub.end_date - today).days
+            label = day_labels.get(delta, f"In {delta} Days" if delta <= 30 else None)
+            if label and delta <= 30:
+                upcoming_by_day.setdefault(label, []).append(sub)
+        ctx["upcoming_renewals_grouped"] = [
+            {"label": label, "subscriptions": subs}
+            for label, subs in upcoming_by_day.items()
+        ]
+        # Sort by first subscription's end_date
+        ctx["upcoming_renewals_grouped"].sort(
+            key=lambda g: g["subscriptions"][0].end_date if g["subscriptions"] else today
+        )
+
         ctx["total_subscriptions"] = total_subscriptions.count()
         ctx["total_active_subscriptions"] = total_active_subscriptions.count()
         ctx["total_active_trial_subscriptions"] = total_active_trial_subscriptions.count()
-        
-        # Monthly subscription costs per month (for chart)
+
+        # ── Monthly cost data for bar chart (first 6 months of current year) ──
+        current_year = today.year
         subscriptions_per_month = (
             Subscription.objects
+            .filter(user=self.request.user)
             .filter(already_canceled=False, is_trial=False, price__isnull=False)
             .annotate(month=TruncMonth('created_at'))
             .values('month')
             .annotate(total_cost=Sum('price'))
             .order_by('month')
         )
-        
-        # Create a dictionary with all 12 months of current year
-        current_year = today.year
         monthly_costs = {}
         for month_num in range(1, 13):
-            month_key = datetime(current_year, month_num, 1).date()
-            monthly_costs[month_key] = Decimal("0.00")
-        
-        # Fill in actual data
+            monthly_costs[month_num] = Decimal("0.00")
         for item in subscriptions_per_month:
             if item['month']:
-                month_date = item['month'].date()
-                if month_date.year == current_year:
-                    monthly_costs[month_date] = item['total_cost'] or Decimal("0.00")
-        
-        # Generate test data if no data exists
-        total_cost = sum(monthly_costs.values())
-        if total_cost == 0:
-            # Generate realistic test data (monthly costs in dollars)
-            import random
-            base_costs = [168, 385, 201, 298, 187, 195, 291, 110, 215, 390, 280, 112]
-            monthly_costs = {
-                datetime(current_year, month_num, 1).date(): Decimal(str(max(0, int(cost + random.randint(-20, 20)))))
-                for month_num, cost in enumerate(base_costs, 1)
-            }
-        
-        # Format for chart
-        months = [calendar.month_abbr[month_num] for month_num in range(1, 13)]
-        values = [float(monthly_costs[datetime(current_year, month_num, 1).date()]) for month_num in range(1, 13)]
-        
-        ctx["monthly_costs_data"] = json.dumps({
-            'months': months,
-            'values': values
-        })
-    
-        return ctx
+                md = item['month'].date() if hasattr(item['month'], 'date') else item['month']
+                if md.year == current_year:
+                    monthly_costs[md.month] = item['total_cost'] or Decimal("0.00")
 
+        all_values = [float(monthly_costs[m]) for m in range(1, 13)]
+        if sum(all_values) == 0:
+            base_costs = [168, 385, 201, 298, 187, 195, 291, 110, 215, 390, 280, 112]
+            all_values = [max(0, c + random.randint(-20, 20)) for c in base_costs]
+
+        bar_colors = [
+            ("rgba(160,188,232,0.25)", "rgba(160,188,232,1)"),
+            ("rgba(107,230,211,0.25)", "rgba(107,230,211,1)"),
+            ("rgba(0,0,0,0.12)",       "rgba(0,0,0,0.7)"),
+            ("rgba(125,187,255,0.25)", "rgba(125,187,255,1)"),
+            ("rgba(184,153,235,0.25)", "rgba(184,153,235,1)"),
+            ("rgba(113,221,140,0.25)", "rgba(113,221,140,1)"),
+        ]
+
+        chart_values = all_values[:6]
+        chart_labels = [calendar.month_abbr[m] for m in range(1, 7)]
+        max_val = max(chart_values) if chart_values and max(chart_values) > 0 else 1
+        chart_months = []
+        for i, (label, val) in enumerate(zip(chart_labels, chart_values)):
+            bg_pct = (val / max_val) * 100
+            fg_pct = max(0, bg_pct - 12.5)
+            cb, cf = bar_colors[i % len(bar_colors)]
+            chart_months.append({
+                "label": label,
+                "bg_height": round(bg_pct, 1),
+                "fg_height": round(fg_pct, 1),
+                "color_bg": cb,
+                "color_fg": cf,
+            })
+        ctx["chart_months"] = chart_months
+
+        nice_max = int(max_val)
+        if nice_max < 10:
+            nice_max = 10
+        ctx["chart_y_labels"] = [str(nice_max), str(int(nice_max * 2 / 3)), str(int(nice_max / 3)), "0"]
+
+        # Month-over-month change percent
+        cur_idx = today.month - 1
+        if cur_idx >= 1 and all_values[cur_idx - 1] != 0:
+            pct = round((all_values[cur_idx] - all_values[cur_idx - 1]) / all_values[cur_idx - 1] * 100)
+            ctx["monthly_spend_change_percent"] = pct
+        else:
+            ctx["monthly_spend_change_percent"] = None
+
+        # ── Donut: Subscriptions by Category (placeholder categories) ──
+        total_spend = float(ctx["monthly_spend"])
+        circumference = 289.0
+        cat_defs = [
+            {"label": "Direct",    "pct": 53, "color": "#7dbbff"},
+            {"label": "Affiliate", "pct": 24, "color": "#71dd8c"},
+            {"label": "Sponsored", "pct": 14, "color": "#b899eb"},
+            {"label": "E-mail",    "pct": 9,  "color": "#6be6d3"},
+        ]
+        offset = circumference / 4
+        categories = []
+        for cd in cat_defs:
+            dash = (cd["pct"] / 100) * circumference
+            categories.append({
+                "label": cd["label"],
+                "color": cd["color"],
+                "dash_length": round(dash, 1),
+                "dash_offset": round(offset, 1),
+                "amount": Decimal(str(round(total_spend * cd["pct"] / 100, 2))),
+            })
+            offset -= dash
+        ctx["categories"] = categories
+
+        return ctx
 
     def post(self, request, *args, **kwargs):
         # Check if this is a create subscription form submission
@@ -135,12 +219,6 @@ class SubscriptionList(ListView):
             is_trial = request.POST.get('is_trial') == 'on'
             already_canceled = request.POST.get('already_canceled') == 'on'
 
-            # Get or create a test user for demo purposes
-            user, _ = User.objects.get_or_create(
-                username='testuser',
-                defaults={'email': 'test@example.com'}
-            )
-
             # Validate required fields (only platform_name & service_name are required in form)
             if platform_name and service_name:
                 try:
@@ -153,7 +231,7 @@ class SubscriptionList(ListView):
 
                     # Create subscription
                     Subscription.objects.create(
-                        user=user,
+                        user=request.user,
                         platform_name=platform_name,
                         service_name=service_name,
                         start_date=start_date,
@@ -177,20 +255,21 @@ class SubscriptionList(ListView):
         return redirect('subscription-list-url')
 
 
-
+@login_required(login_url='login_urlpattern')
 def subscription_detail(request, pk):
     subscription = get_object_or_404(Subscription, pk=pk)
     return render(request, "dashboard/subscription_detail.html", {"subscription": subscription})
 
-
-def _subscription_export_queryset():
+@login_required(login_url='login_urlpattern')
+def _subscription_export_queryset(request):
     """Ordered queryset for CSV/JSON export (model default ordering)."""
-    return Subscription.objects.all().order_by("user", "-end_date", "-start_date", "platform_name", "service_name")
+    return Subscription.objects.filter(user=request.user).order_by("user", "-end_date", "-start_date", "platform_name", "service_name")
 
 
+@login_required(login_url='login_urlpattern')
 def subscription_export_csv(request):
     """Return downloadable CSV of all subscriptions."""
-    queryset = _subscription_export_queryset()
+    queryset = _subscription_export_queryset(request)
     buffer = StringIO()
     writer = csv.writer(buffer)
     headers = [
@@ -223,9 +302,10 @@ def subscription_export_csv(request):
     return response
 
 
+@login_required(login_url='login_urlpattern')
 def subscription_export_json(request):
     """Return downloadable JSON of all subscriptions with metadata."""
-    queryset = _subscription_export_queryset()
+    queryset = _subscription_export_queryset(request)
     rows = []
     for sub in queryset:
         rows.append({
@@ -254,23 +334,23 @@ def subscription_export_json(request):
     response["Content-Disposition"] = f'attachment; filename="{filename}"'
     return response
 
-
+@login_required(login_url='login_urlpattern')
 def reports_view(request):
     """Reports page: grouped summaries and totals, with CSV/JSON export links."""
     today = timezone.now().date()
     subscriptions_per_platform = (
-        Subscription.objects.values("platform_name")
+        Subscription.objects.filter(user=request.user).values("platform_name")
         .annotate(count=Count("id"))
         .order_by("-count")
     )
-    total_all = Subscription.objects.count()
-    total_active = Subscription.objects.filter(already_canceled=False).filter(
+    total_all = Subscription.objects.filter(user=request.user).count()
+    total_active = Subscription.objects.filter(user=request.user, already_canceled=False).filter(
         Q(end_date__isnull=True) | Q(end_date__gte=today)
     ).count()
-    total_trial = Subscription.objects.filter(already_canceled=False, is_trial=True).filter(
+    total_trial = Subscription.objects.filter(user=request.user, already_canceled=False, is_trial=True).filter(
         Q(end_date__isnull=True) | Q(end_date__gte=today)
     ).count()
-    total_canceled = Subscription.objects.filter(already_canceled=True).count()
+    total_canceled = Subscription.objects.filter(user=request.user, already_canceled=True).count()
     by_status = [
         {"status": "Active", "count": total_active},
         {"status": "Trial (active)", "count": total_trial},
@@ -286,17 +366,18 @@ def reports_view(request):
     }
     return render(request, "dashboard/reports.html", context)
 
-
+@login_required(login_url='login_urlpattern')
 def email_message_detail(request, pk):
-    email_message = get_object_or_404(EmailMessage, pk=pk)
+    email_message = get_object_or_404(EmailMessage, pk=pk, user=request.user)
     template = loader.get_template("dashboard/email_message_detail.html")
     context = {"email_message": email_message}
     output = template.render(context, request)
     return HttpResponse(output)
 
 
+@login_required(login_url='login_urlpattern')
 def email_message_list(request):
-    email_messages = EmailMessage.objects.all().values("id", "subject", "sender", "received_date")
+    email_messages = EmailMessage.objects.filter(user=request.user).values("id", "subject", "sender", "received_date")
     template = loader.get_template("dashboard/email_message_list.html")
     context = {"email_messages": email_messages}
     output = template.render(context, request)
@@ -308,6 +389,7 @@ def email_message_list(request):
 #################### External API Views ####################
 ############################################################
 
+@login_required(login_url='login_urlpattern')
 def subscription_chart(request):
     """
     Generate a chart showing subscription distribution by platform.
@@ -346,6 +428,7 @@ def subscription_chart(request):
     return HttpResponse(buffer.getvalue(), content_type='image/png')
 
 
+@login_required(login_url='login_urlpattern')
 def subscriptions_per_month_chart(request):
     """
     Generate a bar chart showing total number of subscriptions per month.
@@ -415,19 +498,17 @@ def subscriptions_per_month_chart(request):
     return HttpResponse(buffer.getvalue(), content_type='image/png')
 
 
+@login_required(login_url='login_urlpattern')
 def api_all_active_subscriptions(request):
     """
-    GET /api/subscriptions/active/?user_id=<profile_uuid>
+    GET /api/subscriptions/active
     """
-    profile_uuid = request.GET.get("user_id")
-    
-    if not profile_uuid:
-        return JsonResponse({"error": "user_id is required"}, status=400)
+    user = request.user
 
     try:
-        profile = UserProfile.objects.select_related("user").get(id=profile_uuid)
+        profile = user.profile
     except UserProfile.DoesNotExist:
-        return JsonResponse({"error": "Invalid user_id"}, status=404)
+        return JsonResponse({"error": "Profile not found"}, status=404)
 
     today = timezone.now().date()
 
@@ -446,16 +527,15 @@ def api_all_active_subscriptions(request):
     ).values(*fields)
 
     data = list(rows)
-    return JsonResponse({"user_id": profile_uuid, "num_active_subscriptions": len(data), "subscriptions": data})
+    return JsonResponse({"user_id": profile.id, "num_active_subscriptions": len(data), "subscriptions": data})
 
 
-
-
+@login_required(login_url='login_urlpattern')
 def api_cost_per_month(request):
     """
     Return the summary of total subscription costs per month for the past 12 months for a given user.
     
-    GET /api/subscriptions/cost_per_month/?user_id=<profile_uuid>
+    GET /api/subscriptions/cost_per_month/
     
     Response Format:
         {
@@ -478,15 +558,15 @@ def api_cost_per_month(request):
         
     Where today is in February 2026, so we return costs for the past 12 months including current month (2025-03 to 2026-02).
     """
-    profile_uuid = request.GET.get("user_id")
+    user = request.user
     
-    if not profile_uuid:
-        return JsonResponse({"error": "user_id is required"}, status=400)
+    if not user:
+        return JsonResponse({"error": "Not authenticated"}, status=400)
 
     try:
-        profile = UserProfile.objects.select_related("user").get(id=profile_uuid)
+        profile = user.profile
     except UserProfile.DoesNotExist:
-        return JsonResponse({"error": "Invalid user_id"}, status=404)
+        return JsonResponse({"error": "Profile not found"}, status=404)
 
     today = timezone.now().date()
     start_period = (today.replace(day=1) - relativedelta(months=11))  # 12 months including current month
@@ -515,7 +595,7 @@ def api_cost_per_month(request):
                 monthly_costs[month_date] = item['total_cost'] or Decimal("0.00")
 
     response_data = {
-        'user_id': profile_uuid,
+        'user_id': profile.id,
         'monthly_costs': {
             month.strftime("%Y-%m"): float(cost)
             for month, cost in monthly_costs.items()
@@ -523,7 +603,6 @@ def api_cost_per_month(request):
     }
     
     return JsonResponse(response_data)
-
 
 
 
@@ -545,7 +624,6 @@ class VegaLiteLineAPI(TemplateView):
         context["user_id"] = user_id
         return context
     
-
 def currency_convert(request):
     """
     GET /dashboard/api/currency-convert/?q=EUR
