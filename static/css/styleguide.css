@@ -1,0 +1,130 @@
+/**
+ * SubFlo Design System — Theme overrides
+ * Apply via data attributes on a parent (e.g. body or main).
+ *
+ * Example: <body data-spacing-mode="standard" data-colors-mode="snowui-light">
+ */
+
+[data-spacing-mode="standard"] {
+  --spacing-4: 4px;
+  --spacing-8: 8px;
+  --spacing-16: 16px;
+  --spacing-24: 24px;
+  --spacing-28: 28px;
+  --spacing-12-duplicate: 12px;
+}
+
+[data-spacing-mode="expanded-4"] {
+  --spacing-4: 8px;
+  --spacing-8: 12px;
+  --spacing-16: 20px;
+  --spacing-24: 28px;
+  --spacing-28: 32px;
+  --spacing-12-duplicate: 16px;
+}
+
+[data-spacing-mode="expanded-8"] {
+  --spacing-4: 12px;
+  --spacing-8: 16px;
+  --spacing-16: 24px;
+  --spacing-24: 32px;
+  --spacing-28: 36px;
+  --spacing-12-duplicate: 20px;
+}
+
+[data-spacing-mode="condensed-4"] {
+  --spacing-4: 0px;
+  --spacing-8: 4px;
+  --spacing-16: 12px;
+  --spacing-24: 20px;
+  --spacing-28: 24px;
+  --spacing-12-duplicate: 8px;
+}
+
+[data-corner-radius-mode="standard"] {
+  --corner-radius-12: 12px;
+  --corner-radius-20: 20px;
+  --corner-radius-80: 80px;
+  --corner-radius-8-duplicate: 8px;
+}
+
+[data-corner-radius-mode="expanded-4"] {
+  --corner-radius-12: 16px;
+  --corner-radius-20: 24px;
+  --corner-radius-80: 84px;
+  --corner-radius-8-duplicate: 12px;
+}
+
+[data-corner-radius-mode="expanded-8"] {
+  --corner-radius-12: 20px;
+  --corner-radius-20: 28px;
+  --corner-radius-80: 88px;
+  --corner-radius-8-duplicate: 16px;
+}
+
+[data-corner-radius-mode="condensed-4"] {
+  --corner-radius-12: 8px;
+  --corner-radius-20: 16px;
+  --corner-radius-80: 76px;
+  --corner-radius-8-duplicate: 4px;
+}
+
+[data-colors-mode="snowui-light"] {
+  --colors-black-100: rgba(0, 0, 0, 1);
+  --colors-black-40: rgba(0, 0, 0, 0.4);
+  --colors-black-4: rgba(0, 0, 0, 0.04);
+  --colors-black-20: rgba(0, 0, 0, 0.2);
+  --colors-background-5: rgba(230, 241, 253, 1);
+  --colors-background-2: rgba(249, 249, 250, 1);
+}
+
+[data-colors-mode="snowui-dark"] {
+  --colors-black-100: rgba(255, 255, 255, 1);
+  --colors-black-40: rgba(255, 255, 255, 0.4);
+  --colors-black-4: rgba(255, 255, 255, 0.1);
+  --colors-black-20: rgba(255, 255, 255, 0.2);
+  --colors-background-5: rgba(230, 241, 253, 1);
+  --colors-background-2: rgba(255, 255, 255, 0.04);
+}
+
+[data-colors-mode="ios-light"] {
+  --colors-black-100: rgba(0, 0, 0, 1);
+  --colors-black-40: rgba(0, 0, 0, 0.4);
+  --colors-black-4: rgba(0, 0, 0, 0.04);
+  --colors-black-20: rgba(0, 0, 0, 0.2);
+  --colors-background-5: rgba(255, 255, 255, 1);
+  --colors-background-2: rgba(255, 255, 255, 1);
+}
+
+[data-colors-mode="ios-dark"] {
+  --colors-black-100: rgba(255, 255, 255, 1);
+  --colors-black-40: rgba(255, 255, 255, 0.4);
+  --colors-black-4: rgba(255, 255, 255, 0.1);
+  --colors-black-20: rgba(255, 255, 255, 0.2);
+  --colors-background-5: rgba(255, 255, 255, 0.8);
+  --colors-background-2: rgba(255, 255, 255, 0.04);
+}
+
+[data-colors-mode="light"] {
+  --colors-labels-secondary: rgba(60, 60, 67, 0.6);
+}
+
+[data-colors-mode="dark"] {
+  --colors-labels-secondary: rgba(235, 235, 245, 0.6);
+}
+
+[data-colors-mode="IC-light"] {
+  --colors-labels-secondary: rgba(60, 60, 67, 0.8);
+}
+
+[data-colors-mode="IC-dark"] {
+  --colors-labels-secondary: rgba(235, 235, 245, 0.7);
+}
+
+[data-visibility-1-mode="true"] {
+  --visibility-1-visibility-1: initial;
+}
+
+[data-visibility-1-mode="false"] {
+  --visibility-1-visibility-1: none;
+}

@@ -62,12 +62,53 @@ class SubscriptionList(ListView):
         total_subscriptions = Subscription.objects
         total_active_subscriptions = total_subscriptions.filter(already_canceled=False).filter(Q(end_date__isnull=True) | Q(end_date__gte=today))
         total_active_trial_subscriptions = total_active_subscriptions.filter(is_trial=True)
-        
+
+        # Monthly spend: sum of price for active, non-trial subscriptions
+        monthly_spend_qs = total_active_subscriptions.filter(is_trial=False, price__isnull=False)
+        ctx["monthly_spend"] = monthly_spend_qs.aggregate(total=Sum("price"))["total"] or Decimal("0.00")
+
+        # Upcoming renewals: end_date in the next 30 days (active subs with end_date in range)
+        soon_end = today + timedelta(days=30)
+        upcoming_qs = Subscription.objects.filter(
+            already_canceled=False,
+            end_date__isnull=False,
+            end_date__gte=today,
+            end_date__lte=soon_end,
+        ).order_by("end_date")
+        ctx["upcoming_renewals_count"] = upcoming_qs.count()
+
+        # Group upcoming renewals by relative day (Tomorrow, In Two Days, ...) for sidebar
+        day_labels = {
+            0: "Today",
+            1: "Tomorrow",
+            2: "In Two Days",
+            3: "In Three Days",
+            4: "In Four Days",
+            5: "In Five Days",
+            6: "In Six Days",
+            7: "In One Week",
+        }
+        upcoming_by_day = {}
+        for sub in upcoming_qs:
+            delta = (sub.end_date - today).days
+            label = day_labels.get(delta, f"In {delta} Days" if delta <= 30 else None)
+            if label and delta <= 30:
+                upcoming_by_day.setdefault(label, []).append(sub)
+        ctx["upcoming_renewals_grouped"] = [
+            {"label": label, "subscriptions": subs}
+            for label, subs in upcoming_by_day.items()
+        ]
+        # Sort by first subscription's end_date
+        ctx["upcoming_renewals_grouped"].sort(
+            key=lambda g: g["subscriptions"][0].end_date if g["subscriptions"] else today
+        )
+
         ctx["total_subscriptions"] = total_subscriptions.count()
         ctx["total_active_subscriptions"] = total_active_subscriptions.count()
         ctx["total_active_trial_subscriptions"] = total_active_trial_subscriptions.count()
-        
-        # Monthly subscription costs per month (for chart)
+
+        # ── Monthly cost data for bar chart (first 6 months of current year) ──
+        current_year = today.year
         subscriptions_per_month = (
             Subscription.objects
             .filter(already_canceled=False, is_trial=False, price__isnull=False)
@@ -76,41 +117,82 @@ class SubscriptionList(ListView):
             .annotate(total_cost=Sum('price'))
             .order_by('month')
         )
-        
-        # Create a dictionary with all 12 months of current year
-        current_year = today.year
         monthly_costs = {}
         for month_num in range(1, 13):
-            month_key = datetime(current_year, month_num, 1).date()
-            monthly_costs[month_key] = Decimal("0.00")
-        
-        # Fill in actual data
+            monthly_costs[month_num] = Decimal("0.00")
         for item in subscriptions_per_month:
             if item['month']:
-                month_date = item['month'].date()
-                if month_date.year == current_year:
-                    monthly_costs[month_date] = item['total_cost'] or Decimal("0.00")
-        
-        # Generate test data if no data exists
-        total_cost = sum(monthly_costs.values())
-        if total_cost == 0:
-            # Generate realistic test data (monthly costs in dollars)
-            import random
+                md = item['month'].date() if hasattr(item['month'], 'date') else item['month']
+                if md.year == current_year:
+                    monthly_costs[md.month] = item['total_cost'] or Decimal("0.00")
+
+        all_values = [float(monthly_costs[m]) for m in range(1, 13)]
+        if sum(all_values) == 0:
             base_costs = [168, 385, 201, 298, 187, 195, 291, 110, 215, 390, 280, 112]
-            monthly_costs = {
-                datetime(current_year, month_num, 1).date(): Decimal(str(max(0, int(cost + random.randint(-20, 20)))))
-                for month_num, cost in enumerate(base_costs, 1)
-            }
-        
-        # Format for chart
-        months = [calendar.month_abbr[month_num] for month_num in range(1, 13)]
-        values = [float(monthly_costs[datetime(current_year, month_num, 1).date()]) for month_num in range(1, 13)]
-        
-        ctx["monthly_costs_data"] = json.dumps({
-            'months': months,
-            'values': values
-        })
-    
+            all_values = [max(0, c + random.randint(-20, 20)) for c in base_costs]
+
+        bar_colors = [
+            ("rgba(160,188,232,0.25)", "rgba(160,188,232,1)"),
+            ("rgba(107,230,211,0.25)", "rgba(107,230,211,1)"),
+            ("rgba(0,0,0,0.12)",       "rgba(0,0,0,0.7)"),
+            ("rgba(125,187,255,0.25)", "rgba(125,187,255,1)"),
+            ("rgba(184,153,235,0.25)", "rgba(184,153,235,1)"),
+            ("rgba(113,221,140,0.25)", "rgba(113,221,140,1)"),
+        ]
+
+        chart_values = all_values[:6]
+        chart_labels = [calendar.month_abbr[m] for m in range(1, 7)]
+        max_val = max(chart_values) if chart_values and max(chart_values) > 0 else 1
+        chart_months = []
+        for i, (label, val) in enumerate(zip(chart_labels, chart_values)):
+            bg_pct = (val / max_val) * 100
+            fg_pct = max(0, bg_pct - 12.5)
+            cb, cf = bar_colors[i % len(bar_colors)]
+            chart_months.append({
+                "label": label,
+                "bg_height": round(bg_pct, 1),
+                "fg_height": round(fg_pct, 1),
+                "color_bg": cb,
+                "color_fg": cf,
+            })
+        ctx["chart_months"] = chart_months
+
+        nice_max = int(max_val)
+        if nice_max < 10:
+            nice_max = 10
+        ctx["chart_y_labels"] = [str(nice_max), str(int(nice_max * 2 / 3)), str(int(nice_max / 3)), "0"]
+
+        # Month-over-month change percent
+        cur_idx = today.month - 1
+        if cur_idx >= 1 and all_values[cur_idx - 1] != 0:
+            pct = round((all_values[cur_idx] - all_values[cur_idx - 1]) / all_values[cur_idx - 1] * 100)
+            ctx["monthly_spend_change_percent"] = pct
+        else:
+            ctx["monthly_spend_change_percent"] = None
+
+        # ── Donut: Subscriptions by Category (placeholder categories) ──
+        total_spend = float(ctx["monthly_spend"])
+        circumference = 289.0
+        cat_defs = [
+            {"label": "Direct",    "pct": 53, "color": "#7dbbff"},
+            {"label": "Affiliate", "pct": 24, "color": "#71dd8c"},
+            {"label": "Sponsored", "pct": 14, "color": "#b899eb"},
+            {"label": "E-mail",    "pct": 9,  "color": "#6be6d3"},
+        ]
+        offset = circumference / 4
+        categories = []
+        for cd in cat_defs:
+            dash = (cd["pct"] / 100) * circumference
+            categories.append({
+                "label": cd["label"],
+                "color": cd["color"],
+                "dash_length": round(dash, 1),
+                "dash_offset": round(offset, 1),
+                "amount": Decimal(str(round(total_spend * cd["pct"] / 100, 2))),
+            })
+            offset -= dash
+        ctx["categories"] = categories
+
         return ctx
 
 
