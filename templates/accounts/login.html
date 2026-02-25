@@ -1,0 +1,39 @@
+<!-- Paste code here: templates/students/login.html -->
+<!-- New file. -->
+<!-- When you run this, you will get a login page on the url pattern "...login/" -->
+
+
+{% extends "base.html" %}
+
+{% block title %}
+  Login
+{% endblock %}
+
+{% block content %}
+  <div class="container mt-4" style="max-width: 400px;">
+    <h2 class="mb-3 text-center">Login</h2>
+
+    <!-- Display form errors (if any) -->
+    {% if form.errors %}
+      <div class="alert alert-danger" role="alert">
+        Please correct the errors below.
+      </div>
+    {% endif %}
+
+    <!-- Login form -->
+    <form method="POST" class="card p-3 shadow-sm">
+      {% csrf_token %}
+      {{ form.as_p }}
+
+      <!-- Submit button -->
+      <div class="d-grid mt-3">
+        <button type="submit" class="btn btn-primary">Login</button>
+      </div>
+    </form>
+
+    <!-- Helpful note for users -->
+    <p class="mt-3 text-muted small text-center">
+      Don’t have an account? Contact the site administrator.
+    </p>
+  </div>
+{% endblock %}

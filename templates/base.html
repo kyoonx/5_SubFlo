@@ -37,6 +37,21 @@
       <div class="dot-icon"></div>
       <span>Emails</span>
     </a>
+
+    {% if user.is_authenticated %}
+      <form action="{% url 'logout_urlpattern' %}" method="post" class="ms-auto">
+
+          <!--IMPORTANT: If you do not include csrf token tag here, your logout will not work as intended. -->
+          {% csrf_token %}
+        <button class="btn btn-sm btn-outline-light" type="submit">
+          Log Out, {{ user.get_username }}
+        </button>
+      </form>
+    {% else %}
+      <a class="btn btn-sm btn-outline-light ms-auto" href="{% url 'login_urlpattern' %}">Log In</a>
+    {% endif %}
+
+
   </aside>
 
   <!-- ════ MAIN ════ -->

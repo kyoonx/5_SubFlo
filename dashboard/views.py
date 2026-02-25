@@ -16,24 +16,27 @@ from io import BytesIO, StringIO
 from decimal import Decimal
 import calendar
 import random
-import json
 import csv
 from dateutil.relativedelta import relativedelta
 import requests
+
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 ############################################################
 #################### Internal API Views ####################
 ############################################################
 
-class SubscriptionList(ListView):
+class SubscriptionList(ListView, LoginRequiredMixin):
     model = Subscription
     context_object_name = "subscriptions"
     template_name = "dashboard/subscription_list.html"
+    redirect_field_name = 'next'
     
     
 
     def get_queryset(self):
-        queryset = Subscription.objects.all()
+        queryset = Subscription.objects.filter(user=self.request.user)
         q = self.request.GET.get("q", "").strip()
         platform_filter = self.request.GET.get("platform_filter")
         
@@ -59,7 +62,7 @@ class SubscriptionList(ListView):
         # current_month_start = today.replace(day=1)
         # current_month_end = (current_month_start + timedelta(days=32)).replace(day=1) - timedelta(days=1)
         
-        total_subscriptions = Subscription.objects
+        total_subscriptions = Subscription.objects.filter(user=self.request.user)
         total_active_subscriptions = total_subscriptions.filter(already_canceled=False).filter(Q(end_date__isnull=True) | Q(end_date__gte=today))
         total_active_trial_subscriptions = total_active_subscriptions.filter(is_trial=True)
 
@@ -70,6 +73,7 @@ class SubscriptionList(ListView):
         # Upcoming renewals: end_date in the next 30 days (active subs with end_date in range)
         soon_end = today + timedelta(days=30)
         upcoming_qs = Subscription.objects.filter(
+            user=self.request.user,
             already_canceled=False,
             end_date__isnull=False,
             end_date__gte=today,
@@ -111,6 +115,7 @@ class SubscriptionList(ListView):
         current_year = today.year
         subscriptions_per_month = (
             Subscription.objects
+            .filter(user=self.request.user)
             .filter(already_canceled=False, is_trial=False, price__isnull=False)
             .annotate(month=TruncMonth('created_at'))
             .values('month')
@@ -195,7 +200,6 @@ class SubscriptionList(ListView):
 
         return ctx
 
-
     def post(self, request, *args, **kwargs):
         # Check if this is a create subscription form submission
         if request.POST.get('form_type') == 'create_subscription':
@@ -217,12 +221,6 @@ class SubscriptionList(ListView):
             is_trial = request.POST.get('is_trial') == 'on'
             already_canceled = request.POST.get('already_canceled') == 'on'
 
-            # Get or create a test user for demo purposes
-            user, _ = User.objects.get_or_create(
-                username='testuser',
-                defaults={'email': 'test@example.com'}
-            )
-
             # Validate required fields (only platform_name & service_name are required in form)
             if platform_name and service_name:
                 try:
@@ -235,7 +233,7 @@ class SubscriptionList(ListView):
 
                     # Create subscription
                     Subscription.objects.create(
-                        user=user,
+                        user=request.user,
                         platform_name=platform_name,
                         service_name=service_name,
                         start_date=start_date,
@@ -259,20 +257,21 @@ class SubscriptionList(ListView):
         return redirect('subscription-list-url')
 
 
-
+@login_required(login_url='login_urlpattern')
 def subscription_detail(request, pk):
     subscription = get_object_or_404(Subscription, pk=pk)
     return render(request, "dashboard/subscription_detail.html", {"subscription": subscription})
 
-
-def _subscription_export_queryset():
+@login_required(login_url='login_urlpattern')
+def _subscription_export_queryset(request):
     """Ordered queryset for CSV/JSON export (model default ordering)."""
-    return Subscription.objects.all().order_by("user", "-end_date", "-start_date", "platform_name", "service_name")
+    return Subscription.objects.filter(user=request.user).order_by("user", "-end_date", "-start_date", "platform_name", "service_name")
 
 
+@login_required(login_url='login_urlpattern')
 def subscription_export_csv(request):
     """Return downloadable CSV of all subscriptions."""
-    queryset = _subscription_export_queryset()
+    queryset = _subscription_export_queryset(request)
     buffer = StringIO()
     writer = csv.writer(buffer)
     headers = [
@@ -305,9 +304,10 @@ def subscription_export_csv(request):
     return response
 
 
+@login_required(login_url='login_urlpattern')
 def subscription_export_json(request):
     """Return downloadable JSON of all subscriptions with metadata."""
-    queryset = _subscription_export_queryset()
+    queryset = _subscription_export_queryset(request)
     rows = []
     for sub in queryset:
         rows.append({
@@ -336,7 +336,7 @@ def subscription_export_json(request):
     response["Content-Disposition"] = f'attachment; filename="{filename}"'
     return response
 
-
+@login_required(login_url='login_urlpattern')
 def reports_view(request):
     """Reports page: grouped summaries and totals, with CSV/JSON export links."""
     today = timezone.now().date()
@@ -345,14 +345,14 @@ def reports_view(request):
         .annotate(count=Count("id"))
         .order_by("-count")
     )
-    total_all = Subscription.objects.count()
-    total_active = Subscription.objects.filter(already_canceled=False).filter(
+    total_all = Subscription.objects.filter(user=request.user).count()
+    total_active = Subscription.objects.filter(user=request.user, already_canceled=False).filter(
         Q(end_date__isnull=True) | Q(end_date__gte=today)
     ).count()
-    total_trial = Subscription.objects.filter(already_canceled=False, is_trial=True).filter(
+    total_trial = Subscription.objects.filter(user=request.user, already_canceled=False, is_trial=True).filter(
         Q(end_date__isnull=True) | Q(end_date__gte=today)
     ).count()
-    total_canceled = Subscription.objects.filter(already_canceled=True).count()
+    total_canceled = Subscription.objects.filter(user=request.user, already_canceled=True).count()
     by_status = [
         {"status": "Active", "count": total_active},
         {"status": "Trial (active)", "count": total_trial},
@@ -368,17 +368,18 @@ def reports_view(request):
     }
     return render(request, "dashboard/reports.html", context)
 
-
+@login_required(login_url='login_urlpattern')
 def email_message_detail(request, pk):
-    email_message = get_object_or_404(EmailMessage, pk=pk)
+    email_message = get_object_or_404(EmailMessage, pk=pk, user=request.user)
     template = loader.get_template("dashboard/email_message_detail.html")
     context = {"email_message": email_message}
     output = template.render(context, request)
     return HttpResponse(output)
 
 
+@login_required(login_url='login_urlpattern')
 def email_message_list(request):
-    email_messages = EmailMessage.objects.all().values("id", "subject", "sender", "received_date")
+    email_messages = EmailMessage.objects.filter(user=request.user).values("id", "subject", "sender", "received_date")
     template = loader.get_template("dashboard/email_message_list.html")
     context = {"email_messages": email_messages}
     output = template.render(context, request)
@@ -497,6 +498,7 @@ def subscriptions_per_month_chart(request):
     return HttpResponse(buffer.getvalue(), content_type='image/png')
 
 
+
 def api_all_active_subscriptions(request):
     """
     GET /api/subscriptions/active/?user_id=<profile_uuid>
@@ -529,7 +531,6 @@ def api_all_active_subscriptions(request):
 
     data = list(rows)
     return JsonResponse({"user_id": profile_uuid, "num_active_subscriptions": len(data), "subscriptions": data})
-
 
 
 
@@ -608,7 +609,6 @@ def api_cost_per_month(request):
 
 
 
-
 class VegaLiteBarAPI(TemplateView):
     template_name = "dashboard/vega-lite-bar-cost_per_month.html"
 
@@ -627,7 +627,6 @@ class VegaLiteLineAPI(TemplateView):
         context["user_id"] = user_id
         return context
     
-
 def currency_convert(request):
     """
     GET /dashboard/api/currency-convert/?q=EUR
