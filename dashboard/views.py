@@ -339,7 +339,7 @@ def reports_view(request):
     """Reports page: grouped summaries and totals, with CSV/JSON export links."""
     today = timezone.now().date()
     subscriptions_per_platform = (
-        Subscription.objects.values("platform_name")
+        Subscription.objects.filter(user=request.user).values("platform_name")
         .annotate(count=Count("id"))
         .order_by("-count")
     )
