@@ -389,6 +389,7 @@ def email_message_list(request):
 #################### External API Views ####################
 ############################################################
 
+@login_required(login_url='login_urlpattern')
 def subscription_chart(request):
     """
     Generate a chart showing subscription distribution by platform.
@@ -427,6 +428,7 @@ def subscription_chart(request):
     return HttpResponse(buffer.getvalue(), content_type='image/png')
 
 
+@login_required(login_url='login_urlpattern')
 def subscriptions_per_month_chart(request):
     """
     Generate a bar chart showing total number of subscriptions per month.
@@ -496,20 +498,17 @@ def subscriptions_per_month_chart(request):
     return HttpResponse(buffer.getvalue(), content_type='image/png')
 
 
-
+@login_required(login_url='login_urlpattern')
 def api_all_active_subscriptions(request):
     """
-    GET /api/subscriptions/active/?user_id=<profile_uuid>
+    GET /api/subscriptions/active
     """
-    profile_uuid = request.GET.get("user_id")
-    
-    if not profile_uuid:
-        return JsonResponse({"error": "user_id is required"}, status=400)
+    user = request.user
 
     try:
-        profile = UserProfile.objects.select_related("user").get(id=profile_uuid)
+        profile = user.profile
     except UserProfile.DoesNotExist:
-        return JsonResponse({"error": "Invalid user_id"}, status=404)
+        return JsonResponse({"error": "Profile not found"}, status=404)
 
     today = timezone.now().date()
 
@@ -528,15 +527,15 @@ def api_all_active_subscriptions(request):
     ).values(*fields)
 
     data = list(rows)
-    return JsonResponse({"user_id": profile_uuid, "num_active_subscriptions": len(data), "subscriptions": data})
+    return JsonResponse({"user_id": profile.id, "num_active_subscriptions": len(data), "subscriptions": data})
 
 
-
+@login_required(login_url='login_urlpattern')
 def api_cost_per_month(request):
     """
     Return the summary of total subscription costs per month for the past 12 months for a given user.
     
-    GET /api/subscriptions/cost_per_month/?user_id=<profile_uuid>
+    GET /api/subscriptions/cost_per_month/
     
     Response Format:
         {
@@ -559,15 +558,15 @@ def api_cost_per_month(request):
         
     Where today is in February 2026, so we return costs for the past 12 months including current month (2025-03 to 2026-02).
     """
-    profile_uuid = request.GET.get("user_id")
+    user = request.user
     
-    if not profile_uuid:
-        return JsonResponse({"error": "user_id is required"}, status=400)
+    if not user:
+        return JsonResponse({"error": "Not authenticated"}, status=400)
 
     try:
-        profile = UserProfile.objects.select_related("user").get(id=profile_uuid)
+        profile = user.profile
     except UserProfile.DoesNotExist:
-        return JsonResponse({"error": "Invalid user_id"}, status=404)
+        return JsonResponse({"error": "Profile not found"}, status=404)
 
     today = timezone.now().date()
     start_period = (today.replace(day=1) - relativedelta(months=11))  # 12 months including current month
@@ -596,7 +595,7 @@ def api_cost_per_month(request):
                 monthly_costs[month_date] = item['total_cost'] or Decimal("0.00")
 
     response_data = {
-        'user_id': profile_uuid,
+        'user_id': profile.id,
         'monthly_costs': {
             month.strftime("%Y-%m"): float(cost)
             for month, cost in monthly_costs.items()
