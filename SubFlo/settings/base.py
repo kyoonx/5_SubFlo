@@ -19,6 +19,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 SECRET_KEY = env('SECRET_KEY')
 
+SITE_ID = 1
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -31,9 +33,26 @@ INSTALLED_APPS = [
     'accounts',
     'subscriptions',
     'dashboard',
+    
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
 ]
 
+
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
+
+
 MIDDLEWARE = [
+    'allauth.account.middleware.AccountMiddleware',
+    
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -105,3 +124,10 @@ STATICFILES_DIRS = [
 ]
 STATIC_ROOT = BASE_DIR / "staticfiles"  # Changed from SubFlo/ui-ux/staticfiles
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
+
+LOGIN_URL = "login_urlpattern"
+
+LOGIN_REDIRECT_URL = 'subscription-list-url'
+LOGOUT_REDIRECT_URL = 'login_urlpattern'
+
+SOCIALACCOUNT_LOGIN_ON_GET = True
