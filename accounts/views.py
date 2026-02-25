@@ -2,6 +2,8 @@ from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.views import View
 from accounts.models import UserProfile
+# from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 
 ############################################################
@@ -10,10 +12,10 @@ from accounts.models import UserProfile
 
 
 # Create your views here.
-class AccountDetail(View):
+class AccountDetail(LoginRequiredMixin, View):
 
-    def get(self, request, pk):
-        user_detail = get_object_or_404(UserProfile, pk=pk)
+    def get(self, request):
+        user_detail = get_object_or_404(UserProfile, user=request.user)
         
         return render(
             request,                                           
