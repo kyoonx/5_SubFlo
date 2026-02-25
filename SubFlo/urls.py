@@ -25,7 +25,7 @@ urlpatterns = [
     path("dashboard/", include("dashboard.urls")),
     path("accounts/", include("accounts.urls")),
     
-     path('login/',
+    path('login/',
          LoginView.as_view(template_name='accounts/login.html'),
          name='login_urlpattern'),
 
