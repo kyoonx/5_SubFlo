@@ -1,0 +1,107 @@
+/**
+ * SubFlo Design System — Global tokens
+ * Use these variables in components and theme overrides.
+ */
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap");
+
+:root {
+  /* Typography — static (unchanged by theme) */
+  --static-black100: rgba(0, 0, 0, 1);
+
+  /* Type scale */
+  --14-regular-font-family: "Inter", Helvetica, sans-serif;
+  --14-regular-font-weight: 400;
+  --14-regular-font-size: 14px;
+  --14-regular-letter-spacing: 0px;
+  --14-regular-line-height: 20px;
+  --14-regular-font-style: normal;
+
+  --24-semibold-font-family: "Inter", Helvetica, sans-serif;
+  --24-semibold-font-weight: 600;
+  --24-semibold-font-size: 24px;
+  --24-semibold-letter-spacing: 0px;
+  --24-semibold-line-height: 32px;
+  --24-semibold-font-style: normal;
+
+  --12-regular-font-family: "Inter", Helvetica, sans-serif;
+  --12-regular-font-weight: 400;
+  --12-regular-font-size: 12px;
+  --12-regular-letter-spacing: 0px;
+  --12-regular-line-height: 16px;
+  --12-regular-font-style: normal;
+
+  --14-semibold-font-family: "Inter", Helvetica, sans-serif;
+  --14-semibold-font-weight: 600;
+  --14-semibold-font-size: 14px;
+  --14-semibold-letter-spacing: 0px;
+  --14-semibold-line-height: 20px;
+  --14-semibold-font-style: normal;
+
+  /* Spacing */
+  --spacing-4: 4px;
+  --spacing-8: 8px;
+  --spacing-16: 16px;
+  --spacing-24: 24px;
+  --spacing-28: 28px;
+  --spacing-12-duplicate: 12px;
+
+  /* Corner radius */
+  --corner-radius-12: 12px;
+  --corner-radius-20: 20px;
+  --corner-radius-80: 80px;
+  --corner-radius-8-duplicate: 8px;
+
+  /* Colors — semantic */
+  --colors-black-100: rgba(0, 0, 0, 1);
+  --colors-black-40: rgba(0, 0, 0, 0.4);
+  --colors-black-4: rgba(0, 0, 0, 0.04);
+  --colors-black-20: rgba(0, 0, 0, 0.2);
+  --colors-background-5: rgba(230, 241, 253, 1);
+  --colors-background-2: rgba(249, 249, 250, 1);
+  --colors-labels-secondary: rgba(60, 60, 67, 0.6);
+
+  /* Accent bars (renewal list) */
+  --accent-green: #71dd8c;
+  --accent-teal: #6be6d3;
+  --accent-blue: #7dbbff;
+
+  /* Visibility */
+  --visibility-1-visibility-1: initial;
+
+  /* Dashboard layout */
+  --gap: 18px;
+  --sidebar-w: 212px;
+  --rightbar-w: 260px;
+
+  /* Overview layout tokens (alias / duplicate names from design file) */
+  --spacing-4-duplicate: 4px;
+  --spacing-8-duplicate: 8px;
+  --spacing-12-duplicate: 12px;
+  --spacing-16: 16px;
+  --spacing-20-duplicate: 20px;
+  --spacing-28: 28px;
+  --corner-radius-4: 4px;
+  --corner-radius-8: 8px;
+  --corner-radius-12: 12px;
+  --corner-radius-20: 20px;
+  --corner-radius-24: 24px;
+  --corner-radius-80: 80px;
+  --corner-radius-16-duplicate: 16px;
+  --spacing-radius-8: 8px;
+  --spacing-size-28: 28px;
+  --icon-size-28-duplicate: 28px;
+  --icon-size-24-duplicate: 24px;
+  --colors-background-1: rgba(255, 255, 255, 1);
+  --colors-black-10: rgba(0, 0, 0, 0.1);
+  --colors-secondary-mint: rgba(107, 230, 211, 1);
+  --colors-primary: var(--colors-black-100);
+  --colors-secondary-blue: rgba(125, 187, 255, 1);
+  --colors-secondary-purple: rgba(184, 153, 235, 1);
+  --colors-secondary-green: rgba(113, 221, 140, 1);
+  --colors-secondary-cyan: rgba(160, 188, 232, 1);
+  --colors-secondary-indigo: rgba(173, 173, 251, 1);
+  --colors-background-4: rgba(237, 238, 252, 1);
+  --static-black80: rgba(0, 0, 0, 0.8);
+  --static-white100: rgba(255, 255, 255, 1);
+}
