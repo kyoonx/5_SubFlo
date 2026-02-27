@@ -1,12 +1,10 @@
-<!-- Login page -->
 {% extends "base.html" %}
 {% load static %}
 {% load socialaccount %}
-
-{% block title %}Login{% endblock %}
+{% block title %}Sign Up{% endblock %}
 
 {% block content %}
-  <div class="ds-page" style="min-height: calc(100vh - 80px); display:flex; align-items:center; justify-content:center; padding:40px 0 80px;">
+  <div class="ds-page" style="min-height: calc(100vh - 80px); display:flex; align-items:center; justify-content:center; padding:40px 0;">
     <div class="ds-panel"
          style="max-width: 420px; width:100%; text-align:center; background:transparent; border:none; box-shadow:none; padding:0;">
       <div style="display:flex; flex-direction:column; align-items:center; margin-bottom:24px;">
@@ -14,7 +12,7 @@
              alt="SubFlo logo"
              style="height:56px; width:auto; margin-bottom:12px;">
         <h1 style="font-size:22px; line-height:1.2; margin:0; font-weight:700;">
-          Log in to start tracking
+          Sign up to start tracking
         </h1>
       </div>
 
@@ -38,7 +36,6 @@
             id="id_username"
             value="{{ form.username.value|default_if_none:'' }}"
             autocomplete="username"
-            placeholder="you@example.com"
           >
           {% for error in form.username.errors %}
             <p style="color:#f04438; font-size:12px; margin-top:4px;">{{ error }}</p>
@@ -46,15 +43,29 @@
         </div>
 
         <div class="ds-form-group">
-          <label class="ds-label" for="id_password">Password</label>
+          <label class="ds-label" for="id_password1">Password</label>
           <input
             class="ds-input"
             type="password"
-            name="password"
-            id="id_password"
-            autocomplete="current-password"
+            name="password1"
+            id="id_password1"
+            autocomplete="new-password"
           >
-          {% for error in form.password.errors %}
+          {% for error in form.password1.errors %}
+            <p style="color:#f04438; font-size:12px; margin-top:4px;">{{ error }}</p>
+          {% endfor %}
+        </div>
+
+        <div class="ds-form-group">
+          <label class="ds-label" for="id_password2">Confirm password</label>
+          <input
+            class="ds-input"
+            type="password"
+            name="password2"
+            id="id_password2"
+            autocomplete="new-password"
+          >
+          {% for error in form.password2.errors %}
             <p style="color:#f04438; font-size:12px; margin-top:4px;">{{ error }}</p>
           {% endfor %}
         </div>
@@ -62,11 +73,11 @@
         <div class="ds-actions-row" style="margin-top: 16px;">
           <button type="submit"
                   class="ds-btn"
-                   style="width: 100%; justify-content: center;
-                         background-color: #fbf6f2;
+                  style="width: 100%; justify-content: center;
+                         background-color: #f5f0e6;
                          border-color: #f5f0e6;
                          color:#000000;">
-            Log In
+            Create account
           </button>
         </div>
       </form>
@@ -84,14 +95,14 @@
           <img src="https://developers.google.com/identity/images/g-logo.png"
                alt="Google Logo"
                style="width: 18px; height: 18px;">
-          <span>Sign in with Google</span>
+          <span>Sign up with Google</span>
         </a>
       </div>
 
       <div class="ds-content-section" style="margin-top: 16px; text-align: center; font-size: 13px; color: var(--colors-black-40);">
-        <span>Don’t have an account?</span>
-        <a href="{% url 'signup_urlpattern' %}" style="margin-left: 4px; color: #465fff; text-decoration: none;">
-          Sign up here
+        <span>Already have an account?</span>
+        <a href="{% url 'login_urlpattern' %}" style="margin-left: 4px; color: #465fff; text-decoration: none;">
+          Log in here
         </a>
       </div>
     </div>
