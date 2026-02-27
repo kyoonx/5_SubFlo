@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
     'accounts',
     'subscriptions',
     'dashboard',
@@ -52,6 +53,7 @@ AUTHENTICATION_BACKENDS = [
 
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
     
     'django.middleware.security.SecurityMiddleware',
@@ -132,3 +134,5 @@ LOGIN_REDIRECT_URL = 'subscription-list-url'
 LOGOUT_REDIRECT_URL = 'login_urlpattern'
 
 SOCIALACCOUNT_LOGIN_ON_GET = True
+
+CORS_ALLOW_ALL_ORIGINS = True
