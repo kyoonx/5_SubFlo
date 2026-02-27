@@ -1,30 +1,95 @@
 {% extends "base.html" %}
-{% block title %}
-  Sign Up
-{% endblock %}
+{% load static %}
+{% block title %}Sign Up{% endblock %}
 
 {% block content %}
-  <div class="container mt-4" style="max-width: 400px;">
-    <h2 class="mb-3 text-center">Sign Up</h2>
-
-    {% if form.errors %}
-      <div class="alert alert-danger" role="alert">
-        Please correct the errors below.
+  <div class="ds-page" style="min-height: calc(100vh - 80px); display:flex; align-items:center; justify-content:center;">
+    <div class="ds-panel"
+         style="max-width: 420px; width:100%; text-align:center; background:transparent; border:none; box-shadow:none; padding:0;">
+      <div style="display:flex; flex-direction:column; align-items:center; margin-bottom:24px;">
+        <img src="{% static 'subflo_logo.jpg' %}"
+             alt="SubFlo logo"
+             style="height:40px; width:auto; margin-bottom:12px;">
+        <h1 style="font-size:28px; line-height:1.2; margin:0 0 4px;">
+          Sign up to start tracking
+        </h1>
+        <p style="margin:0; font-size:14px; color:var(--colors-black-40);">
+          Create your SubFlo account to manage all your subscriptions in one place.
+        </p>
       </div>
-    {% endif %}
 
-    <form method="POST" class="card p-3 shadow-sm">
-      {% csrf_token %}
-      {{ form.as_p }}
+      {% if form.non_field_errors %}
+        <div style="margin-bottom: 12px; padding: 8px 12px; border-radius: 8px; background:#fef2f2; color:#b91c1c; font-size: 13px;">
+          {% for error in form.non_field_errors %}
+            <div>{{ error }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
 
-      <div class="d-grid mt-3">
-        <button type="submit" class="btn btn-primary">Create account</button>
+      <form method="POST" novalidate style="text-align:left;">
+        {% csrf_token %}
+
+        <div class="ds-form-group">
+          <label class="ds-label" for="id_username">Username</label>
+          <input
+            class="ds-input"
+            type="text"
+            name="username"
+            id="id_username"
+            value="{{ form.username.value|default_if_none:'' }}"
+            autocomplete="username"
+          >
+          {% for error in form.username.errors %}
+            <p style="color:#f04438; font-size:12px; margin-top:4px;">{{ error }}</p>
+          {% endfor %}
+        </div>
+
+        <div class="ds-form-group">
+          <label class="ds-label" for="id_password1">Password</label>
+          <input
+            class="ds-input"
+            type="password"
+            name="password1"
+            id="id_password1"
+            autocomplete="new-password"
+          >
+          {% for error in form.password1.errors %}
+            <p style="color:#f04438; font-size:12px; margin-top:4px;">{{ error }}</p>
+          {% endfor %}
+        </div>
+
+        <div class="ds-form-group">
+          <label class="ds-label" for="id_password2">Confirm password</label>
+          <input
+            class="ds-input"
+            type="password"
+            name="password2"
+            id="id_password2"
+            autocomplete="new-password"
+          >
+          {% for error in form.password2.errors %}
+            <p style="color:#f04438; font-size:12px; margin-top:4px;">{{ error }}</p>
+          {% endfor %}
+        </div>
+
+        <div class="ds-actions-row" style="margin-top: 16px;">
+          <button type="submit"
+                  class="ds-btn"
+                  style="width: 100%; justify-content: center;
+                         background-color: var(--colors-secondary-purple);
+                         border-color: var(--colors-secondary-purple);
+                         color:#ffffff;">
+            Create account
+          </button>
+        </div>
+      </form>
+
+      <div class="ds-content-section" style="margin-top: 16px; text-align: center; font-size: 13px; color: var(--colors-black-40);">
+        <span>Already have an account?</span>
+        <a href="{% url 'login_urlpattern' %}" style="margin-left: 4px; color: #465fff; text-decoration: none;">
+          Log in here
+        </a>
       </div>
-    </form>
-
-    <p class="mt-3 text-muted small text-center">
-      Already have an account?
-      <a href="{% url 'login_urlpattern' %}">Log in here</a>.
-    </p>
+    </div>
   </div>
 {% endblock %}
