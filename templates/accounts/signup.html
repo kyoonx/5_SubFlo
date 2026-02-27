@@ -1,9 +1,6 @@
-<!-- Login page -->
 {% extends "base.html" %}
 {% load static %}
-{% load socialaccount %}
-
-{% block title %}Login{% endblock %}
+{% block title %}Sign Up{% endblock %}
 
 {% block content %}
   <div class="ds-page" style="min-height: calc(100vh - 80px); display:flex; align-items:center; justify-content:center;">
@@ -13,11 +10,11 @@
         <img src="{% static 'subflo_logo.jpg' %}"
              alt="SubFlo logo"
              style="height:40px; width:auto; margin-bottom:12px;">
-        <h1 style="font-size:28px; line-height:1.2; margin:0 0 4px; font-weight:700;">
-          Log in to start tracking
+        <h1 style="font-size:28px; line-height:1.2; margin:0 0 4px;">
+          Sign up to start tracking
         </h1>
         <p style="margin:0; font-size:14px; color:var(--colors-black-40);">
-          Welcome back. Use your SubFlo account or Google to continue.
+          Create your SubFlo account to manage all your subscriptions in one place.
         </p>
       </div>
 
@@ -41,7 +38,6 @@
             id="id_username"
             value="{{ form.username.value|default_if_none:'' }}"
             autocomplete="username"
-            placeholder="you@example.com"
           >
           {% for error in form.username.errors %}
             <p style="color:#f04438; font-size:12px; margin-top:4px;">{{ error }}</p>
@@ -49,15 +45,29 @@
         </div>
 
         <div class="ds-form-group">
-          <label class="ds-label" for="id_password">Password</label>
+          <label class="ds-label" for="id_password1">Password</label>
           <input
             class="ds-input"
             type="password"
-            name="password"
-            id="id_password"
-            autocomplete="current-password"
+            name="password1"
+            id="id_password1"
+            autocomplete="new-password"
           >
-          {% for error in form.password.errors %}
+          {% for error in form.password1.errors %}
+            <p style="color:#f04438; font-size:12px; margin-top:4px;">{{ error }}</p>
+          {% endfor %}
+        </div>
+
+        <div class="ds-form-group">
+          <label class="ds-label" for="id_password2">Confirm password</label>
+          <input
+            class="ds-input"
+            type="password"
+            name="password2"
+            id="id_password2"
+            autocomplete="new-password"
+          >
+          {% for error in form.password2.errors %}
             <p style="color:#f04438; font-size:12px; margin-top:4px;">{{ error }}</p>
           {% endfor %}
         </div>
@@ -69,32 +79,15 @@
                          background-color: var(--colors-secondary-purple);
                          border-color: var(--colors-secondary-purple);
                          color:#ffffff;">
-            Log In
+            Create account
           </button>
         </div>
       </form>
 
-      <div class="ds-content-section" style="margin-top: 16px; text-align: center; font-size: 12px; color: var(--colors-black-40);">
-        <span style="display:inline-block; padding: 0 8px; position: relative; z-index: 1;">
-          OR
-        </span>
-      </div>
-
-      <div class="ds-actions-row" style="margin-top: 4px;">
-        <a href="{% provider_login_url 'google' %}"
-           class="ds-btn"
-           style="width: 100%; justify-content: center; gap: 8px; background-color: #fff; border-color: var(--colors-black-20);">
-          <img src="https://developers.google.com/identity/images/g-logo.png"
-               alt="Google Logo"
-               style="width: 18px; height: 18px;">
-          <span>Sign in with Google</span>
-        </a>
-      </div>
-
       <div class="ds-content-section" style="margin-top: 16px; text-align: center; font-size: 13px; color: var(--colors-black-40);">
-        <span>Don’t have an account?</span>
-        <a href="{% url 'signup_urlpattern' %}" style="margin-left: 4px; color: #465fff; text-decoration: none;">
-          Sign up here
+        <span>Already have an account?</span>
+        <a href="{% url 'login_urlpattern' %}" style="margin-left: 4px; color: #465fff; text-decoration: none;">
+          Log in here
         </a>
       </div>
     </div>
