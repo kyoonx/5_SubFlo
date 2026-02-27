@@ -1,54 +1,102 @@
-<!-- Paste code here: templates/students/login.html -->
-<!-- New file. -->
-<!-- When you run this, you will get a login page on the url pattern "...login/" -->
-
-
+<!-- Login page -->
 {% extends "base.html" %}
+{% load static %}
 {% load socialaccount %}
 
-{% block title %}
-  Login
-{% endblock %}
+{% block title %}Login{% endblock %}
 
 {% block content %}
-  <div class="container mt-4" style="max-width: 400px;">
-    <h2 class="mb-3 text-center">Login</h2>
-
-    <!-- Display form errors (if any) -->
-    {% if form.errors %}
-      <div class="alert alert-danger" role="alert">
-        Please correct the errors below.
+  <div class="ds-page" style="min-height: calc(100vh - 80px); display:flex; align-items:center; justify-content:center;">
+    <div class="ds-panel"
+         style="max-width: 420px; width:100%; text-align:center; background:transparent; border:none; box-shadow:none; padding:0;">
+      <div style="display:flex; flex-direction:column; align-items:center; margin-bottom:24px;">
+        <img src="{% static 'subflo_logo.jpg' %}"
+             alt="SubFlo logo"
+             style="height:40px; width:auto; margin-bottom:12px;">
+        <h1 style="font-size:28px; line-height:1.2; margin:0 0 4px; font-weight:700;">
+          Log in to start tracking
+        </h1>
+        <p style="margin:0; font-size:14px; color:var(--colors-black-40);">
+          Welcome back. Use your SubFlo account or Google to continue.
+        </p>
       </div>
-    {% endif %}
 
-    <!-- Login form -->
-    <form method="POST" class="card p-3 shadow-sm">
+      {% if form.non_field_errors %}
+        <div style="margin-bottom: 12px; padding: 8px 12px; border-radius: 8px; background:#fef2f2; color:#b91c1c; font-size: 13px;">
+          {% for error in form.non_field_errors %}
+            <div>{{ error }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <form method="POST" novalidate style="text-align:left;">
         {% csrf_token %}
-        {{ form.as_p }}
-    
-        <!-- Submit button -->
-        <div class="d-grid mt-3">
-            <button type="submit" class="btn btn-primary">Login</button>
-        </div>
-    
-        <div class="text-center my-3">
-            <span class="text-muted">OR</span>
-        </div>
-    
-        <!-- Google Login Button -->
-        <div class="d-grid">
-            <a href="{% provider_login_url 'google' %}" class="google-btn text-decoration-none text-center">
-                <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google Logo" class="google-icon">
-                Sign in with Google
-            </a>
-        </div>
-    
-    </form>
 
-    <!-- Helpful note for users -->
-    <p class="mt-3 text-muted small text-center">
-      Don’t have an account?
-      <a href="{% url 'signup_urlpattern' %}">Sign up here</a>.
-    </p>
+        <div class="ds-form-group">
+          <label class="ds-label" for="id_username">Username</label>
+          <input
+            class="ds-input"
+            type="text"
+            name="username"
+            id="id_username"
+            value="{{ form.username.value|default_if_none:'' }}"
+            autocomplete="username"
+            placeholder="you@example.com"
+          >
+          {% for error in form.username.errors %}
+            <p style="color:#f04438; font-size:12px; margin-top:4px;">{{ error }}</p>
+          {% endfor %}
+        </div>
+
+        <div class="ds-form-group">
+          <label class="ds-label" for="id_password">Password</label>
+          <input
+            class="ds-input"
+            type="password"
+            name="password"
+            id="id_password"
+            autocomplete="current-password"
+          >
+          {% for error in form.password.errors %}
+            <p style="color:#f04438; font-size:12px; margin-top:4px;">{{ error }}</p>
+          {% endfor %}
+        </div>
+
+        <div class="ds-actions-row" style="margin-top: 16px;">
+          <button type="submit"
+                  class="ds-btn"
+                  style="width: 100%; justify-content: center;
+                         background-color: var(--colors-secondary-purple);
+                         border-color: var(--colors-secondary-purple);
+                         color:#ffffff;">
+            Log In
+          </button>
+        </div>
+      </form>
+
+      <div class="ds-content-section" style="margin-top: 16px; text-align: center; font-size: 12px; color: var(--colors-black-40);">
+        <span style="display:inline-block; padding: 0 8px; position: relative; z-index: 1;">
+          OR
+        </span>
+      </div>
+
+      <div class="ds-actions-row" style="margin-top: 4px;">
+        <a href="{% provider_login_url 'google' %}"
+           class="ds-btn"
+           style="width: 100%; justify-content: center; gap: 8px; background-color: #fff; border-color: var(--colors-black-20);">
+          <img src="https://developers.google.com/identity/images/g-logo.png"
+               alt="Google Logo"
+               style="width: 18px; height: 18px;">
+          <span>Sign in with Google</span>
+        </a>
+      </div>
+
+      <div class="ds-content-section" style="margin-top: 16px; text-align: center; font-size: 13px; color: var(--colors-black-40);">
+        <span>Don’t have an account?</span>
+        <a href="{% url 'signup_urlpattern' %}" style="margin-left: 4px; color: #465fff; text-decoration: none;">
+          Sign up here
+        </a>
+      </div>
+    </div>
   </div>
 {% endblock %}
