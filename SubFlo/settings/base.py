@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'accounts',
     'subscriptions',
     'dashboard',
+    'api',
     
     'django.contrib.sites',
     'allauth',
