@@ -19,7 +19,7 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.urls import path, include
 from SubFlo.views import redirect_root_view
 from accounts.views import SignupView
-3s
+
 urlpatterns = [
     path("", redirect_root_view),
     path("admin/", admin.site.urls),
@@ -35,8 +35,8 @@ urlpatterns = [
          name='logout_urlpattern'),
     
     path('signup/',
-        SignupView.as_view(template_name='accounts/signup.html'),
-        name='signup_urlpattern'),
+     SignupView.as_view(),
+     name='signup_urlpattern'),
 
     path('accounts/', include('allauth.urls')),
 ]
