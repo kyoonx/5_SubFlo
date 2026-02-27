@@ -1,21 +1,19 @@
 {% extends "base.html" %}
 {% load static %}
+{% load socialaccount %}
 {% block title %}Sign Up{% endblock %}
 
 {% block content %}
-  <div class="ds-page" style="min-height: calc(100vh - 80px); display:flex; align-items:center; justify-content:center;">
+  <div class="ds-page" style="min-height: calc(100vh - 80px); display:flex; align-items:center; justify-content:center; padding:40px 0;">
     <div class="ds-panel"
          style="max-width: 420px; width:100%; text-align:center; background:transparent; border:none; box-shadow:none; padding:0;">
       <div style="display:flex; flex-direction:column; align-items:center; margin-bottom:24px;">
         <img src="{% static 'subflo_logo.jpg' %}"
              alt="SubFlo logo"
-             style="height:40px; width:auto; margin-bottom:12px;">
-        <h1 style="font-size:28px; line-height:1.2; margin:0 0 4px;">
+             style="height:56px; width:auto; margin-bottom:12px;">
+        <h1 style="font-size:22px; line-height:1.2; margin:0; font-weight:700;">
           Sign up to start tracking
         </h1>
-        <p style="margin:0; font-size:14px; color:var(--colors-black-40);">
-          Create your SubFlo account to manage all your subscriptions in one place.
-        </p>
       </div>
 
       {% if form.non_field_errors %}
@@ -76,13 +74,30 @@
           <button type="submit"
                   class="ds-btn"
                   style="width: 100%; justify-content: center;
-                         background-color: var(--colors-secondary-purple);
-                         border-color: var(--colors-secondary-purple);
-                         color:#ffffff;">
+                         background-color: #f5f0e6;
+                         border-color: #f5f0e6;
+                         color:#000000;">
             Create account
           </button>
         </div>
       </form>
+
+      <div class="ds-content-section" style="margin-top: 16px; text-align: center; font-size: 12px; color: var(--colors-black-40);">
+        <span style="display:inline-block; padding: 0 8px; position: relative; z-index: 1;">
+          OR
+        </span>
+      </div>
+
+      <div class="ds-actions-row" style="margin-top: 4px;">
+        <a href="{% provider_login_url 'google' %}"
+           class="ds-btn"
+           style="width: 100%; justify-content: center; gap: 8px; background-color: #fff; border-color: var(--colors-black-20);">
+          <img src="https://developers.google.com/identity/images/g-logo.png"
+               alt="Google Logo"
+               style="width: 18px; height: 18px;">
+          <span>Sign up with Google</span>
+        </a>
+      </div>
 
       <div class="ds-content-section" style="margin-top: 16px; text-align: center; font-size: 13px; color: var(--colors-black-40);">
         <span>Already have an account?</span>
