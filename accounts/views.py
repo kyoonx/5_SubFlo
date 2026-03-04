@@ -5,7 +5,7 @@ from accounts.models import UserProfile
 # from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth import login
+from django.contrib.auth import authenticate, login
 from django.shortcuts import redirect
 
 ############################################################
@@ -63,8 +63,14 @@ class SignupView(View):
 
         form = UserCreationForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            login(request, user)  # log the user in right after signup
-            return redirect('subscription-list-url')  # same as LOGIN_REDIRECT_URL
+            form.save()
+            auth_user = authenticate(
+                request,
+                username=form.cleaned_data["username"],
+                password=form.cleaned_data["password1"],
+            )
+            if auth_user is not None:
+                login(request, auth_user)
+            return redirect('subscription-list-url')
 
         return render(request, 'accounts/signup.html', {'form': form})
