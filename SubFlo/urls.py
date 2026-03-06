@@ -26,6 +26,7 @@ urlpatterns = [
     path("dashboard/", include("dashboard.urls")),
     path("accounts/", include("accounts.urls")),
     path("api/", include("api.urls")),
+    path("subscriptions/", include("subscriptions.urls")),
     
     path('login/',
          LoginView.as_view(template_name='accounts/login.html'),
