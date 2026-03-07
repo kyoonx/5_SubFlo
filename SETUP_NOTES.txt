@@ -1,0 +1,123 @@
+============================================================
+ SETUP NOTES — SubFlo AI Integration (Part 2 #3)
+============================================================
+
+This checklist covers everything needed to run the Gemini
+cancellation guide feature locally.
+
+------------------------------------------------------------
+1. INSTALL NEW DEPENDENCIES
+------------------------------------------------------------
+
+  pip install google-generativeai transformers torch beautifulsoup4
+
+  Or install everything at once:
+
+  pip install -r requirements.txt
+
+  Note: `torch` is large (~2 GB). CPU-only is fine for local
+  dev. If you want a smaller install:
+
+  pip install torch --index-url https://download.pytorch.org/whl/cpu
+
+
+------------------------------------------------------------
+2. ADD GEMINI API KEY TO .env
+------------------------------------------------------------
+
+  Open your .env file (project root) and add:
+
+  GEMINI_API_KEY=your_gemini_api_key_here
+
+  Get a free key at: https://aistudio.google.com/app/apikey
+
+  The key is loaded via django-environ (secret_environment.py)
+  and read by ai_guide_view.py using os.getenv().
+
+
+------------------------------------------------------------
+3. PROJECT-LEVEL urls.py  (SubFlo/urls.py)
+------------------------------------------------------------
+
+  ALREADY DONE — the following line has been added:
+
+  path("subscriptions/", include("subscriptions.urls")),
+
+  This mounts the subscriptions app at /subscriptions/,
+  making the cancel guide available at:
+
+  POST /subscriptions/cancel-guide/
+
+
+------------------------------------------------------------
+4. FILES CREATED
+------------------------------------------------------------
+
+  subscriptions/ai_guide_view.py
+    - CancellationGuideView (class-based, POST-only)
+    - sanitize_input(), is_safe_input(), is_valid_service_name()
+    - build_cancellation_prompt(), call_gemini()
+
+  subscriptions/preprocessing.py
+    - strip_html(), normalize_whitespace(), clean_text()
+    - prepare_email_for_classifier() — for local HuggingFace model
+    - has_subscription_keywords() — heuristic pre-filter
+    - prepare_service_name() — for Gemini prompt
+
+  subscriptions/urls.py
+    - app_name = "subscriptions"
+    - cancel-guide/ -> CancellationGuideView
+
+  templates/subscriptions/cancel_guide.html
+    - Tailwind-styled form with loading spinner
+    - Dynamic rendering of steps + warnings via fetch()
+    - CSRF token included in all requests
+
+  SETUP_NOTES.txt
+    - This file
+
+
+------------------------------------------------------------
+5. HOW TO TEST
+------------------------------------------------------------
+
+  A. Via the browser UI:
+     1. Run the dev server:  python manage.py runserver
+     2. Log in to SubFlo
+     3. Navigate to: http://localhost:8000/subscriptions/cancel-guide/
+        (This will 405 because it's a POST endpoint — use the
+         template page instead. See below.)
+
+     To view the template page, you can add a GET handler or
+     navigate via a sidebar link. The template is at:
+       templates/subscriptions/cancel_guide.html
+
+  B. Via curl (for API testing):
+     curl -X POST http://localhost:8000/subscriptions/cancel-guide/ \
+       -H "Content-Type: application/json" \
+       -H "Cookie: sessionid=YOUR_SESSION_COOKIE" \
+       -H "X-CSRFToken: YOUR_CSRF_TOKEN" \
+       -d '{"subscription_name": "Netflix"}'
+
+  C. Expected response shape:
+     {
+       "guide": {
+         "service": "Netflix",
+         "estimated_time": "2-3 minutes",
+         "cancellation_url": "https://www.netflix.com/cancelplan",
+         "steps": ["Step 1...", "Step 2...", ...],
+         "warnings": ["Warning 1...", ...]
+       }
+     }
+
+
+------------------------------------------------------------
+6. SECURITY REMINDERS
+------------------------------------------------------------
+
+  - GEMINI_API_KEY is in .env (gitignored) — never commit it
+  - All AI views require @login_required
+  - CSRF tokens are enforced on POST requests
+  - Input is sanitized, blocklist-checked, and format-validated
+  - Output is HTML-escaped before returning to the client
+  - max_output_tokens=512 prevents runaway responses

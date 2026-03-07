@@ -49,3 +49,9 @@ tzdata==2025.3
 urllib3==2.6.3
 wcwidth==0.2.14
 wheel==0.45.1
+
+# AI Integration (Part 2)
+google-genai>=1.0.0
+transformers>=4.40.0
+torch>=2.0.0
+beautifulsoup4>=4.12.0

@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Cancel Subscription — SubFlo{% endblock %}
+
+{% block stylesheets %}
+<script src="https://cdn.tailwindcss.com"></script>
+{% endblock %}
+
+{% block page_title %}
+<div class="page-title-row">
+  <span class="page-title">Cancellation Guide</span>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto py-10 px-4">
+
+  <!-- Header -->
+  <div class="mb-8">
+    <h1 class="text-2xl font-bold text-gray-800 dark:text-white">
+      Cancellation Guide
+    </h1>
+    <p class="text-gray-500 mt-1 text-sm">
+      Enter the name of a subscription service and SubFlo's AI will generate
+      a step-by-step cancellation guide for you.
+    </p>
+  </div>
+
+  <!-- Input form -->
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow p-6 mb-6">
+    <label for="service-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+      Subscription / Service Name
+    </label>
+    <div class="flex gap-3">
+      <input
+        id="service-input"
+        type="text"
+        placeholder="e.g. Netflix, Spotify, Adobe Creative Cloud"
+        maxlength="100"
+        class="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700
+               dark:text-white px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+      />
+      <button
+        id="generate-btn"
+        onclick="generateGuide()"
+        class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium
+               px-5 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        Generate Guide
+      </button>
+    </div>
+    <!-- Error message -->
+    <p id="input-error" class="text-red-500 text-xs mt-2 hidden"></p>
+  </div>
+
+  <!-- Loading spinner -->
+  <div id="loading" class="hidden text-center py-10">
+    <svg class="animate-spin h-8 w-8 text-indigo-500 mx-auto mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+    </svg>
+    <p class="text-sm text-gray-500">Generating your guide with AI…</p>
+  </div>
+
+  <!-- Guide result -->
+  <div id="guide-result" class="hidden">
+
+    <!-- Service header -->
+    <div class="bg-indigo-50 dark:bg-indigo-900/30 rounded-2xl p-5 mb-4 flex items-center justify-between">
+      <div>
+        <h2 id="guide-service" class="text-lg font-bold text-indigo-700 dark:text-indigo-300"></h2>
+        <p class="text-xs text-gray-500 mt-0.5">
+          Estimated time: <span id="guide-time" class="font-medium text-gray-700 dark:text-gray-300"></span>
+        </p>
+      </div>
+      <a
+        id="guide-url"
+        href="#"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg transition-colors"
+      >
+        Go to Cancel Page
+      </a>
+    </div>
+
+    <!-- Steps -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow p-6 mb-4">
+      <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide mb-4">
+        Steps
+      </h3>
+      <ol id="guide-steps" class="space-y-3 text-sm text-gray-700 dark:text-gray-300 list-decimal list-inside">
+      </ol>
+    </div>
+
+    <!-- Warnings -->
+    <div id="warnings-section" class="hidden bg-yellow-50 dark:bg-yellow-900/20 rounded-2xl p-5">
+      <h3 class="text-sm font-semibold text-yellow-700 dark:text-yellow-400 mb-3">
+        Watch Out For
+      </h3>
+      <ul id="guide-warnings" class="space-y-1 text-sm text-yellow-800 dark:text-yellow-300 list-disc list-inside">
+      </ul>
+    </div>
+
+    <!-- Disclaimer -->
+    <p class="text-xs text-gray-400 mt-4 text-center">
+      AI-generated guide. Steps may vary — always confirm on the service's official website.
+    </p>
+  </div>
+
+  <!-- API error banner -->
+  <div id="api-error"
+    class="hidden bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700
+           rounded-2xl p-5 text-sm text-red-600 dark:text-red-400">
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const CSRF_TOKEN = "{{ csrf_token }}";
+
+  async function generateGuide() {
+    const input = document.getElementById("service-input");
+    const errorEl = document.getElementById("input-error");
+    const btn = document.getElementById("generate-btn");
+    const loading = document.getElementById("loading");
+    const result = document.getElementById("guide-result");
+    const apiError = document.getElementById("api-error");
+
+    errorEl.classList.add("hidden");
+    result.classList.add("hidden");
+    apiError.classList.add("hidden");
+
+    const serviceName = input.value.trim();
+
+    if (!serviceName) {
+      errorEl.textContent = "Please enter a subscription service name.";
+      errorEl.classList.remove("hidden");
+      return;
+    }
+    if (serviceName.length > 100) {
+      errorEl.textContent = "Service name must be 100 characters or fewer.";
+      errorEl.classList.remove("hidden");
+      return;
+    }
+
+    btn.disabled = true;
+    loading.classList.remove("hidden");
+
+    try {
+      const response = await fetch("{% url 'subscriptions:cancel_guide' %}", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": CSRF_TOKEN,
+        },
+        body: JSON.stringify({ subscription_name: serviceName }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        apiError.textContent = data.error || "An unexpected error occurred.";
+        apiError.classList.remove("hidden");
+        return;
+      }
+
+      renderGuide(data.guide);
+
+    } catch (err) {
+      apiError.textContent = "Network error. Please check your connection and try again.";
+      apiError.classList.remove("hidden");
+    } finally {
+      btn.disabled = false;
+      loading.classList.add("hidden");
+    }
+  }
+
+  function renderGuide(guide) {
+    document.getElementById("guide-service").textContent = guide.service;
+    document.getElementById("guide-time").textContent = guide.estimated_time;
+
+    const urlEl = document.getElementById("guide-url");
+    const urlValue = guide.cancellation_url;
+    if (urlValue && urlValue.toLowerCase().startsWith("http")) {
+      urlEl.href = urlValue;
+      urlEl.classList.remove("hidden");
+    } else {
+      urlEl.textContent = urlValue || "See steps";
+      urlEl.removeAttribute("href");
+    }
+
+    const stepsList = document.getElementById("guide-steps");
+    stepsList.innerHTML = "";
+    (guide.steps || []).forEach((step) => {
+      const li = document.createElement("li");
+      li.className = "leading-relaxed";
+      li.textContent = step;
+      stepsList.appendChild(li);
+    });
+
+    const warnings = guide.warnings || [];
+    const warningSection = document.getElementById("warnings-section");
+    const warningsList = document.getElementById("guide-warnings");
+    warningsList.innerHTML = "";
+    if (warnings.length > 0) {
+      warnings.forEach(w => {
+        const li = document.createElement("li");
+        li.textContent = w;
+        warningsList.appendChild(li);
+      });
+      warningSection.classList.remove("hidden");
+    } else {
+      warningSection.classList.add("hidden");
+    }
+
+    document.getElementById("guide-result").classList.remove("hidden");
+    document.getElementById("guide-result").scrollIntoView({ behavior: "smooth" });
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("service-input").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") generateGuide();
+    });
+  });
+</script>
+{% endblock %}
