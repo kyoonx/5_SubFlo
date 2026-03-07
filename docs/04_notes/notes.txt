@@ -17,6 +17,12 @@ Progress
   - [x] Integrate a free public API to convert currency
   - [x] Deploy the entire web app: https://as242.pythonanywhere.com
   - [x] Add export JSON & CSV for subscriptions
+- Week 5
+  - [x] Enable Signup/Signin functionality both via Google SSO and username & password
+  - [x] Redesign the frontend UX/UI
+- Week 6
+  - [x] Test 15 models across 5 category (by size) to find the most suitable model for our project
+  - [x] Added AI cancellation guide feature using Gemini 2.5 Flash with preprocessing pipeline, input safety guards, and Tailwind UI
 
 
 ==============================================
@@ -68,3 +74,75 @@ Apart from the internal APIs that perform business logic, the external APIs will
 
 What kind of data are we planning to serve?
 At the moment, we are primarily serving information from the `Subscription` model, which includes all relevant details about the services a user is subscribed to, how much they cost, their start date, end date, and other related information.
+
+
+==============================================
+
+Assignment 6 - Part 3
+
+Q1: Size vs. Quality Trade-off
+-------------------------------
+
+Ultra-Light (< 1B) models provided the sweet spot for our project because models in this
+category offered the fastest computation time. For example, the model that we chose
+`mlx-community/Josiefied-Qwen2.5-0.5B-Instruct-abliterated-v1-float32` took 135.4887 seconds, 
+compared to `DeepMount00/Qwen2-1.5B-Ita`, which took 356.3435 seconds, as demonstrated in Part 1. 
+Despite the significant difference in computation time, both responses are highly accurate. 
+If we also used another technique, such as Chain-of-Thought (CoT), we believe there would be no 
+difference in the results. Note that larger models were not necessary since structured extraction
+from short emails is formulaic and does not require broad reasoning. A massive model was not 
+significantly better for this task.
+
+Estimated server costs by model size:
+
+  0.5B–3B  | g4dn.xlarge (T4 GPU)  | ~$350–500/month
+  7B       | g4dn.2xlarge          | ~$700–1,000/month
+  13B      | g5.2xlarge (A10G)     | ~$1,200–1,800/month
+  70B      | p4d.xlarge (A100)     | ~$5,000–10,000/month
+
+
+Q2: Cost & Scaling – 10,000 Daily Users
+-----------------------------------------
+Assuming 3 extractions per user = 30,000 requests/day (~630M tokens/month).
+
+  Local GPU cluster (3–5x T4 instances): ~$2,000–3,000/month
+  GPT-4o-mini API (~$0.30/1M tokens):    ~$189/month
+
+At this scale, move to the API. It is 10x cheaper and requires no infrastructure
+management.
+
+
+Q3: Hybrid Potential
+----------------------
+Run the local model first. If it returns valid JSON, serve it. If validation fails,
+fall back to the API. Based on our notebook results, ~80–90% of requests succeed locally,
+so API costs apply to only 10–20% of traffic.
+
+  Local server (smaller instance): ~$400–600/month
+  API fallback (20% of traffic):   ~$95/month
+  Total hybrid cost:               ~$500–700/month
+
+This balances cost savings, data privacy, and reliability.
+
+
+Q4: Pre-trained Model vs. Paid API
+------------------------------------
+Server spec: 16-core CPU, 16-core GPU, 64GB RAM, 1TB SSD (~$800/month fixed cost)
+Break-even vs. GPT-4o-mini: ~125,000 requests/day
+
+  Use local model when:
+    - Traffic exceeds ~125,000 requests/day
+    - Data privacy is required (emails contain PII)
+    - Latency or offline constraints exist
+
+  Use paid API when:
+    - Traffic is under ~125,000 requests/day
+    - Team lacks ML ops capacity
+    - Traffic is unpredictable or the project is early-stage
+
+  Daily Volume          | Best Approach
+  ----------------------|-------------------------------
+  Under 30,000          | API only
+  30,000 – 125,000      | Hybrid
+  Over 125,000          | Local model primary
+

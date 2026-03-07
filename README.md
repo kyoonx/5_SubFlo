@@ -44,6 +44,12 @@
   - [x] Integrate a free public API to convert currency
   - [x] Deploy the entire web app: https://as242.pythonanywhere.com
   - [x] Add export JSON & CSV for subscriptions
+- Week 5
+  - [x] Enable Signup/Signin functionality both via Google SSO and username & password
+  - [x] Redesign the frontend UX/UI
+- Week 6
+  - [x] Test 15 models across 5 category (by size) to find the most suitable model for our project
+  - [x] Added AI cancellation guide feature using Gemini 2.5 Flash with preprocessing pipeline, input safety guards, and Tailwind UI
 
 # References
 - Code examples from INFO 490 classes
