@@ -237,11 +237,11 @@ class CancellationGuideView(View):
             )
 
         safe_guide = {
-            "service": escape(guide.get("service", clean_name)),
-            "estimated_time": escape(guide.get("estimated_time", "Unknown")),
-            "cancellation_url": escape(guide.get("cancellation_url", "See steps below")),
-            "steps": [escape(step) for step in steps],
-            "warnings": [escape(w) for w in guide.get("warnings", [])],
+            "service": guide.get("service", clean_name),
+            "estimated_time": guide.get("estimated_time", "Unknown"),
+            "cancellation_url": guide.get("cancellation_url", "See steps below"),
+            "steps": list(steps),
+            "warnings": list(guide.get("warnings", [])),
         }
 
         return JsonResponse({"guide": safe_guide}, status=200)

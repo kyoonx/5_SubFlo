@@ -1,0 +1,281 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Parse Email — SubFlo{% endblock %}
+
+{% block stylesheets %}
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = { corePlugins: { preflight: false } }
+</script>
+{% endblock %}
+
+{% block page_title %}
+<div class="page-title-row">
+  <span class="page-title">Email Parser (Local AI)</span>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto py-10 px-4">
+
+  <!-- Header -->
+  <div class="mb-8">
+    <h1 class="text-2xl font-bold text-gray-800 dark:text-white">
+      Email Subscription Extractor
+    </h1>
+    <p class="text-gray-500 mt-1 text-sm">
+      Paste a raw subscription email below. The local HuggingFace model will
+      extract structured subscription data from it.
+    </p>
+    <p class="text-xs text-gray-400 mt-1">
+      Model: <code class="bg-gray-100 dark:bg-gray-700 px-1 rounded">Josiefied-Qwen2.5-0.5B-Instruct</code>
+      &middot; Runs locally &middot; No data sent to external APIs
+    </p>
+  </div>
+
+  <!-- Input form -->
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow p-6 mb-6">
+    <label for="email-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+      Raw Email Content
+    </label>
+    <textarea
+      id="email-input"
+      rows="12"
+      placeholder="Paste the full raw email here...
+
+Example:
+From: &quot;Netflix&quot; &lt;info@account.netflix.com&gt;
+Subject: Your Netflix Membership Has Started
+Date: Wed, 04 Mar 2026
+
+Hi Christopher,
+Welcome to Netflix!
+Monthly price: $15.49
+Next billing date: April 4, 2026
+Payment method: Discover •••• 7712"
+      class="w-full rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700
+             dark:text-white px-4 py-3 text-sm font-mono focus:outline-none focus:ring-2
+             focus:ring-indigo-500 resize-y"
+    ></textarea>
+    <div class="flex justify-between items-center mt-3">
+      <p id="input-error" class="text-red-500 text-xs hidden"></p>
+      <button
+        id="parse-btn"
+        onclick="parseEmail()"
+        class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium
+               px-5 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        Extract Subscription Data
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div id="loading" class="hidden text-center py-10">
+    <svg class="animate-spin h-8 w-8 text-indigo-500 mx-auto mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+    </svg>
+    <p class="text-sm text-gray-500">Running local model inference...</p>
+    <p class="text-xs text-gray-400 mt-1">First run downloads model weights (~1 GB). This may take a few minutes.</p>
+  </div>
+
+  <!-- Result -->
+  <div id="result" class="hidden">
+
+    <!-- Stats bar -->
+    <div class="bg-green-50 dark:bg-green-900/20 rounded-2xl p-4 mb-4 flex items-center justify-between">
+      <div>
+        <p class="text-sm font-semibold text-green-700 dark:text-green-400">Extraction Complete</p>
+        <p class="text-xs text-gray-500 mt-0.5">
+          Inference time: <span id="result-time" class="font-medium"></span>s
+        </p>
+      </div>
+      <button
+        onclick="saveSubscription()"
+        id="save-btn"
+        class="text-xs bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg transition-colors"
+      >
+        Save to Dashboard
+      </button>
+    </div>
+
+    <!-- Parsed fields table -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow p-6 mb-4">
+      <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide mb-4">
+        Extracted Fields
+      </h3>
+      <table class="w-full text-sm">
+        <tbody id="fields-table" class="divide-y divide-gray-100 dark:divide-gray-700">
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Raw JSON -->
+    <details class="bg-gray-50 dark:bg-gray-800 rounded-2xl p-4">
+      <summary class="text-xs font-medium text-gray-500 cursor-pointer">View Raw JSON</summary>
+      <pre id="raw-json" class="mt-3 text-xs text-gray-600 dark:text-gray-400 overflow-x-auto font-mono"></pre>
+    </details>
+  </div>
+
+  <!-- Error banner -->
+  <div id="api-error"
+    class="hidden bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700
+           rounded-2xl p-5 text-sm text-red-600 dark:text-red-400">
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const CSRF_TOKEN = "{{ csrf_token }}";
+  let lastParsedData = null;
+
+  async function parseEmail() {
+    const input = document.getElementById("email-input");
+    const errorEl = document.getElementById("input-error");
+    const btn = document.getElementById("parse-btn");
+    const loading = document.getElementById("loading");
+    const result = document.getElementById("result");
+    const apiError = document.getElementById("api-error");
+
+    errorEl.classList.add("hidden");
+    result.classList.add("hidden");
+    apiError.classList.add("hidden");
+
+    const rawEmail = input.value.trim();
+    if (!rawEmail) {
+      errorEl.textContent = "Please paste an email to parse.";
+      errorEl.classList.remove("hidden");
+      return;
+    }
+
+    btn.disabled = true;
+    loading.classList.remove("hidden");
+
+    try {
+      const response = await fetch("{% url 'subscriptions:parse_email' %}", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": CSRF_TOKEN,
+        },
+        body: JSON.stringify({ raw_email: rawEmail }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        apiError.textContent = data.error || "An unexpected error occurred.";
+        apiError.classList.remove("hidden");
+        return;
+      }
+
+      lastParsedData = data.parsed;
+      renderResult(data);
+
+    } catch (err) {
+      apiError.textContent = "Network error. Please check your connection.";
+      apiError.classList.remove("hidden");
+    } finally {
+      btn.disabled = false;
+      loading.classList.add("hidden");
+    }
+  }
+
+  function renderResult(data) {
+    document.getElementById("result-time").textContent = data.inference_time;
+
+    const fields = data.parsed;
+    const table = document.getElementById("fields-table");
+    table.innerHTML = "";
+
+    const fieldLabels = {
+      platform_name: "Platform",
+      service_name: "Service / Plan",
+      start_date: "Start Date",
+      end_date: "End Date",
+      is_trial: "Free Trial?",
+      already_canceled: "Already Canceled?",
+      price: "Price",
+      currency: "Currency",
+      payment_method: "Payment Method",
+      unsubscribe_link: "Unsubscribe Link",
+    };
+
+    for (const [key, label] of Object.entries(fieldLabels)) {
+      const val = fields[key];
+      const tr = document.createElement("tr");
+
+      const tdLabel = document.createElement("td");
+      tdLabel.className = "py-2 pr-4 font-medium text-gray-600 dark:text-gray-400 whitespace-nowrap";
+      tdLabel.textContent = label;
+
+      const tdValue = document.createElement("td");
+      tdValue.className = "py-2 text-gray-800 dark:text-gray-200";
+
+      if (val === null || val === undefined) {
+        tdValue.innerHTML = '<span class="text-gray-400 italic">not found</span>';
+      } else if (typeof val === "boolean") {
+        tdValue.innerHTML = val
+          ? '<span class="bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded text-xs font-medium">Yes</span>'
+          : '<span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs font-medium">No</span>';
+      } else if (key === "price" && val !== null) {
+        tdValue.textContent = `$${parseFloat(val).toFixed(2)}`;
+      } else if (key === "unsubscribe_link" && val && val.startsWith("http")) {
+        const a = document.createElement("a");
+        a.href = val;
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        a.className = "text-indigo-600 hover:underline text-xs";
+        a.textContent = val;
+        tdValue.appendChild(a);
+      } else {
+        tdValue.textContent = val;
+      }
+
+      tr.appendChild(tdLabel);
+      tr.appendChild(tdValue);
+      table.appendChild(tr);
+    }
+
+    document.getElementById("raw-json").textContent = JSON.stringify(fields, null, 2);
+    document.getElementById("result").classList.remove("hidden");
+    document.getElementById("result").scrollIntoView({ behavior: "smooth" });
+  }
+
+  async function saveSubscription() {
+    if (!lastParsedData) return;
+    const btn = document.getElementById("save-btn");
+    btn.disabled = true;
+    btn.textContent = "Saving...";
+
+    try {
+      const response = await fetch("{% url 'subscriptions:save_parsed' %}", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": CSRF_TOKEN,
+        },
+        body: JSON.stringify({
+          parsed: lastParsedData,
+          raw_email: document.getElementById("email-input").value.trim(),
+        }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        btn.textContent = "Saved!";
+        btn.classList.replace("bg-green-600", "bg-gray-400");
+      } else {
+        btn.textContent = data.error || "Save failed";
+        btn.classList.replace("bg-green-600", "bg-red-500");
+      }
+    } catch (err) {
+      btn.textContent = "Save failed";
+      btn.classList.replace("bg-green-600", "bg-red-500");
+    }
+  }
+</script>
+{% endblock %}
