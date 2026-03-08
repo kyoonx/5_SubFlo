@@ -5,6 +5,9 @@
 
 {% block stylesheets %}
 <script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = { corePlugins: { preflight: false } }
+</script>
 {% endblock %}
 
 {% block page_title %}
