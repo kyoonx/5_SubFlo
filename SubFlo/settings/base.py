@@ -51,6 +51,21 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 
+SOCIALACCOUNT_STORE_TOKENS = True  # allauth 65+ defaults this to False — must explicitly enable
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+            'https://www.googleapis.com/auth/gmail.readonly',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'offline',  # needed to get a refresh_token
+        }
+    }
+}
+
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -133,6 +148,6 @@ LOGIN_URL = "login_urlpattern"
 LOGIN_REDIRECT_URL = 'subscription-list-url'
 LOGOUT_REDIRECT_URL = 'login_urlpattern'
 
-SOCIALACCOUNT_LOGIN_ON_GET = True
+SOCIALACCOUNT_LOGIN_ON_GET = False
 
 CORS_ALLOW_ALL_ORIGINS = True

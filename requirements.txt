@@ -56,3 +56,7 @@ transformers>=4.40.0
 torch>=2.0.0
 accelerate>=0.30.0
 beautifulsoup4>=4.12.0
+
+google-api-python-client
+google-auth
+google-auth-httplib2
