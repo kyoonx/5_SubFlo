@@ -51,11 +51,13 @@ class Subscription(models.Model):
 class EmailMessage(models.Model):
     """
     Represents a user's email message.
-    Ensure that `message_id` is unique for every user.
+    `gmail_message_id` is Gmail's internal message ID (e.g. '19d15aab555a6a06').
+    It is unique per user (not globally) and used for deduplication during scraping.
     `parsed_data` and `created_at` will be filled after the LLM processes emails.
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, verbose_name="Message ID")
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='email_messages', verbose_name="User")
+    gmail_message_id = models.CharField(max_length=32, verbose_name="Gmail Message ID")
     subject = models.CharField(max_length=255, verbose_name="Subject")
     sender = models.CharField(max_length=255, verbose_name="Sender")
     received_date = models.DateTimeField(verbose_name="Received Date")
@@ -65,10 +67,14 @@ class EmailMessage(models.Model):
 
     def __str__(self):
         return str(self.id)
-        # name = f"Email from {self.sender} - {self.subject}" if len(self.subject) <= 50 else f"Email from {self.sender} - {self.subject[:50]}..."
-        # return name
 
     class Meta:
         verbose_name = "Email Message"
         verbose_name_plural = "Email Messages"
         ordering = ["user", "-received_date"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "gmail_message_id"],
+                name="unique_user_gmail_message_id",
+            )
+        ]

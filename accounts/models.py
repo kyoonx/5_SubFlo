@@ -3,6 +3,8 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.utils import timezone
+from dateutil.relativedelta import relativedelta
 import uuid
 
 class UserProfile(models.Model):
@@ -25,11 +27,21 @@ class UserProfile(models.Model):
         verbose_name_plural = "User Profiles"
         ordering = ("user",)
 
+
+def _thirteen_months_ago():
+    """Return midnight UTC of the date 13 months before today."""
+    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    return today - relativedelta(months=13)
+
+
 # Signal to create a UserProfile automatically when a new User is created
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
-        UserProfile.objects.create(user=instance)
+        UserProfile.objects.create(
+            user=instance,
+            last_processed_date=_thirteen_months_ago(),
+        )
 
 # Signal to save the UserProfile when the User is updated
 @receiver(post_save, sender=User)
