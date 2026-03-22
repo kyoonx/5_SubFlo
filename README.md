@@ -50,6 +50,8 @@
 - Week 6
   - [x] Test 15 models across 5 category (by size) to find the most suitable model for our project
   - [x] Added AI cancellation guide feature using Gemini 2.5 Flash with preprocessing pipeline, input safety guards, and Tailwind UI
+- Week 7
+  - [x] Integrate Google Email API into a system. Now, we can call an API endpoint to insert all relevant (using filters so it might not be 100% accurate) email into `EmailMessage` model. However, parsing them into LLM and `Subscription` model hasn't been implemented yet.
 
 # References
 - Code examples from INFO 490 classes

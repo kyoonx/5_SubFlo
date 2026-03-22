@@ -3,6 +3,7 @@ from .ai_guide_view import CancellationGuideView
 from .email_parser_view import EmailParserView
 from .save_parsed_view import SaveParsedSubscriptionView
 from .views import GmailFetchView, GmailDebugView
+from .scrape_view import GmailScrapeView
 
 app_name = "subscriptions"
 
@@ -31,5 +32,10 @@ urlpatterns = [
         "emails/debug/",
         GmailDebugView.as_view(),
         name="gmail_debug",
+    ),
+    path(
+        "scrape/",
+        GmailScrapeView.as_view(),
+        name="gmail_scrape",
     ),
 ]
