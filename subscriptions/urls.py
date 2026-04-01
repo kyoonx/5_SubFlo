@@ -2,6 +2,8 @@ from django.urls import path
 from .ai_guide_view import CancellationGuideView
 from .email_parser_view import EmailParserView
 from .save_parsed_view import SaveParsedSubscriptionView
+from .views import GmailFetchView, GmailDebugView
+from .scrape_view import GmailScrapeView
 
 app_name = "subscriptions"
 
@@ -20,5 +22,20 @@ urlpatterns = [
         "save-parsed/",
         SaveParsedSubscriptionView.as_view(),
         name="save_parsed",
+    ),
+    path(
+        "emails/",
+        GmailFetchView.as_view(),
+        name="gmail_fetch",
+    ),
+    path(
+        "emails/debug/",
+        GmailDebugView.as_view(),
+        name="gmail_debug",
+    ),
+    path(
+        "scrape/",
+        GmailScrapeView.as_view(),
+        name="gmail_scrape",
     ),
 ]

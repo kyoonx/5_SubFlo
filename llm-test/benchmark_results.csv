@@ -1,0 +1,916 @@
+model,model_category,prompt_type,prompt_id,latency_s,tok_per_sec,output,instruction_adherence,accuracy,completeness,structure,clarity,overall_score
+qwen/Qwen2.5-0.5B-Instruct,Ultra-Light,classification,C1,0.58,3.46,Yes,,,,,,
+qwen/Qwen2.5-0.5B-Instruct,Ultra-Light,classification,C2,0.39,5.17,Yes,,,,,,
+qwen/Qwen2.5-0.5B-Instruct,Ultra-Light,classification,C3,0.38,5.22,Yes,,,,,,
+qwen/Qwen2.5-0.5B-Instruct,Ultra-Light,classification,C4,0.39,5.15,No,,,,,,
+qwen/Qwen2.5-0.5B-Instruct,Ultra-Light,classification,C5,0.39,5.17,No,,,,,,
+qwen/Qwen2.5-0.5B-Instruct,Ultra-Light,prediction,P1,3.56,16.87,"```json
+{
+  ""next_billing_date"": ""2026-03-17"",
+  ""reasoning"": ""Based on the information provided in the email, the next billing date for Hulu's subscription is March 17, 2026.""
+}
+```",,,,,,
+qwen/Qwen2.5-0.5B-Instruct,Ultra-Light,prediction,P2,4.89,16.16,"```json
+{
+  ""next_billing_date"": ""02/03/2026"",
+  ""reasoning"": ""The email provided is incomplete and does not contain any specific information about the next billing date or payment details. It only mentions that the annual plan price is $35.88 and indicates how to manage storage at apple.com/icloud.""
+}
+```",,,,,,
+qwen/Qwen2.5-0.5B-Instruct,Ultra-Light,prediction,P3,3.89,14.12,"```json
+{
+  ""next_billing_date"": ""2026-03-11"",
+  ""reasoning"": ""The trial has ended, and the first real charge will occur on March 11, 2026.""
+}
+```",,,,,,
+qwen/Qwen2.5-0.5B-Instruct,Ultra-Light,prediction,P4,4.11,14.12,"```json
+{
+  ""next_billing_date"": ""03/04/2026"",
+  ""reasoning"": ""Based on the information provided in the email, the next billing date for the user is April 3, 2026.""
+}
+```",,,,,,
+qwen/Qwen2.5-0.5B-Instruct,Ultra-Light,prediction,P5,2.04,16.64,"```json
+{
+  ""next_billing_date"": null,
+  ""reasoning"": ""The provided email does not contain any billing or subscription payment information.""
+}
+```",,,,,,
+qwen/Qwen2.5-0.5B-Instruct,Ultra-Light,summarization,S1,3.34,17.37,"Daniel Harper has become a YouTube Premium member with an individual plan priced at $13.99 per month. His next billing date is April 2, 2026. He can access ad-free videos, background playback, and YouTube Music Premium through his YouTube settings.",,,,,,
+qwen/Qwen2.5-0.5B-Instruct,Ultra-Light,summarization,S2,5.01,16.58,"The email informs Sarah that her Spotify Premium free trial has started on March 6, 2026. The trial will end on April 6, 2026, with a monthly fee of $10.99. After the trial period, she can cancel at any time before April 6th to avoid payment charges. For more information, visit spotify.com/account/subscription.",,,,,,
+qwen/Qwen2.5-0.5B-Instruct,Ultra-Light,summarization,S3,3.29,18.25,"Dear Nina,
+Your Microsoft 365 Personal subscription has been renewed for April 1, 2026 with an annual cost of $69.99. If you wish to cancel before March 31, 2026, please contact account.microsoft.com.",,,,,,
+qwen/Qwen2.5-0.5B-Instruct,Ultra-Light,summarization,S4,5.04,17.85,"The recipient, Kevin Park, has received an email stating that his Adobe Creative Cloud subscription has been canceled due to a plan expiration on March 31, 2026. The final billing date is set for March 1, 2026, and access to the service will cease thereafter. If the subscriber wishes to continue using the service after this date, they can do so by visiting adobe.com/creativecloud.",,,,,,
+qwen/Qwen2.5-0.5B-Instruct,Ultra-Light,summarization,S5,4.36,17.67,"This email discusses recent updates and insights related to AI tools, including chatbots, artificial intelligence systems, and software development practices. It mentions specific examples such as chatbot improvements, new AI tools like Gemini and ChatGPT, and confessions about using ChatGPT. The sender also shares information on how developers are becoming more senior than juniors due to advancements in AI technology.",,,,,,
+qwen/Qwen2.5-0.5B-Instruct,Ultra-Light,text_generation,T1,12.1,18.09,"```json
+{
+  ""service"": ""Netflix"",
+  ""estimated_time"": ""2 minutes"",
+  ""cancellation_url"": ""https://www.netflix.com/cancel?plan=standard&billing_date=2026-03-04"",
+  ""steps"": [
+    ""Open the Netflix website or app."",
+    ""Go to the 'My Account' section."",
+    ""Click on the 'Subscriptions' tab."",
+    ""Select your current plan from the list."",
+    ""Find the 'Cancel Subscription' option under the 'Actions' section."",
+    ""Enter your username and password to log in if prompted."",
+    ""Follow the prompts to confirm the action."",
+    ""If prompted, you may need to pause the service temporarily before cancelling."",
+    ""Once confirmed, you will be redirected back to your account dashboard."",
+    ""Navigate to the 'My Orders' section to see your existing subscriptions.""
+  ],
+  ""warnings"": []
+}
+```
+
+This guide provides a structured approach to canceling your Netflix subscription, including all necessary steps and potential pitfalls to avoid.",,,,,,
+qwen/Qwen2.5-0.5B-Instruct,Ultra-Light,text_generation,T2,9.45,17.56,"```json
+{
+  ""service"": ""Spotify Premium"",
+  ""estimated_time"": ""2 minutes"",
+  ""cancellation_url"": ""https://www.spotify.com/en/subscription/cancel?utm_source=spotify&utm_medium=cpc&utm_campaign=premium_trial_end"",
+  ""steps"": [
+    ""Open the Spotify website or app."",
+    ""Go to the 'My Account' section."",
+    ""Click on the 'Subscription' tab."",
+    ""Select 'Premium Subscription' from the dropdown menu."",
+    ""Under 'Subscription Details', click on 'Cancel My Subscription'.""
+  ],
+  ""warnings"": []
+}
+```
+
+This guide provides a straightforward method for cancelling an existing Spotify Premium subscription before its trial period ends. It includes all necessary steps, estimated time, direct URLs, and any potential pitfalls to avoid.",,,,,,
+qwen/Qwen2.5-0.5B-Instruct,Ultra-Light,text_generation,T3,12.24,17.81,"```json
+{
+  ""service"": ""Adobe Creative Cloud"",
+  ""estimated_time"": ""2 minutes"",
+  ""cancellation_url"": ""https://www.adobe.com/careers/cta?utm_source=adobe&utm_medium=campaign&utm_campaign=creative-cloud-cancellation"",
+  ""steps"": [
+    ""Open the Adobe Creative Cloud website in your web browser."",
+    ""Click on the 'My Account' tab."",
+    ""Select 'All Apps' from the left menu."",
+    ""Find the 'Subscription' section under the 'Account Settings' tab."",
+    ""Click on 'Cancel Subscription'"",
+    ""Enter your Adobe ID and password to confirm the cancellation."",
+    ""Follow the prompts to complete the cancellation process.""
+  ],
+  ""warnings"": [""Please ensure you have all necessary permissions before cancelling."", ""Cancellations may incur additional fees.""]
+}
+```
+
+This guide provides a structured approach to canceling an Adobe Creative Cloud subscription, including the official cancellation link, estimated time to complete, common pitfalls to avoid, and any specific information needed during the cancellation process.",,,,,,
+qwen/Qwen2.5-0.5B-Instruct,Ultra-Light,text_generation,T4,11.48,18.64,"```json
+{
+  ""service"": ""Amazon Prime"",
+  ""estimated_time"": ""2 minutes"",
+  ""cancellation_url"": ""https://www.amazon.com/s?k=prime%20trial&field-keywords=Amazon+Prime"",
+  ""steps"": [
+    ""Open the Amazon Prime app on your device."",
+    ""Search for 'Amazon Prime' in the search bar."",
+    ""Select 'Amazon Prime' from the search results."",
+    ""Click on the 'Amazon Prime' option."",
+    ""Enter your email address (if you have one)."",
+    ""Enter your password if prompted."",
+    ""Click 'Sign In' or 'Continue with Google/Apple ID'"",
+    ""If you're using an Apple account, enter your Apple ID credentials."",
+    ""Enter your payment information (credit card details, etc.)"",
+    ""Complete the payment process.""
+  ],
+  ""warnings"": []
+}
+```
+
+This guide provides a structured approach to canceling your Amazon Prime membership, including all necessary steps and potential pitfalls to be aware of.",,,,,,
+qwen/Qwen2.5-0.5B-Instruct,Ultra-Light,text_generation,T5,9.52,18.49,"```json
+{
+  ""service"": ""YouTube Premium"",
+  ""estimated_time"": ""5 minutes"",
+  ""cancellation_url"": ""https://www.youtube.com/subscription/membership?pp=1399"",
+  ""steps"": [
+    ""Open the YouTube Premium app on your device."",
+    ""Go to the 'My Account' section."",
+    ""Click on the 'Subscription' tab."",
+    ""Select 'View My Subscription' from the dropdown menu."",
+    ""Find the 'Cancel Subscription' option in the list of options."",
+    ""Follow the prompts to confirm the cancellation."",
+    ""Enter your payment information if prompted.""
+  ],
+  ""warnings"": []
+}
+```
+
+This guide provides a straightforward process for users to cancel their YouTube Premium subscription. It includes all necessary steps, estimated time, and any potential traps to ensure a smooth cancellation experience.",,,,,,
+qwen/Qwen2.5-0.5B-Instruct,Ultra-Light,structured_extraction,E1,6.19,15.51,"```json
+{
+  ""platform_name"": ""YouTube"",
+  ""service_name"": ""Premium"",
+  ""start_date"": ""2026-03-02"",
+  ""end_date"": null,
+  ""is_trial"": false,
+  ""already_canceled"": false,
+  ""price"": 13.99,
+  ""currency"": ""USD"",
+  ""payment_method"": ""Visa"",
+  ""unsubscribe_link"": null
+}
+```",,,,,,
+qwen/Qwen2.5-0.5B-Instruct,Ultra-Light,structured_extraction,E2,5.61,17.46,"```json
+{
+  ""platform_name"": ""Spotify"",
+  ""service_name"": ""Premium Plan"",
+  ""start_date"": ""2026-03-06"",
+  ""end_date"": null,
+  ""is_trial"": true,
+  ""already_canceled"": false,
+  ""price"": 10.99,
+  ""currency"": ""USD"",
+  ""payment_method"": ""Mastercard"",
+  ""unsubscribe_link"": null
+}
+```",,,,,,
+qwen/Qwen2.5-0.5B-Instruct,Ultra-Light,structured_extraction,E3,5.67,16.23,"```json
+{
+  ""platform_name"": ""Adobe"",
+  ""service_name"": ""Creative Cloud All Apps"",
+  ""start_date"": null,
+  ""end_date"": ""2026-03-31"",
+  ""is_trial"": false,
+  ""already_canceled"": false,
+  ""price"": null,
+  ""currency"": ""USD"",
+  ""payment_method"": null,
+  ""unsubscribe_link"": null
+}
+```",,,,,,
+qwen/Qwen2.5-0.5B-Instruct,Ultra-Light,structured_extraction,E4,5.93,16.2,"```json
+{
+  ""platform_name"": ""Netflix"",
+  ""service_name"": ""Standard Plan"",
+  ""start_date"": ""2026-03-04"",
+  ""end_date"": null,
+  ""is_trial"": false,
+  ""already_canceled"": false,
+  ""price"": 15.49,
+  ""currency"": ""USD"",
+  ""payment_method"": ""Discover"",
+  ""unsubscribe_link"": null
+}
+```",,,,,,
+qwen/Qwen2.5-0.5B-Instruct,Ultra-Light,structured_extraction,E5,4.93,16.01,"```json
+{
+  ""platform_name"": ""Medium Daily Digest"",
+  ""service_name"": null,
+  ""start_date"": null,
+  ""end_date"": null,
+  ""is_trial"": false,
+  ""already_canceled"": false,
+  ""price"": null,
+  ""currency"": null,
+  ""payment_method"": null,
+  ""unsubscribe_link"": null
+}
+```",,,,,,
+JayHyeon/Qwen_0.5-MDPO_0.5_4e-6-3ep_0alp_0lam,Ultra-Light,classification,C1,3.49,12.31,"Yes, the email proves that the user currently holds an active subscription to a digital service. The message is a direct endorsement of the service and its features, and it specifies the user's subscription plan, which is a valid indication of a subscription.
+",,,,,,
+JayHyeon/Qwen_0.5-MDPO_0.5_4e-6-3ep_0alp_0lam,Ultra-Light,classification,C2,3.17,15.14,"Yes. The user has signed up for a trial subscription to Spotify, and the trial has started. The email includes the trial start date and the end date, as well as the subscription price. The email also includes a link to the Spotify website for managing the subscription.
+",,,,,,
+JayHyeon/Qwen_0.5-MDPO_0.5_4e-6-3ep_0alp_0lam,Ultra-Light,classification,C3,0.49,2.03,"No
+",,,,,,
+JayHyeon/Qwen_0.5-MDPO_0.5_4e-6-3ep_0alp_0lam,Ultra-Light,classification,C4,14.07,15.99,"Based on the provided email, the user seems to be looking for information about a digital service that they have subscribed to. The email appears to be from ""Medium Daily Digest,"" a newsletter with a focus on stories and updates. From the content provided, it seems that the user is interested in learning about a specific service, and the email is being sent to a user named ""Tom."" Additionally, the email includes a link to a specific article (Sent by Medium) and a discussion thread with a name (Unsubscribe from this type of email).
+
+Based on these elements, it seems that the email could potentially be a promotional offer for a digital service, specifically targeting the service mentioned in the email. Therefore, I would answer 'Yes' to the question.
+
+Here's a rough summary of the email content:
+
+1. The email is from ""Medium Daily Digest"" and it's a newsletter with a focus on stories and updates.
+2. The user is interested in learning about a specific service.
+3. The user has subscribed to the service mentioned in the email.
+4. The email includes a link to a specific article and a discussion thread with a name.
+
+Based on these elements, it appears that the email is indeed a promotional offer for a digital service, specifically targeting it. Therefore, I would answer 'Yes' to the question.
+",,,,,,
+JayHyeon/Qwen_0.5-MDPO_0.5_4e-6-3ep_0alp_0lam,Ultra-Light,classification,C5,3.45,14.8,"No, the email does not prove that the user currently holds an active subscription to a digital service. The email contains personal information about a third party (Adobe) and a general notification about a subscription cancellation. The email does not contain any specific information about the user's subscription or billing status.
+",,,,,,
+JayHyeon/Qwen_0.5-MDPO_0.5_4e-6-3ep_0alp_0lam,Ultra-Light,prediction,P1,3.94,8.12,"{
+  ""next_billing_date"": ""2026-03-17"",
+  ""reasoning"": ""The billing cycle is April 2026. The subscription will be billed on April 20, 2026. We will notify you of the billing cycle and the billing date.""
+}
+",,,,,,
+JayHyeon/Qwen_0.5-MDPO_0.5_4e-6-3ep_0alp_0lam,Ultra-Light,prediction,P2,2.79,5.38,"{
+""next_billing_date"": ""20260204"",
+""reasoning"": ""This is the next billing date for iCloud+ 2TB subscription.""
+}
+",,,,,,
+JayHyeon/Qwen_0.5-MDPO_0.5_4e-6-3ep_0alp_0lam,Ultra-Light,prediction,P3,3.87,5.43,"{
+  ""next_billing_date"": ""12/01/2026"",
+  ""reasoning"": ""The trial ends on March 11, 2026, and the free trial is available for 30 days.""
+}
+",,,,,,
+JayHyeon/Qwen_0.5-MDPO_0.5_4e-6-3ep_0alp_0lam,Ultra-Light,prediction,P4,3.12,6.73,"{
+    ""next_billing_date"": ""03/03/2026"",
+    ""reasoning"": ""Given the start date and billing cycle description, the next billing date is March 3, 2026.""
+}
+",,,,,,
+JayHyeon/Qwen_0.5-MDPO_0.5_4e-6-3ep_0alp_0lam,Ultra-Light,prediction,P5,2.54,9.84,"{
+""next_billing_date"": null,
+""reasoning"": ""The email does not contain billing or subscription payment information and therefore, the next billing date is set to null.""
+}
+",,,,,,
+JayHyeon/Qwen_0.5-MDPO_0.5_4e-6-3ep_0alp_0lam,Ultra-Light,summarization,S1,4.29,12.59,"Daniel Harper has become a member of YouTube Premium and is now active. His membership is a trial plan with a price of $13.99/month and is valid for the next billing date of April 2, 2026. Daniel can manage his membership and access features such as ad-free videos, background play, and YouTube Music Premium.
+",,,,,,
+JayHyeon/Qwen_0.5-MDPO_0.5_4e-6-3ep_0alp_0lam,Ultra-Light,summarization,S2,6.8,11.91,"The email is from Spotify and is sent to Sarah Johnson. The email is about Sarah's Spotify subscription. The trial starts on March 6, 2026 and ends on April 6, 2026. After the trial ends, the monthly fee is $10.99. This means the monthly fee will be $10.99 for the next 12 months. The payment method is to use Mastercard. The email is a notice about the trial and the payment options. It also has a link to manage the subscription.
+",,,,,,
+JayHyeon/Qwen_0.5-MDPO_0.5_4e-6-3ep_0alp_0lam,Ultra-Light,summarization,S3,3.32,8.43,"Microsoft is renewing Nina's subscription to Microsoft 365 and charging her $69.99 annually. To cancel before March 31, 2026, Nina should contact Microsoft's account management team through account.microsoft.com.
+",,,,,,
+JayHyeon/Qwen_0.5-MDPO_0.5_4e-6-3ep_0alp_0lam,Ultra-Light,summarization,S4,3.64,11.55,"The service is called Adobe Creative Cloud, and their subscription has been canceled as of March 1, 2026, due to the end of the current billing period. The subscription will continue for a period of three months, ending on March 31, 2026.
+",,,,,,
+JayHyeon/Qwen_0.5-MDPO_0.5_4e-6-3ep_0alp_0lam,Ultra-Light,summarization,S5,26.18,10.39,"Email Summary: A Daily Digest of New AI Tools and Techniques for Developers, Featuring Top Innovations and Tips.
+
+From: Medium Daily Digest
+To: Tom
+Subject: Stories for Tom
+Date: Sun, 22 Mar 2026 08:00:00 -0500
+
+Summary:
+Today's highlights include cutting-edge AI tools that save time and help developers build more accurate AI systems. Here are some of the most interesting articles and insights, along with their length, content, and audience.
+
+1. AI Tools that Cut Deployment Time from 40 Minutes to 8
+   - 5 minutes
+   - 308 claps
+   - Forget ChatGPT & Gemini - Here Are New AI Tools That Will Blow Your Mind
+   - 7 minutes
+
+2. AI Tools That Will Blow Your Mind
+   - 7 minutes
+   - 7.9K claps
+   - What Your Therapist Knows But Won't Tell You: Confessions From Inside the... 
+   - 10 minutes
+
+3. 7 Layers of a Production-Grade AGentic AI System
+   - 63 minutes
+   - 22K claps
+   - Building the 7 Layers of a Production-Grade AGentic AI System
+   - 10 minutes
+
+4. 5 Obvious Ways Everyone Knows You're Using ChatGPT
+   - 7 minutes
+   - 1.4K claps
+   - Senior Developers Are Becoming the New Juniors (And No One's Ready)
+   - 5 minutes
+
+5. AI Tools That Will Blow Your Mind
+   - 7 minutes
+   - 7.9K claps
+   - What Your Therapist Knows But Won't Tell You: Confessions From Inside the... 
+   - 10 minutes
+
+These articles and insights should provide valuable tools and resources for developers, helping them stay informed and up-to-date with the latest AI and machine learning developments. They're ideal for those who want to learn more about AI, be more productive, and be prepared for the future.
+",,,,,,
+JayHyeon/Qwen_0.5-MDPO_0.5_4e-6-3ep_0alp_0lam,Ultra-Light,text_generation,T1,4.46,7.18,"{
+  ""service"": ""Netflix"",
+  ""estimated_time"": ""2 minutes"",
+  ""cancellation_url"": null,
+  ""steps"": [
+    ""1. Confirm your subscription."",
+    ""2. Log in to your account.""
+  ],
+  ""warnings"": [
+    ""3. Please click on the 'Cancel' button.""
+  ]
+}
+",,,,,,
+JayHyeon/Qwen_0.5-MDPO_0.5_4e-6-3ep_0alp_0lam,Ultra-Light,text_generation,T2,24.07,8.1,"{
+  ""service"": ""Spotify"",
+  ""estimated_time"": ""2 minutes"",
+  ""cancellation_url"": ""https://in.play.spotify.com/cancel?service=Spotify&mode=trial_end&order=trial_end&duration=trial_end&start_date=1700472780&end_date=1700472780&trial_end_date=1700472780&trial_end=1099&cancel=1&cancel=1"",
+  ""steps"": [
+    ""Search for your Spotify account on the Spotify In-App Store"",
+    ""Log in to your Spotify account"",
+    ""Select your subscription"",
+    ""Cancel the trial"",
+    ""Unsubscribe from the trial"",
+    ""Sign in to your account"",
+    ""Log in to your account"",
+    ""Create a new account"",
+    ""Log in to your account"",
+    ""Log in to your account"",
+    ""Create a new account"",
+    ""Sign in to your account"",
+    ""Log in to your account"",
+    ""Log in to your account"",
+    ""Create a new account"",
+    ""Cancel trial"",
+    ""Sign in to your account"",
+    ""Log in to your account"",
+    ""Log in to your account"",
+    ""Sign in to your account"",
+    ""Cancel trial"",
+    ""Sign in to your account"",
+    ""Log in to your account"",
+    ""Log in to your account"",
+    ""Sign in to your account"",
+    ""Cancel trial""
+  ],
+  ""warnings"": [
+    ""Please ensure you have a valid Spotify subscription before cancelling."",
+    ""Canceling your trial will not affect your existing Spotify data or music library."",
+    ""Please check your email for a confirmation link to cancel your trial."",
+    ""If you're not sure about your subscription status, check your account details."",
+    ""If you have any questions or concerns, please contact our support team at support@spotify.com.""
+  ]
+}
+",,,,,,
+JayHyeon/Qwen_0.5-MDPO_0.5_4e-6-3ep_0alp_0lam,Ultra-Light,text_generation,T3,13.97,9.24,"{
+  ""service"": ""Adobe Creative Cloud"",
+  ""estimated_time"": ""2 minutes"",
+  ""cancellation_url"": ""https://www.adobe.com/cfusion/creative-cloud.html"",
+  ""steps"": [
+    ""Step 1: Visit the Adobe Creative Cloud website"",
+    ""Step 2: Click on the 'Cancel' button"",
+    ""Step 3: Confirm your cancellation and enter a valid payment method"",
+    ""Step 4: Wait for your cancellation confirmation"",
+    ""Step 5: Review and accept the cancellation agreement"",
+    ""Step 6: Delete your Adobe Creative Cloud account"",
+    ""Step 7: Confirm the deletion of your account"",
+    ""Step 8: Save your Adobe Creative Cloud subscription"",
+    ""Step 9: Log in to Adobe Creative Cloud"",
+    ""Step 10: Confirm your account creation""
+  ],
+  ""warnings"": [""Cancellation fees may be charged for any of the 9 steps above."",
+                ""Adobe is known for retention tactics and may have additional fees for early cancellations."",
+                ""Always confirm your cancellation to avoid any unexpected charges."",]
+}
+",,,,,,
+JayHyeon/Qwen_0.5-MDPO_0.5_4e-6-3ep_0alp_0lam,Ultra-Light,text_generation,T4,13.07,10.79,"{
+  ""service"": ""Amazon Prime"",
+  ""estimated_time"": ""2 minutes"",
+  ""cancellation_url"": ""https://www.amazon.com/Prime-Cancel-Your-Membership/dp/B08KZLQF2M"",
+  ""steps"": [
+    ""Click on the 'Cancel My Prime Membership' button located on your Amazon Prime dashboard."",
+    ""Enter your Prime membership username and password."",
+    ""Confirm your subscription and payment information."",
+    ""Complete the cancellation process by following the instructions provided on the confirmation email."",
+    ""Make sure to check your email for the confirmation process and to confirm your subscription."",
+    ""If you have any concerns or questions, contact customer support via the Amazon Prime customer support website."",
+    ""You can also request assistance through Amazon's customer support channels."",
+    ""Once your Amazon Prime membership is canceled, your account will be deleted permanently.""
+  ],
+  ""warnings"": [""Amazon Prime is a subscription-based service that will not be cancelled unless you request to stop using it."", ""Make sure to review and delete any associated data to ensure a smooth transition.""]
+}
+",,,,,,
+JayHyeon/Qwen_0.5-MDPO_0.5_4e-6-3ep_0alp_0lam,Ultra-Light,text_generation,T5,11.32,9.45,"{
+  ""service"": ""YouTube Premium"",
+  ""estimated_time"": ""2 minutes"",
+  ""cancellation_url"": ""https://www.youtube.com/subscribe"",
+  ""steps"": [
+    ""Step 1: Open your YouTube app on your mobile device"",
+    ""Step 2: Tap the three dots next to the YouTube logo"",
+    ""Step 3: Select 'Settings'"",
+    ""Step 4: Tap 'Subscribe' or 'Enable Premium Subscription'"",
+    ""Step 5: You will be redirected to the YouTube Premium subscription page"",
+    ""Step 6: Enter your new email address to confirm your subscription"",
+    ""Step 7: Follow the prompts to complete the confirmation"",
+    ""Step 8: Enter your name and password to secure your account"",
+    ""Step 9: Review your subscription terms and conditions"",
+    ""Step 10: Click 'Subscribe' to confirm your subscription""
+  ],
+  ""warnings"": []
+}
+",,,,,,
+JayHyeon/Qwen_0.5-MDPO_0.5_4e-6-3ep_0alp_0lam,Ultra-Light,structured_extraction,E1,8.22,2.8,"{
+  ""platform_name"": ""YouTube"",
+  ""service_name"": ""Premium Plan"",
+  ""start_date"": ""2026-03-02T09:14:22Z"",
+  ""end_date"": ""2026-04-02T09:14:22Z"",
+  ""is_trial"": true,
+  ""already_canceled"": false,
+  ""price"": 13.99,
+  ""currency"": ""USD"",
+  ""payment_method"": ""Visa"",
+  ""unsubscribe_link"": null
+}
+",,,,,,
+JayHyeon/Qwen_0.5-MDPO_0.5_4e-6-3ep_0alp_0lam,Ultra-Light,structured_extraction,E2,6.05,4.62,"{
+  ""platform_name"": ""Spotify"",
+  ""service_name"": ""Premium Free Trial"",
+  ""start_date"": ""March 6, 2026"",
+  ""end_date"": ""April 6, 2026"",
+  ""is_trial"": true,
+  ""already_canceled"": false,
+  ""price"": 10.99,
+  ""currency"": ""USD"",
+  ""payment_method"": ""Mastercard"",
+  ""unsubscribe_link"": null
+}
+",,,,,,
+JayHyeon/Qwen_0.5-MDPO_0.5_4e-6-3ep_0alp_0lam,Ultra-Light,structured_extraction,E3,4.25,5.88,"{
+""platform_name"": ""Adobe"",
+""service_name"": ""Creative Cloud All Apps"",
+""start_date"": null,
+""end_date"": null,
+""is_trial"": false,
+""already_canceled"": false,
+""price"": null,
+""currency"": ""USD"",
+""payment_method"": null,
+""unsubscribe_link"": null
+}
+",,,,,,
+JayHyeon/Qwen_0.5-MDPO_0.5_4e-6-3ep_0alp_0lam,Ultra-Light,structured_extraction,E4,23.51,3.79,"Here's the JSON output based on the given fields in the subscription email:
+
+```json
+{
+  ""platform_name"": ""Netflix"",
+  ""service_name"": ""Standard Plan"",
+  ""start_date"": ""2026-03-04T00:00:00"",
+  ""end_date"": null,
+  ""is_trial"": false,
+  ""already_canceled"": false,
+  ""price"": 15.49,
+  ""currency"": ""USD"",
+  ""payment_method"": ""Discover"",
+  ""unsubscribe_link"": null,
+  ""subscription_info"": {
+    ""Subscription"": {
+      ""SubscriptionType"": ""Monthly"",
+      ""Tier"": ""Standard"",
+      ""Price"": 15.49,
+      ""Currency"": ""USD""
+    },
+    ""Trial"": {
+      ""TrialEnd"": ""2026-03-04T00:00:00"",
+      ""TrialStart"": ""2026-03-04T00:00:00"",
+      ""TrialStatus"": ""Cancelling""
+    },
+    ""SubscriptionCancelling"": true,
+    ""SubscriptionCancellingReason"": ""Trial"",
+    ""SubscriptionCancellingDate"": ""2026-03-04T00:00:00"",
+    ""SubscriptionCancellingDateTime"": ""2026-03-04T00:00:00"",
+    ""PlanCancelling"": true,
+    ""PlanCancellingReason"": ""Trial"",
+    ""PlanCancellingDate"": ""2026-03-04T00:00:00"",
+    ""PlanCancellingDateTime"": ""2026-03-04T00:00:00""
+  }
+}
+```
+
+This JSON object contains all the fields provided in the subscription email.
+",,,,,,
+JayHyeon/Qwen_0.5-MDPO_0.5_4e-6-3ep_0alp_0lam,Ultra-Light,structured_extraction,E5,5.77,5.2,"{
+  ""platform_name"": ""Medium Daily Digest"",
+  ""service_name"": ""No description provided"",
+  ""start_date"": ""No description provided"",
+  ""end_date"": ""No description provided"",
+  ""is_trial"": false,
+  ""already_canceled"": false,
+  ""price"": null,
+  ""currency"": null,
+  ""payment_method"": null,
+  ""unsubscribe_link"": null
+}
+",,,,,,
+mlx-community/Josiefied-Qwen2.5-0.5B-Instruct-abliterated-v1-float32,Ultra-Light,classification,C1,0.7,2.87,No,,,,,,
+mlx-community/Josiefied-Qwen2.5-0.5B-Instruct-abliterated-v1-float32,Ultra-Light,classification,C2,0.58,3.46,No,,,,,,
+mlx-community/Josiefied-Qwen2.5-0.5B-Instruct-abliterated-v1-float32,Ultra-Light,classification,C3,0.52,3.87,No,,,,,,
+mlx-community/Josiefied-Qwen2.5-0.5B-Instruct-abliterated-v1-float32,Ultra-Light,classification,C4,0.58,3.43,No,,,,,,
+mlx-community/Josiefied-Qwen2.5-0.5B-Instruct-abliterated-v1-float32,Ultra-Light,classification,C5,0.58,3.45,No,,,,,,
+mlx-community/Josiefied-Qwen2.5-0.5B-Instruct-abliterated-v1-float32,Ultra-Light,prediction,P1,4.8,16.24,"```json
+{
+  ""next_billing_date"": ""2026-03-17"",
+  ""reasoning"": ""The billing cycle is March 7, 2026, and the subscription is active until March 17, 2026. The next billing date is March 17, 2026.""
+}
+```",,,,,,
+mlx-community/Josiefied-Qwen2.5-0.5B-Instruct-abliterated-v1-float32,Ultra-Light,prediction,P2,3.28,16.16,"```json
+{
+  ""next_billing_date"": ""2026-02-09"",
+  ""reasoning"": ""The billing cycle is 2 months, and the next billing date is 9 months from the start date.""
+}
+```",,,,,,
+mlx-community/Josiefied-Qwen2.5-0.5B-Instruct-abliterated-v1-float32,Ultra-Light,prediction,P3,4.51,14.87,"```json
+{
+  ""next_billing_date"": ""2026-03-11"",
+  ""reasoning"": ""The trial ends on March 11, 2026, and billing begins on the next day, which is March 12, 2026.""
+}
+```",,,,,,
+mlx-community/Josiefied-Qwen2.5-0.5B-Instruct-abliterated-v1-float32,Ultra-Light,prediction,P4,3.9,16.41,"```json
+{
+  ""next_billing_date"": ""2026-04-01"",
+  ""reasoning"": ""The subscription email does not contain an explicit next billing date, but the subject and date suggest a next billing date of April 1, 2026.""
+}
+```",,,,,,
+mlx-community/Josiefied-Qwen2.5-0.5B-Instruct-abliterated-v1-float32,Ultra-Light,prediction,P5,2.84,15.14,"```json
+{
+  ""next_billing_date"": null,
+  ""reasoning"": ""The email does not contain any billing or subscription payment information, so the next billing date is set to null.""
+}
+```",,,,,,
+mlx-community/Josiefied-Qwen2.5-0.5B-Instruct-abliterated-v1-float32,Ultra-Light,summarization,S1,4.21,15.66,"Daniel Harper has become a YouTube Premium member, with a $13.99/month plan. The next billing date is April 2, 2026. The payment method is Visa. You can manage your membership anytime in your YouTube settings. Enjoy ad-free videos, background play, and YouTube Music Premium.",,,,,,
+mlx-community/Josiefied-Qwen2.5-0.5B-Instruct-abliterated-v1-float32,Ultra-Light,summarization,S2,4.9,14.9,"Spotify's free trial for the month of March 2026 has started. The trial ends on April 6, 2026. The post-trial price is $10.99/month. You can cancel before April 6th to avoid charges. You can manage your subscription at https://spotify.com/account/subscription.",,,,,,
+mlx-community/Josiefied-Qwen2.5-0.5B-Instruct-abliterated-v1-float32,Ultra-Light,summarization,S3,4.3,16.03,"Nina Patel's Microsoft 365 subscription is set to renew on April 1, 2026. The annual price is $69.99, and payment is made via Visa. If she cancels before March 31, 2026, she can do so at account.microsoft.com.",,,,,,
+mlx-community/Josiefied-Qwen2.5-0.5B-Instruct-abliterated-v1-float32,Ultra-Light,summarization,S4,1.87,12.87,"Adobe Creative Cloud subscription has been cancelled, with access ending on March 31, 2026.",,,,,,
+mlx-community/Josiefied-Qwen2.5-0.5B-Instruct-abliterated-v1-float32,Ultra-Light,summarization,S5,9.83,15.97,"This email is a summary of recent articles and insights from Medium, including:
+
+1. ""Today's Highlights"" - A brief overview of recent developments in AI tools and technologies.
+2. ""What Your Therapist Knows But Won't Tell You"" - A collection of confessions from professionals about their experiences with AI.
+3. ""Building the 7 Layers of a Production-Grade Agentic AI System"" - A detailed guide on creating a high-quality AI system.
+4. ""5 Obvious Ways Everyone Knows You're Using ChatGPT"" - Insights into common misunderstandings about AI technology.
+5. ""Senior Developers Are Becoming the New Juniors (And No One's Ready)"" - A comparison of current trends in software development and the role of senior developers.",,,,,,
+mlx-community/Josiefied-Qwen2.5-0.5B-Instruct-abliterated-v1-float32,Ultra-Light,text_generation,T1,9.96,16.37,"{
+  ""service"": ""Netflix"",
+  ""estimated_time"": ""2 minutes"",
+  ""cancellation_url"": ""https://www.netflix.com/cancel"",
+  ""steps"": [
+    ""1. Open the Netflix app on your device."",
+    ""2. Go to the 'My' section."",
+    ""3. Select 'My Netflix' from the menu."",
+    ""4. Click on the 'My Netflix' tab."",
+    ""5. Find your subscription and click on the 'Cancel' button."",
+    ""6. Confirm the cancellation by clicking the 'Cancel' button again."",
+    ""7. The confirmation will be sent to your email address.""
+  ],
+  ""warnings"": [""If you have not paid in full, you may need to pay the remaining balance first before canceling.""]
+}",,,,,,
+mlx-community/Josiefied-Qwen2.5-0.5B-Instruct-abliterated-v1-float32,Ultra-Light,text_generation,T2,14.97,16.17,"{
+  ""service"": ""Spotify Premium"",
+  ""estimated_time"": ""2 minutes"",
+  ""cancellation_url"": ""https://www.spotify.com/en/subscription/cancel"",
+  ""steps"": [
+    ""1. Go to the Spotify Premium app on your device."",
+    ""2. Tap the 'My' or 'My Music' tab."",
+    ""3. Tap the 'My Subscription' or 'My Account' option."",
+    ""4. Tap the 'Cancel' or 'Cancel Trial' button."",
+    ""5. Confirm the cancellation by tapping the 'Cancel' or 'Cancel Trial' button again."",
+    ""6. The confirmation will be sent to your email address."",
+    ""7. You will receive a confirmation email with a link to cancel your subscription."",
+    ""8. Follow the link to cancel your subscription."",
+    ""9. Confirm the cancellation by tapping the 'Cancel' or 'Cancel Trial' button again."",
+    ""10. The confirmation will be sent to your email address.""
+  ],
+  ""warnings"": [""If you have not received a confirmation email, try checking your spam folder or the email address you used to sign up for the trial.""]
+}",,,,,,
+mlx-community/Josiefied-Qwen2.5-0.5B-Instruct-abliterated-v1-float32,Ultra-Light,text_generation,T3,14.89,16.52,"{
+  ""service"": ""Adobe Creative Cloud"",
+  ""estimated_time"": ""2 minutes"",
+  ""cancellation_url"": ""https://www.adobe.com/careers/careers/creative-cloud/active-plan.html"",
+  ""steps"": [
+    ""1. Go to the Adobe Creative Cloud website or app."",
+    ""2. Click on the 'All Apps' plan."",
+    ""3. Look for the 'Active' plan option."",
+    ""4. Click on the 'Cancel' button."",
+    ""5. Confirm the cancellation by entering your email address and payment method."",
+    ""6. You will receive a confirmation email with the details of the cancellation."",
+    ""7. If you have any questions or need further assistance, contact Adobe's customer support."",
+    ""8. The cancellation fee is typically $59.99, and the next billing date is March 2, 2026."",
+    ""9. If you have any other questions or need further assistance, contact Adobe's customer support.""
+  ],
+  ""warnings"": [""Warning 1: Adobe is known for cancellation fees and retention tactics. It's important to check the cancellation fee before canceling your subscription.""]
+}",,,,,,
+mlx-community/Josiefied-Qwen2.5-0.5B-Instruct-abliterated-v1-float32,Ultra-Light,text_generation,T4,27.02,17.43,"{
+  ""service"": ""Amazon Prime"",
+  ""estimated_time"": ""2 minutes"",
+  ""cancellation_url"": ""https://www.amazon.com/s?k=prime%2030-day%20free%20trial"",
+  ""steps"": [
+    ""1. Go to the Amazon Prime website or app."",
+    ""2. Click on the 'My Account' or 'My Prime' link."",
+    ""3. Select 'My Prime' from the dropdown menu."",
+    ""4. Click on the 'My Prime' tab."",
+    ""5. Click on the '30-Day Free Trial' link."",
+    ""6. Confirm the trial by clicking the 'Start Trial' button."",
+    ""7. The confirmation will be sent to your email address."",
+    ""8. If you want to cancel, go to the 'My Account' or 'My Prime' link."",
+    ""9. Click on the 'My Prime' tab."",
+    ""10. Select 'My Prime' from the dropdown menu."",
+    ""11. Click on the 'My Prime' tab."",
+    ""12. Click on the '30-Day Free Trial' link."",
+    ""13. Confirm the trial by clicking the 'Cancel Trial' button."",
+    ""14. The confirmation will be sent to your email address."",
+    ""15. Go to the 'My Account' or 'My Prime' link."",
+    ""16. Click on the 'My Prime' tab."",
+    ""17. Click on the '30-Day Free Trial' link."",
+    ""18. Confirm the trial by clicking the 'Cancel Trial' button."",
+    ""19. The confirmation will be sent to your email address."",
+    ""20. Go to the 'My Account' or 'My Prime' link."",
+    ""21. Click on the 'My Prime' tab."",
+    ""22. Click on the '30-Day Free Trial' link."",
+    ""23. Confirm the trial by clicking the 'Cancel Trial' button."",
+    ""24. The confirmation will be sent to your email address.""
+  ],
+  ""warnings"": [""Amazon Prime offers a 30-day free trial, but you can cancel it before the trial ends to avoid charges.""]
+}",,,,,,
+mlx-community/Josiefied-Qwen2.5-0.5B-Instruct-abliterated-v1-float32,Ultra-Light,text_generation,T5,14.48,17.06,"{
+  ""service"": ""YouTube Premium"",
+  ""estimated_time"": ""2 minutes"",
+  ""cancellation_url"": ""https://www.youtube.com/subscription/membership"",
+  ""steps"": [
+    ""1. Open the YouTube Premium app on your device."",
+    ""2. Tap the 'My' or 'My Account' option in the top right corner."",
+    ""3. Tap the 'My Subscription' option."",
+    ""4. Tap the 'Cancel' or 'Unsubscribe' button."",
+    ""5. Confirm the cancellation by tapping the 'Cancel' or 'Unsubscribe' button again."",
+    ""6. The app will automatically update your account with the new price and billing date."",
+    ""7. You will receive a confirmation email with the new price and billing date."",
+    ""8. If you have any questions or need further assistance, you can contact YouTube Premium support at 'support@youtube.com'.""
+  ],
+  ""warnings"": [""If you have any questions or need further assistance, you can contact YouTube Premium support at 'support@youtube.com'."", ""If you have any questions or need further assistance, you can contact YouTube Premium support at 'support@youtube.com'.""]
+}",,,,,,
+mlx-community/Josiefied-Qwen2.5-0.5B-Instruct-abliterated-v1-float32,Ultra-Light,structured_extraction,E1,5.68,16.91,"```json
+{
+  ""platform_name"": ""YouTube"",
+  ""service_name"": ""Premium"",
+  ""start_date"": ""2026-03-02"",
+  ""end_date"": null,
+  ""is_trial"": false,
+  ""already_canceled"": false,
+  ""price"": 13.99,
+  ""currency"": ""USD"",
+  ""payment_method"": ""Visa"",
+  ""unsubscribe_link"": null
+}
+```",,,,,,
+mlx-community/Josiefied-Qwen2.5-0.5B-Instruct-abliterated-v1-float32,Ultra-Light,structured_extraction,E2,6.26,16.93,"```json
+{
+  ""platform_name"": ""Spotify"",
+  ""service_name"": ""Premium Free Trial"",
+  ""start_date"": ""2026-03-06"",
+  ""end_date"": null,
+  ""is_trial"": true,
+  ""already_canceled"": false,
+  ""price"": 10.99,
+  ""currency"": ""USD"",
+  ""payment_method"": ""Mastercard"",
+  ""unsubscribe_link"": ""https://spotify.com/account/subscription""
+}
+```",,,,,,
+mlx-community/Josiefied-Qwen2.5-0.5B-Instruct-abliterated-v1-float32,Ultra-Light,structured_extraction,E3,6.85,14.9,"```json
+{
+  ""platform_name"": ""Adobe Creative Cloud"",
+  ""service_name"": ""All Apps"",
+  ""start_date"": ""2026-03-01"",
+  ""end_date"": ""2026-03-31"",
+  ""is_trial"": false,
+  ""already_canceled"": true,
+  ""price"": null,
+  ""currency"": ""USD"",
+  ""payment_method"": null,
+  ""unsubscribe_link"": null
+}
+```",,,,,,
+mlx-community/Josiefied-Qwen2.5-0.5B-Instruct-abliterated-v1-float32,Ultra-Light,structured_extraction,E4,5.76,16.68,"```json
+{
+  ""platform_name"": ""Netflix"",
+  ""service_name"": ""Standard Plan"",
+  ""start_date"": ""2026-03-04"",
+  ""end_date"": null,
+  ""is_trial"": false,
+  ""already_canceled"": false,
+  ""price"": 15.49,
+  ""currency"": ""USD"",
+  ""payment_method"": ""Discover"",
+  ""unsubscribe_link"": null
+}
+```",,,,,,
+mlx-community/Josiefied-Qwen2.5-0.5B-Instruct-abliterated-v1-float32,Ultra-Light,structured_extraction,E5,5.71,15.95,"```json
+{
+  ""platform_name"": ""Medium Daily Digest"",
+  ""service_name"": ""Free Trial"",
+  ""start_date"": ""2026-03-22"",
+  ""end_date"": null,
+  ""is_trial"": true,
+  ""already_canceled"": false,
+  ""price"": null,
+  ""currency"": null,
+  ""payment_method"": null,
+  ""unsubscribe_link"": null
+}
+```",,,,,,
+ibm-granite/granite-3.1-2b-instruct,Small,classification,C1,6.81,0.29,Yes,,,,,,
+ibm-granite/granite-3.1-2b-instruct,Small,classification,C2,5.39,0.37,No,,,,,,
+ibm-granite/granite-3.1-2b-instruct,Small,classification,C3,5.1,0.39,No,,,,,,
+ibm-granite/granite-3.1-2b-instruct,Small,classification,C4,5.01,0.4,No,,,,,,
+ibm-granite/granite-3.1-2b-instruct,Small,classification,C5,4.99,0.4,No,,,,,,
+ibm-granite/granite-3.1-2b-instruct,Small,prediction,P1,105.65,0.75,"{
+  ""next_billing_date"": ""2026-04-07"",
+  ""reasoning"": ""The billing cycle for Hulu is monthly, and the subscription was activated on March 7, 2026. Therefore, the next billing date will be one month later, which is April 7, 2026.""
+}",,,,,,
+ibm-granite/granite-3.1-2b-instruct,Small,prediction,P2,106.87,0.75,"{
+  ""next_billing_date"": ""2027-02-02"",
+  ""reasoning"": ""The billing cycle for iCloud+ is annually, as indicated by the 'Annual plan price' in the email. Therefore, the next billing date is one year from the start date, which is February 2, 2027.""
+}",,,,,,
+ibm-granite/granite-3.1-2b-instruct,Small,prediction,P3,106.21,0.76,"{
+  ""next_billing_date"": ""2026-03-12"",
+  ""reasoning"": ""The trial period is 30 days, starting from March 11, 2026. Therefore, the first real charge will occur on the 31st day, which is March 12, 2026.""
+}",,,,,,
+ibm-granite/granite-3.1-2b-instruct,Small,prediction,P4,97.33,0.8,"{
+  ""next_billing_date"": ""2026-06-03"",
+  ""reasoning"": ""The billing cycle is every 3 months, and the plan was activated on March 3, 2026. Therefore, the next billing date is six months later, which is June 3, 2026.""
+}",,,,,,
+ibm-granite/granite-3.1-2b-instruct,Small,prediction,P5,58.66,0.78,"{
+  ""next_billing_date"": null,
+  ""reasoning"": ""The email does not contain any billing or subscription payment information. It is a daily digest of Medium articles, not a billing notification.""
+}",,,,,,
+ibm-granite/granite-3.1-2b-instruct,Small,summarization,S1,107.73,0.8,"Daniel Harper has successfully signed up for the YouTube Premium Individual Plan, which costs $13.99 per month. His membership is active as of March 2, 2026, and the next billing date is April 2, 2026. He can manage his subscription through his YouTube settings, gaining access to ad-free videos, background play, and YouTube Music Premium.",,,,,,
+ibm-granite/granite-3.1-2b-instruct,Small,summarization,S2,105.75,0.8,"Sarah has received a free trial invitation from Spotify, which begins on March 6, 2026, and lasts until April 6, 2026. If she decides to continue after the trial, the monthly cost will be $10.99, payable via Mastercard. She can manage her subscription at any time before the trial ends to prevent any charges.",,,,,,
+ibm-granite/granite-3.1-2b-instruct,Small,summarization,S3,109.56,0.8,"Your Microsoft 365 Personal subscription, currently active, is set to auto-renew on April 1, 2026, with an annual cost of $69.99. To maintain your service, no action is needed. However, if you prefer not to renew, you must cancel your subscription by March 31, 2026, through your account on account.microsoft.com.",,,,,,
+ibm-granite/granite-3.1-2b-instruct,Small,summarization,S4,106.94,0.79,"Adobe has confirmed the cancellation of Kevin Park's Creative Cloud All Apps subscription, which will continue until the end of the current billing cycle on March 31, 2026. After this date, Kevin will no longer be charged and will lose access to the service. If he decides to reactivate his subscription, he can do so by visiting adobe.com/creativecloud.",,,,,,
+ibm-granite/granite-3.1-2b-instruct,Small,summarization,S5,132.08,0.8,"This email, titled ""Stories for Tom,"" is a daily digest from Medium, curating a selection of popular articles for the recipient, Tom. The content includes a variety of tech-focused stories, ranging from 5 to 63 minutes long, covering topics such as CI/CD setup, new AI tools, AI system architecture, and the impact of AI on the development industry. The articles have garnered a diverse range of claps, indicating their popularity among Medium's audience.",,,,,,
+ibm-granite/granite-3.1-2b-instruct,Small,text_generation,T1,439.75,0.79,"{
+  ""service"": ""Netflix"",
+  ""estimated_time"": ""2 minutes"",
+  ""cancellation_url"": ""In-app only"",
+  ""steps"": [
+    ""1. Log in to your Netflix account using the web browser or the Netflix app on your device."",
+    ""2. Hover over 'Account' in the top right corner of the screen (web) or tap the profile icon (app) to open the menu."",
+    ""3. Select 'Membership & Billing' from the dropdown menu (web) or tap 'Membership & Billing' (app)."",
+    ""4. Under 'Membership & Plan', click 'Cancel Membership' (web) or tap 'Cancel Membership' (app)."",
+    ""5. A confirmation dialog will appear asking if you're sure you want to cancel. Review the information and confirm cancellation."",
+    ""6. Netflix may offer a 'Pause' option instead of 'Cancel'. Ensure you select 'Cancel Membership' to permanently end your subscription."",
+    ""7. You may be asked to provide a reason for cancellation. Choose 'No' or 'I don't want to provide a reason' to proceed."",
+    ""8. After confirming, you'll receive a confirmation email from Netflix stating your membership has been cancelled."",
+    ""9. Check your bank account or credit card statement to ensure the cancellation was processed and no future charges appear.""
+  ],
+  ""warnings"": [
+    ""Be cautious not to accidentally 'Pause' your account instead of 'Cancel'."",
+    ""Ensure you're logged out of your Netflix account on all devices after cancellation to prevent unauthorized access.""
+  ]
+}",,,,,,
+ibm-granite/granite-3.1-2b-instruct,Small,text_generation,T2,390.3,0.78,"{
+  ""service"": ""Spotify Premium"",
+  ""estimated_time"": ""2 minutes"",
+  ""cancellation_url"": ""In-app only"",
+  ""steps"": [
+    ""1. Log in to your Spotify account using the web browser or the Spotify app."",
+    ""2. Navigate to 'Settings' (or the equivalent menu, depending on the platform)."",
+    ""3. Look for the 'Account' or 'Membership' section."",
+    ""4. Select 'Membership' or 'Subscription'."",
+    ""5. You should see your current plan (Free Trial or Premium) listed. Click on it."",
+    ""6. Look for the 'Cancel Subscription' or 'End Trial' option. It might be disguised as 'Pause Trial' or 'Cancel Free Trial'. Be cautious of dark patterns."",
+    ""7. Confirm the cancellation. You may be asked to provide a reason for cancellation."",
+    ""8. After confirming, you'll receive a confirmation email or in-app notification."",
+    ""9. Check your email (including the spam folder) for a confirmation email from Spotify, stating your subscription has been successfully cancelled.""
+  ],
+  ""warnings"": [
+    ""Be aware of 'Pause instead of Cancel' options, which might extend your trial period."",
+    ""Ensure you're cancelling before the trial end date (April 6, 2026) to avoid being charged.""
+  ]
+}",,,,,,
+ibm-granite/granite-3.1-2b-instruct,Small,text_generation,T3,443.58,0.8,"{
+  ""service"": ""Adobe Creative Cloud"",
+  ""estimated_time"": ""3-5 minutes"",
+  ""cancellation_url"": ""In-app only"",
+  ""steps"": [
+    ""1. Log in to your Adobe account using the web browser or Adobe Creative Cloud app."",
+    ""2. Click on your profile picture or initial in the top right corner."",
+    ""3. Select 'Account' from the dropdown menu."",
+    ""4. Under the 'Plans & Licenses' section, click on 'Manage' next to 'Adobe Creative Cloud'."",
+    ""5. In the 'Plans' tab, find your 'All Apps' plan and click on 'Cancel Plan'."",
+    ""6. Follow the prompts to confirm the cancellation. You may be asked to select a cancellation date or reason for cancellation."",
+    ""7. Review the cancellation confirmation page to ensure all details are correct."",
+    ""8. If prompted, choose a cancellation date or provide a reason for cancellation. This step is optional but may help Adobe understand your decision."",
+    ""9. Confirm the cancellation. You should receive a confirmation email from Adobe within a few minutes."",
+    ""10. Check your email inbox for the cancellation confirmation from Adobe.""
+  ],
+  ""warnings"": [
+    ""Be cautious of any pop-up messages or calls claiming to be from Adobe, asking for payment information or personal details."",
+    ""Adobe may attempt to retain customers by offering discounts or free trials. Stick to your decision and do not engage with these offers."",
+    ""Ensure you cancel at least one day before your next billing date to avoid being charged for the next month.""
+  ]
+}",,,,,,
+ibm-granite/granite-3.1-2b-instruct,Small,text_generation,T4,453.63,0.81,"{
+  ""service"": ""Amazon Prime"",
+  ""estimated_time"": ""2 minutes"",
+  ""cancellation_url"": ""In-app only"",
+  ""steps"": [
+    ""1. Log in to your Amazon account using the web browser or the Amazon app."",
+    ""2. Navigate to 'Your Account' or 'Account & Lists' (depending on your device)."",
+    ""3. Scroll down to the 'Prime Membership' section and click on 'Manage Prime Membership'."",
+    ""4. In the 'Membership Details' page, look for the 'Cancel Membership' button. It might be labeled as 'End Trial' or 'Cancel Auto-Renewal'."",
+    ""5. Click on 'Cancel Membership'. You may be asked to provide a reason for cancellation."",
+    ""6. Confirm the cancellation by following the on-screen instructions. Amazon may present a multi-step confirmation with retain offers. Make sure to decline any offers and proceed to the final confirmation."",
+    ""7. After successfully canceling, you'll receive a confirmation email from Amazon Prime. Check your inbox for this email."",
+    ""8. Keep your confirmation email as proof of cancellation. It should state that your membership has been canceled and you'll no longer be charged."",
+    ""9. If you don't see the confirmation email within 24 hours, check your spam folder or resend the confirmation email from Amazon.""
+  ],
+  ""warnings"": [
+    ""Be cautious of any pop-up messages or links that may appear during the cancellation process, as they might be attempts to re-enroll you in the trial."",
+    ""Ensure you're logged out of all devices after canceling to prevent any accidental re-enrollment.""
+  ]
+}",,,,,,
+ibm-granite/granite-3.1-2b-instruct,Small,text_generation,T5,311.29,0.79,"{
+  ""service"": ""YouTube Premium"",
+  ""estimated_time"": ""3 minutes"",
+  ""cancellation_url"": ""In-app only"",
+  ""steps"": [
+    ""1. Open the YouTube app on your device."",
+    ""2. Tap on your profile picture or initial in the top right corner."",
+    ""3. Select 'Subscriptions' from the menu."",
+    ""4. Find 'YouTube Premium' in the list of active subscriptions."",
+    ""5. Tap on 'YouTube Premium' to open its details."",
+    ""6. Tap 'Cancel subscription' or 'Manage plan'."",
+    ""7. Review the cancellation confirmation and ensure you understand the process."",
+    ""8. Confirm the cancellation by following the on-screen prompts."",
+    ""9. You may be asked to confirm your decision via email or text. Check your inbox for a confirmation message from 'YouTube Premium' or 'Cancel Subscription' from your email provider.""
+  ],
+  ""warnings"": [
+    ""Be cautious not to cancel other subscriptions or services while managing YouTube Premium."",
+    ""Ensure you have a backup payment method in case of any issues with your current one.""
+  ]
+}",,,,,,
+ibm-granite/granite-3.1-2b-instruct,Small,structured_extraction,E1,137.62,0.8,"{
+  ""platform_name"": ""YouTube"",
+  ""service_name"": ""Individual Plan"",
+  ""start_date"": ""2026-03-02"",
+  ""end_date"": null,
+  ""is_trial"": false,
+  ""already_canceled"": false,
+  ""price"": 13.99,
+  ""currency"": ""USD"",
+  ""payment_method"": ""Visa •••• 4821"",
+  ""unsubscribe_link"": null
+}",,,,,,
+ibm-granite/granite-3.1-2b-instruct,Small,structured_extraction,E2,165.42,0.79,"{
+  ""platform_name"": ""Spotify"",
+  ""service_name"": ""Premium"",
+  ""start_date"": ""2026-03-06"",
+  ""end_date"": ""2026-04-06"",
+  ""is_trial"": true,
+  ""already_canceled"": false,
+  ""price"": 10.99,
+  ""currency"": ""USD"",
+  ""payment_method"": ""Mastercard •••• 3392"",
+  ""unsubscribe_link"": ""https://spotify.com/account/subscription""
+}",,,,,,
+ibm-granite/granite-3.1-2b-instruct,Small,structured_extraction,E3,145.01,0.8,"{
+  ""platform_name"": ""Adobe"",
+  ""service_name"": ""Creative Cloud All Apps"",
+  ""start_date"": ""2026-03-01"",
+  ""end_date"": ""2026-03-31"",
+  ""is_trial"": false,
+  ""already_canceled"": true,
+  ""price"": null,
+  ""currency"": ""USD"",
+  ""payment_method"": ""Not mentioned"",
+  ""unsubscribe_link"": ""adobe.com/creativecloud""
+}",,,,,,
+ibm-granite/granite-3.1-2b-instruct,Small,structured_extraction,E4,138.56,0.79,"{
+  ""platform_name"": ""Netflix"",
+  ""service_name"": ""Standard Plan"",
+  ""start_date"": ""2026-03-04"",
+  ""end_date"": null,
+  ""is_trial"": false,
+  ""already_canceled"": false,
+  ""price"": 15.49,
+  ""currency"": ""USD"",
+  ""payment_method"": ""Discover •••• 7712"",
+  ""unsubscribe_link"": null
+}",,,,,,
+ibm-granite/granite-3.1-2b-instruct,Small,structured_extraction,E5,151.55,0.77,"{
+  ""platform_name"": ""Medium"",
+  ""service_name"": null,
+  ""start_date"": null,
+  ""end_date"": null,
+  ""is_trial"": false,
+  ""already_canceled"": false,
+  ""price"": null,
+  ""currency"": null,
+  ""payment_method"": null,
+  ""unsubscribe_link"": ""https://medium.com/me/email-settings/29ee627ca4b0/cb45d6b33f89""
+}",,,,,,
