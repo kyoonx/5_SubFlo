@@ -1,0 +1,7 @@
+sentence-transformers
+transformers
+torch
+accelerate
+scikit-learn
+numpy
+bitsandbytes>=0.46.1
