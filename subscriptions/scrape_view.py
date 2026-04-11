@@ -6,11 +6,27 @@
 # Uses the user's `last_processed_date` as the starting point, then updates it to today
 # after a successful scrape.
 #
+# After saving, immediately pipes the newly-saved EmailMessage rows through the
+# local LLM parser (llm_parser.parse_emails_into_subscriptions) to extract
+# Subscription records.
+#
 # Endpoint:
 #   POST /subscriptions/scrape/
 #
 # Returns:
-#   200 { "saved": <int>, "skipped_duplicates": <int>, "last_processed_date": <YYYY-MM-DD> }
+#   200 {
+#         "saved": <int>,
+#         "skipped_duplicates": <int>,
+#         "last_processed_date": <YYYY-MM-DD>,
+#         "llm": {
+#           "llm_processed": <int>,
+#           "subscriptions_created": <int>,
+#           "subscriptions_updated": <int>,
+#           "not_subscription": <int>,
+#           "llm_errors": <int>,
+#           "total_inference_sec": <float>
+#         }
+#       }
 #   403 No Google account linked / no Gmail scope
 #   502 Gmail API error
 
@@ -26,6 +42,7 @@ from django.views import View
 
 from .models import EmailMessage
 from .views import get_google_credentials, decode_message_body, get_header
+from .llm_parser import parse_emails_into_subscriptions
 from accounts.models import UserProfile
 
 from googleapiclient.discovery import build
@@ -103,7 +120,8 @@ class GmailScrapeView(View):
 
     Scrapes subscription-related emails from the user's Gmail starting from
     `last_processed_date` (inclusive) up to today, saves new ones into
-    EmailMessage, then updates `last_processed_date` to today (midnight UTC).
+    EmailMessage, then immediately parses them into Subscription records via
+    the local LLM, then updates `last_processed_date` to today (midnight UTC).
 
     Idempotent: re-running on the same day is safe — duplicates are skipped
     using the (user, gmail_message_id) unique constraint.
@@ -169,11 +187,20 @@ class GmailScrapeView(View):
                 "saved": 0,
                 "skipped_duplicates": 0,
                 "last_processed_date": profile.last_processed_date.date().isoformat(),
+                "llm": {
+                    "llm_processed": 0,
+                    "subscriptions_created": 0,
+                    "subscriptions_updated": 0,
+                    "not_subscription": 0,
+                    "llm_errors": 0,
+                    "total_inference_sec": 0.0,
+                },
             })
 
         # --- Fetch full details and save to EmailMessage ---
         saved = 0
         skipped_duplicates = 0
+        newly_saved_emails = []   # track new EmailMessage objects for LLM step
 
         existing_ids = set(
             EmailMessage.objects.filter(user=user).values_list("gmail_message_id", flat=True)
@@ -214,7 +241,7 @@ class GmailScrapeView(View):
 
                 raw_body = decode_message_body(msg.get("payload", {}))
 
-                EmailMessage.objects.create(
+                em = EmailMessage.objects.create(
                     user=user,
                     gmail_message_id=gmail_msg_id,
                     subject=subject,
@@ -223,6 +250,7 @@ class GmailScrapeView(View):
                     raw_email_body=raw_body,
                 )
                 existing_ids.add(gmail_msg_id)
+                newly_saved_emails.append(em)
                 saved += 1
 
                 if i % 10 == 0:
@@ -235,10 +263,17 @@ class GmailScrapeView(View):
             logger.exception("Gmail API fetch error for user %s: %s", user.username, exc)
             return JsonResponse({"error": f"Gmail API error: {exc.reason}"}, status=502)
 
+        # --- Parse newly saved emails into Subscription records via local LLM ---
+        logger.info(
+            "Handing %d newly saved email(s) to LLM parser.", len(newly_saved_emails)
+        )
+        llm_summary = parse_emails_into_subscriptions(user, newly_saved_emails)
+
+        # --- Finalise ---
         _update_last_processed_date(profile)
         logger.info(
-            "Scrape complete for user %s: saved=%d, skipped=%d, last_processed_date=%s",
-            user.username, saved, skipped_duplicates,
+            "Scrape complete for user %s: saved=%d, skipped=%d, llm=%s, last_processed_date=%s",
+            user.username, saved, skipped_duplicates, llm_summary,
             profile.last_processed_date.date().isoformat(),
         )
 
@@ -246,6 +281,7 @@ class GmailScrapeView(View):
             "saved": saved,
             "skipped_duplicates": skipped_duplicates,
             "last_processed_date": profile.last_processed_date.date().isoformat(),
+            "llm": llm_summary,
         })
 
 
