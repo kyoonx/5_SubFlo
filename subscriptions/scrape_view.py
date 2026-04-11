@@ -109,7 +109,8 @@ class GmailScrapeView(View):
     using the (user, gmail_message_id) unique constraint.
     """
 
-    def post(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
+    # def post(self, request, *args, **kwargs):
         user = request.user
         logger.info("Scrape started for user %s", user.username)
 
