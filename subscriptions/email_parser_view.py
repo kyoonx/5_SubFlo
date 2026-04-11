@@ -36,8 +36,11 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 MODEL_NAME = "mlx-community/Josiefied-Qwen2.5-0.5B-Instruct-abliterated-v1-float32"
-_model = None
+_model     = None
 _tokenizer = None
+
+# Hard cap on raw email input sent to this endpoint.
+INPUT_MAX_CHARS = 2000
 
 
 def get_model_and_tokenizer():
@@ -51,7 +54,7 @@ def get_model_and_tokenizer():
         start = time.perf_counter()
 
         _tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-        _model = AutoModelForCausalLM.from_pretrained(
+        _model     = AutoModelForCausalLM.from_pretrained(
             MODEL_NAME,
             torch_dtype="auto",
             device_map="auto",
@@ -144,15 +147,22 @@ JSON output:"""
 # Model inference
 # ---------------------------------------------------------------------------
 
-def run_local_model(email_content: str) -> dict:
+def run_local_model(email_content: str) -> tuple[dict, float]:
     """
-    Run the local HuggingFace model on raw email content.
-    Returns a parsed dict of subscription fields.
+    Run the local HuggingFace model on cleaned email content.
+
+    Returns:
+        (parsed_dict, inference_time_seconds)
+
+    Raises:
+        ValueError  — model output was empty or contained no JSON object
+        json.JSONDecodeError — model output contained a JSON-like block that
+                               failed to parse (caller should treat as 422)
+        RuntimeError / any  — model load or inference failure (caller: 503)
     """
     model, tokenizer = get_model_and_tokenizer()
 
-    prompt = build_extraction_prompt(email_content)
-
+    prompt   = build_extraction_prompt(email_content)
     messages = [{"role": "user", "content": prompt}]
 
     if hasattr(tokenizer, "apply_chat_template") and tokenizer.chat_template is not None:
@@ -176,15 +186,23 @@ def run_local_model(email_content: str) -> dict:
     output_ids = generated_ids[0][len(model_inputs.input_ids[0]):]
     raw_output = tokenizer.decode(output_ids, skip_special_tokens=True).strip()
 
+    if not raw_output:
+        raise ValueError("Model returned an empty response.")
+
+    # Strip markdown fences
     raw_output = re.sub(r"^```(?:json)?\s*", "", raw_output)
-    raw_output = re.sub(r"\s*```$", "", raw_output)
+    raw_output = re.sub(r"\s*```$", "", raw_output).strip()
 
+    # Extract the JSON object (raises ValueError if no braces found,
+    # json.JSONDecodeError if the content between braces is malformed)
     brace_start = raw_output.find("{")
-    brace_end = raw_output.rfind("}") + 1
-    if brace_start != -1 and brace_end > brace_start:
-        raw_output = raw_output[brace_start:brace_end]
+    brace_end   = raw_output.rfind("}") + 1
+    if brace_start == -1 or brace_end <= brace_start:
+        raise ValueError(f"Model output contained no JSON object: {raw_output[:200]!r}")
 
-    parsed = json.loads(raw_output)
+    json_str = raw_output[brace_start:brace_end]
+    parsed   = json.loads(json_str)   # may raise json.JSONDecodeError — intentional
+
     return parsed, elapsed
 
 
@@ -193,15 +211,15 @@ def run_local_model(email_content: str) -> dict:
 # ---------------------------------------------------------------------------
 
 EXPECTED_FIELDS = {
-    "platform_name": str,
-    "service_name": str,
-    "start_date": str,
-    "end_date": str,
-    "is_trial": bool,
+    "platform_name":    str,
+    "service_name":     str,
+    "start_date":       str,
+    "end_date":         str,
+    "is_trial":         bool,
     "already_canceled": bool,
-    "price": float,
-    "currency": str,
-    "payment_method": str,
+    "price":            float,
+    "currency":         str,
+    "payment_method":   str,
     "unsubscribe_link": str,
 }
 
@@ -247,26 +265,49 @@ class EmailParserView(View):
         return render(request, "subscriptions/parse_email.html")
 
     def post(self, request, *args, **kwargs):
+
+        # ── 1. Parse request body ──────────────────────────────────────────
         try:
             body = json.loads(request.body)
         except (json.JSONDecodeError, ValueError):
             return JsonResponse({"error": "Invalid JSON body."}, status=400)
 
+        if not isinstance(body, dict):
+            return JsonResponse({"error": "Request body must be a JSON object."}, status=400)
+
         raw_email = body.get("raw_email", "")
 
-        if not raw_email or not raw_email.strip():
+        # ── 2. Validate input ──────────────────────────────────────────────
+        if not raw_email or not str(raw_email).strip():
             return JsonResponse(
                 {"error": "Email content cannot be empty."}, status=400
             )
 
-        cleaned = clean_text(raw_email, max_chars=2000)
+        # ── 3. Clean + truncate (large input constraint) ───────────────────
+        cleaned = clean_text(str(raw_email), max_chars=INPUT_MAX_CHARS)
 
+        if not cleaned:
+            return JsonResponse(
+                {"error": "Email content is empty after cleaning (possibly only HTML tags or whitespace)."},
+                status=400,
+            )
+
+        # ── 4. Run model ───────────────────────────────────────────────────
         try:
             parsed_raw, inference_time = run_local_model(cleaned)
-        except json.JSONDecodeError:
-            logger.error("Local model returned non-JSON output")
+
+        except ValueError as exc:
+            # Empty output or no JSON object found — model gave up on this email
+            logger.warning("Model returned no usable output: %s", exc)
             return JsonResponse(
                 {"error": "The model could not extract structured data from this email. Try a different email."},
+                status=422,
+            )
+        except json.JSONDecodeError as exc:
+            # Model output looked like JSON but was malformed
+            logger.error("Model returned malformed JSON: %s", exc)
+            return JsonResponse(
+                {"error": "The model returned malformed data. Try a different email."},
                 status=422,
             )
         except Exception as exc:
@@ -276,17 +317,14 @@ class EmailParserView(View):
                 status=503,
             )
 
-        normalized = normalize_parsed_data(parsed_raw)
-
+        # ── 5. Normalize + sanitize output ─────────────────────────────────
+        normalized  = normalize_parsed_data(parsed_raw)
         safe_result = {}
         for key, value in normalized.items():
-            if isinstance(value, str):
-                safe_result[key] = escape(value)
-            else:
-                safe_result[key] = value
+            safe_result[key] = escape(value) if isinstance(value, str) else value
 
         return JsonResponse({
-            "parsed": safe_result,
+            "parsed":         safe_result,
             "inference_time": round(inference_time, 2),
-            "model": MODEL_NAME,
+            "model":          MODEL_NAME,
         }, status=200)
