@@ -2,7 +2,7 @@
 #
 # Part 2 — Preprocessing pipeline shared by:
 #   - Local HuggingFace classifier (is_subscription_related)
-#   - Gemini prompt builder (build_cancellation_prompt in ai_guide_view.py)
+#   - Cancellation guide prompt (build_cancellation_prompt in ai_guide_view.py)
 
 import re
 import logging
@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 LOCAL_MODEL_MAX_CHARS = 512   # DistilBERT's practical input window
-GEMINI_NAME_MAX_CHARS = 200   # Hard cap on service name sent to Gemini prompt
+GEMINI_NAME_MAX_CHARS = 200   # Hard cap on service name sent to cancellation-guide LLM prompt
 
 SUBSCRIPTION_KEYWORDS = [
     "subscription", "billing", "renew", "renewal", "invoice",
@@ -86,13 +86,13 @@ def has_subscription_keywords(text: str) -> bool:
 
 
 # ---------------------------------------------------------------------------
-# Service name preprocessing (for Gemini prompt)
+# Service name preprocessing (for cancellation-guide LLM prompt)
 # ---------------------------------------------------------------------------
 
 def prepare_service_name(raw_name: str) -> str:
     """
     Clean and normalize a subscription/service name before injecting
-    it into the Gemini cancellation guide prompt.
+    it into the cancellation guide prompt.
     """
     name = strip_html(raw_name)
     name = normalize_whitespace(name)

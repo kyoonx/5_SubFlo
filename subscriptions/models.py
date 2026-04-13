@@ -57,7 +57,7 @@ class EmailMessage(models.Model):
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, verbose_name="Message ID")
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='email_messages', verbose_name="User")
-    gmail_message_id = models.CharField(max_length=32, verbose_name="Gmail Message ID")
+    gmail_message_id = models.CharField(max_length=32, verbose_name="Gmail Message ID",default="")
     subject = models.CharField(max_length=255, verbose_name="Subject")
     sender = models.CharField(max_length=255, verbose_name="Sender")
     received_date = models.DateTimeField(verbose_name="Received Date")

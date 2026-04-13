@@ -50,8 +50,6 @@
 
     {% if user.is_authenticated %}
       <form action="{% url 'logout_urlpattern' %}" method="post" class="ms-auto">
-
-          <!--IMPORTANT: If you do not include csrf token tag here, your logout will not work as intended. -->
           {% csrf_token %}
         <button class="btn btn-sm btn-outline-light" type="submit">
           Log Out, {{ user.get_username }}
@@ -60,8 +58,6 @@
     {% else %}
       <a class="btn btn-sm btn-outline-light ms-auto" href="{% url 'login_urlpattern' %}">Log In</a>
     {% endif %}
-
-
   </aside>
 
   <!-- ════ MAIN ════ -->
@@ -75,6 +71,63 @@
         <button class="active">Default</button>
       </nav>
       <div class="header-right">
+
+        {% if user.is_authenticated %}
+        <!-- Scrape button -->
+        <button
+          id="scrape-btn"
+          type="button"
+          onclick="runScrape()"
+          style="
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 9999px;
+            border: 1px solid var(--colors-black-20);
+            background-color: var(--colors-background-2);
+            color: var(--colors-black-100);
+            font-family: var(--14-regular-font-family);
+            font-size: var(--12-regular-font-size);
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.15s ease, opacity 0.15s ease;
+            white-space: nowrap;
+          "
+          onmouseover="if(!this.disabled) this.style.backgroundColor='var(--colors-black-4)'"
+          onmouseout="this.style.backgroundColor='var(--colors-background-2)'"
+        >
+          <!-- Inbox icon -->
+          <svg id="scrape-icon" width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <rect x="1.5" y="3" width="11" height="8.5" rx="1.5" stroke="currentColor" stroke-width="1.2"/>
+            <path d="M1.5 6h3l1.5 2h2L9.5 6h3" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+          </svg>
+          <span id="scrape-label">Sync Emails</span>
+        </button>
+
+        <!-- Toast notification -->
+        <div id="scrape-toast" style="
+          display: none;
+          position: fixed;
+          bottom: 24px;
+          right: 24px;
+          z-index: 9999;
+          min-width: 280px;
+          max-width: 380px;
+          padding: 14px 18px;
+          border-radius: 14px;
+          background-color: var(--colors-background-2);
+          border: 1px solid var(--colors-black-20);
+          box-shadow: 0 8px 24px rgba(0,0,0,0.10);
+          font-family: var(--14-regular-font-family);
+          font-size: var(--12-regular-font-size);
+          color: var(--colors-black-100);
+        ">
+          <div style="font-weight: 600; margin-bottom: 4px;" id="scrape-toast-title">Syncing…</div>
+          <div id="scrape-toast-body" style="color: var(--colors-black-40); line-height: 1.5;"></div>
+        </div>
+        {% endif %}
+
         <div class="header-icons">
           <button class="icon-btn" type="button" aria-label="Notifications">
             <svg viewBox="0 0 16 16" fill="none"><path d="M8 2a4 4 0 014 4v2l1 2H3l1-2V6a4 4 0 014-4zm-1 10h2a1 1 0 01-2 0z" stroke="#000" stroke-width="1.2"/></svg>
@@ -138,6 +191,97 @@
 </div><!-- /shell -->
 
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
+
+{% if user.is_authenticated %}
+<script>
+  const SCRAPE_URL = "{% url 'subscriptions:gmail_scrape' %}";
+  const CSRF_TOKEN = "{{ csrf_token }}";
+
+  // Spinning animation keyframes (injected once)
+  const styleEl = document.createElement("style");
+  styleEl.textContent = "@keyframes subflo-spin { to { transform: rotate(360deg); } }";
+  document.head.appendChild(styleEl);
+
+  function showToast(title, body, isError = false) {
+    const toast     = document.getElementById("scrape-toast");
+    const toastTitle = document.getElementById("scrape-toast-title");
+    const toastBody  = document.getElementById("scrape-toast-body");
+
+    toastTitle.textContent  = title;
+    toastBody.innerHTML     = body;
+    toast.style.display     = "block";
+    toast.style.borderColor = isError ? "#fca5a5" : "var(--colors-black-20)";
+    toastTitle.style.color  = isError ? "#991b1b" : "var(--colors-black-100)";
+
+    // Auto-dismiss after 6 s
+    clearTimeout(toast._hideTimer);
+    toast._hideTimer = setTimeout(() => { toast.style.display = "none"; }, 6000);
+  }
+
+  function setButtonState(loading) {
+    const btn   = document.getElementById("scrape-btn");
+    const icon  = document.getElementById("scrape-icon");
+    const label = document.getElementById("scrape-label");
+
+    if (loading) {
+      btn.disabled       = true;
+      btn.style.opacity  = "0.6";
+      btn.style.cursor   = "not-allowed";
+      icon.style.animation = "subflo-spin 0.9s linear infinite";
+      label.textContent  = "Syncing…";
+    } else {
+      btn.disabled       = false;
+      btn.style.opacity  = "1";
+      btn.style.cursor   = "pointer";
+      icon.style.animation = "";
+      label.textContent  = "Sync Emails";
+    }
+  }
+
+  async function runScrape() {
+    setButtonState(true);
+    showToast("Syncing…", "Fetching emails from Gmail. This may take a moment.");
+
+    try {
+      const res = await fetch(SCRAPE_URL, {
+        method: "GET",           // view still uses GET during dev
+        headers: {
+          "X-CSRFToken": CSRF_TOKEN,
+          "X-Requested-With": "XMLHttpRequest",
+        },
+        credentials: "same-origin",
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        showToast("Sync failed", data.error || `Server error (${res.status})`, true);
+        return;
+      }
+
+      // Build a compact result summary for the toast
+      const llm   = data.llm || {};
+      const lines = [
+        `<b>${data.saved}</b> new email${data.saved !== 1 ? "s" : ""} saved`,
+        data.skipped_duplicates ? `${data.skipped_duplicates} duplicate${data.skipped_duplicates !== 1 ? "s" : ""} skipped` : null,
+        llm.subscriptions_created ? `<b>${llm.subscriptions_created}</b> subscription${llm.subscriptions_created !== 1 ? "s" : ""} created` : null,
+        llm.subscriptions_updated ? `${llm.subscriptions_updated} updated` : null,
+        llm.not_subscription      ? `${llm.not_subscription} non-subscription email${llm.not_subscription !== 1 ? "s" : ""} filtered` : null,
+        llm.llm_errors            ? `⚠ ${llm.llm_errors} parse error${llm.llm_errors !== 1 ? "s" : ""}` : null,
+      ].filter(Boolean).join(" · ");
+
+      showToast("Sync complete", lines || "Nothing new to process.");
+
+    } catch (err) {
+      showToast("Sync failed", "Could not reach the server. Check your connection.", true);
+      console.error("Scrape error:", err);
+    } finally {
+      setButtonState(false);
+    }
+  }
+</script>
+{% endif %}
+
 {% block scripts %}{% endblock %}
 </body>
 </html>

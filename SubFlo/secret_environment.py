@@ -15,12 +15,15 @@
 #
 # Example: If .env contains
 #   OPENAI_API_KEY=sk-abc123
+#   ILLINOIS_API_KEY=uc_...   # Illinois Chat (chat.illinois.edu → Settings → API Keys)
 #
 # then this library makes it available in Django as:
 #   os.environ["OPENAI_API_KEY"]
+#   os.environ["ILLINOIS_API_KEY"]
 #
 # which we can access safely in settings.py using:
 #   os.getenv("OPENAI_API_KEY")
+#   os.getenv("ILLINOIS_API_KEY")
 #
 # ==================================================
 

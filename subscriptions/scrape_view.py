@@ -6,12 +6,23 @@
 # Uses the user's `last_processed_date` as the starting point, then updates it to today
 # after a successful scrape.
 #
+# After saving, immediately pipes the newly-saved EmailMessage rows through the
+# local LLM parser (llm_parser.parse_emails_into_subscriptions) to extract
+# Subscription records.
+#
 # Endpoint:
 #   POST /subscriptions/scrape/
 #
 # Returns:
-#   200 { "saved": <int>, "skipped_duplicates": <int>, "last_processed_date": <YYYY-MM-DD> }
+#   200 {
+#         "saved": <int>,
+#         "skipped_duplicates": <int>,
+#         "last_processed_date": <YYYY-MM-DD>,
+#         "llm": { ... }
+#       }
 #   403 No Google account linked / no Gmail scope
+#   404 UserProfile not found for this user
+#   429 Scrape result exceeds safety cap (too many emails)
 #   502 Gmail API error
 
 import email
@@ -26,6 +37,7 @@ from django.views import View
 
 from .models import EmailMessage
 from .views import get_google_credentials, decode_message_body, get_header
+from .llm_parser import parse_emails_into_subscriptions
 from accounts.models import UserProfile
 
 from googleapiclient.discovery import build
@@ -34,21 +46,7 @@ from googleapiclient.errors import HttpError
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
-# Approach 5: double-gated Gmail query
-#
-# Gate 1 — sender must look like a transactional/billing sender:
-#   billing@, payment@, invoice@, receipt@, subscription@, noreply@, no-reply@
-#   These are the addresses that real subscription services send from.
-#   This alone cuts newsletters, digests, and promotional mail that happen
-#   to mention "unsubscribe" in their footer.
-#
-# Gate 2 — body/subject must contain subscription-specific phrases:
-#   Tighter than bare words — full phrases like "your subscription",
-#   "payment confirmation", "next billing date", etc. are extremely unlikely
-#   to appear in non-subscription emails.
-#
-# Both gates must match (AND), so an email needs a billing-type sender
-# AND subscription-specific language to pass through.
+# Gmail query filters (double-gated: sender type AND subscription keywords)
 # ---------------------------------------------------------------------------
 
 _SENDER_FILTER = (
@@ -89,11 +87,13 @@ _KEYWORD_FILTER = (
     "receipt"
 )
 
-# Final query: sender gate AND keyword gate
 SUBSCRIPTION_QUERY = f"({_SENDER_FILTER}) ({_KEYWORD_FILTER})"
 
-# Gmail API returns at most 500 per page; we page through all results.
 GMAIL_PAGE_SIZE = 500
+
+# Hard cap: refuse to process more than this many emails in a single scrape.
+# Protects against runaway inference time and memory exhaustion on the LLM.
+MAX_EMAILS_PER_SCRAPE = 200
 
 
 @method_decorator(login_required, name="dispatch")
@@ -103,35 +103,45 @@ class GmailScrapeView(View):
 
     Scrapes subscription-related emails from the user's Gmail starting from
     `last_processed_date` (inclusive) up to today, saves new ones into
-    EmailMessage, then updates `last_processed_date` to today (midnight UTC).
+    EmailMessage, then immediately parses them into Subscription records via
+    the local LLM, then updates `last_processed_date` to today (midnight UTC).
 
     Idempotent: re-running on the same day is safe — duplicates are skipped
     using the (user, gmail_message_id) unique constraint.
     """
 
-    def post(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
+    # def post(self, request, *args, **kwargs):
         user = request.user
         logger.info("Scrape started for user %s", user.username)
 
-        # --- Determine the scrape window ---
-        profile = UserProfile.objects.get(user=user)
-        after_date = profile.last_processed_date.date()
+        # ── 1. Load user profile (guard against missing profile) ───────────
+        try:
+            profile = UserProfile.objects.get(user=user)
+        except UserProfile.DoesNotExist:
+            logger.error("UserProfile not found for user %s", user.username)
+            return JsonResponse(
+                {"error": "User profile not found. Please complete your account setup."},
+                status=404,
+            )
+
+        after_date  = profile.last_processed_date.date()
         gmail_query = f"{SUBSCRIPTION_QUERY} after:{after_date.strftime('%Y/%m/%d')}"
         logger.info("Gmail query: %s", gmail_query)
 
-        # --- Get Google credentials ---
+        # ── 2. Get Google credentials ──────────────────────────────────────
         try:
             creds = get_google_credentials(user)
         except ValueError as exc:
             logger.error("Credentials error for user %s: %s", user.username, exc)
             return JsonResponse({"error": str(exc)}, status=403)
 
-        # --- Fetch all matching message IDs from Gmail (paginated) ---
+        # ── 3. Fetch all matching message IDs from Gmail (paginated) ───────
         try:
-            service = build("gmail", "v1", credentials=creds)
+            service      = build("gmail", "v1", credentials=creds)
             message_refs = []
-            page_token = None
-            page_num = 0
+            page_token   = None
+            page_num     = 0
 
             while True:
                 page_num += 1
@@ -144,7 +154,7 @@ class GmailScrapeView(View):
                     list_kwargs["pageToken"] = page_token
 
                 response = service.users().messages().list(**list_kwargs).execute()
-                batch = response.get("messages", [])
+                batch    = response.get("messages", [])
                 message_refs.extend(batch)
                 logger.info(
                     "Page %d: got %d message IDs (total so far: %d)",
@@ -161,6 +171,24 @@ class GmailScrapeView(View):
 
         logger.info("Total matching messages found: %d", len(message_refs))
 
+        # ── 4. Guard: too many results ─────────────────────────────────────
+        if len(message_refs) > MAX_EMAILS_PER_SCRAPE:
+            logger.warning(
+                "Scrape for user %s returned %d messages, exceeding cap of %d. Aborting.",
+                user.username, len(message_refs), MAX_EMAILS_PER_SCRAPE,
+            )
+            return JsonResponse(
+                {
+                    "error": (
+                        f"Too many emails matched ({len(message_refs)}). "
+                        f"The scraper processes at most {MAX_EMAILS_PER_SCRAPE} per run. "
+                        "Try narrowing the date range by updating your last_processed_date."
+                    )
+                },
+                status=429,
+            )
+
+        # ── 5. Nothing found ───────────────────────────────────────────────
         if not message_refs:
             _update_last_processed_date(profile)
             logger.info("No messages found. last_processed_date updated to today.")
@@ -168,11 +196,20 @@ class GmailScrapeView(View):
                 "saved": 0,
                 "skipped_duplicates": 0,
                 "last_processed_date": profile.last_processed_date.date().isoformat(),
+                "llm": {
+                    "llm_processed": 0,
+                    "subscriptions_created": 0,
+                    "subscriptions_updated": 0,
+                    "not_subscription": 0,
+                    "llm_errors": 0,
+                    "total_inference_sec": 0.0,
+                },
             })
 
-        # --- Fetch full details and save to EmailMessage ---
-        saved = 0
+        # ── 6. Fetch full details and save to EmailMessage ─────────────────
+        saved              = 0
         skipped_duplicates = 0
+        newly_saved_emails = []
 
         existing_ids = set(
             EmailMessage.objects.filter(user=user).values_list("gmail_message_id", flat=True)
@@ -206,22 +243,31 @@ class GmailScrapeView(View):
                 received_date = django_timezone.now()
                 if date_str:
                     try:
-                        parsed_dt = email.utils.parsedate_to_datetime(date_str)
+                        parsed_dt     = email.utils.parsedate_to_datetime(date_str)
                         received_date = parsed_dt.astimezone(timezone.utc)
                     except Exception:
-                        pass
+                        pass  # Fall back to now()
 
                 raw_body = decode_message_body(msg.get("payload", {}))
 
-                EmailMessage.objects.create(
-                    user=user,
-                    gmail_message_id=gmail_msg_id,
-                    subject=subject,
-                    sender=sender,
-                    received_date=received_date,
-                    raw_email_body=raw_body,
-                )
+                try:
+                    em = EmailMessage.objects.create(
+                        user=user,
+                        gmail_message_id=gmail_msg_id,
+                        subject=subject[:255],
+                        sender=sender[:255],
+                        received_date=received_date,
+                        raw_email_body=raw_body,
+                    )
+                except Exception as exc:
+                    logger.exception(
+                        "Failed to save EmailMessage %s for user %s: %s",
+                        gmail_msg_id, user.username, exc,
+                    )
+                    continue  # Skip this message, don't abort the whole scrape
+
                 existing_ids.add(gmail_msg_id)
+                newly_saved_emails.append(em)
                 saved += 1
 
                 if i % 10 == 0:
@@ -234,10 +280,15 @@ class GmailScrapeView(View):
             logger.exception("Gmail API fetch error for user %s: %s", user.username, exc)
             return JsonResponse({"error": f"Gmail API error: {exc.reason}"}, status=502)
 
+        # ── 7. Parse newly saved emails via local LLM ──────────────────────
+        logger.info("Handing %d newly saved email(s) to LLM parser.", len(newly_saved_emails))
+        llm_summary = parse_emails_into_subscriptions(user, newly_saved_emails)
+
+        # ── 8. Finalise ────────────────────────────────────────────────────
         _update_last_processed_date(profile)
         logger.info(
-            "Scrape complete for user %s: saved=%d, skipped=%d, last_processed_date=%s",
-            user.username, saved, skipped_duplicates,
+            "Scrape complete for user %s: saved=%d, skipped=%d, llm=%s, last_processed_date=%s",
+            user.username, saved, skipped_duplicates, llm_summary,
             profile.last_processed_date.date().isoformat(),
         )
 
@@ -245,6 +296,7 @@ class GmailScrapeView(View):
             "saved": saved,
             "skipped_duplicates": skipped_duplicates,
             "last_processed_date": profile.last_processed_date.date().isoformat(),
+            "llm": llm_summary,
         })
 
 

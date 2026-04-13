@@ -2,14 +2,14 @@
  SETUP NOTES — SubFlo AI Integration (Part 2 #3)
 ============================================================
 
-This checklist covers everything needed to run the Gemini
-cancellation guide feature locally.
+This checklist covers everything needed to run the Illinois Chat
+(UIUC.chat) cancellation guide feature locally.
 
 ------------------------------------------------------------
 1. INSTALL NEW DEPENDENCIES
 ------------------------------------------------------------
 
-  pip install google-generativeai transformers torch beautifulsoup4
+  pip install requests transformers torch beautifulsoup4
 
   Or install everything at once:
 
@@ -22,17 +22,19 @@ cancellation guide feature locally.
 
 
 ------------------------------------------------------------
-2. ADD GEMINI API KEY TO .env
+2. ADD ILLINOIS CHAT (UIUC.chat) API KEY TO .env
 ------------------------------------------------------------
 
   Open your .env file (project root) and add:
 
-  GEMINI_API_KEY=your_gemini_api_key_here
+  ILLINOIS_API_KEY=from_chat.illinois.edu_Settings_API_Keys
+  ILLINOIS_API_URL=https://chat.illinois.edu/api/chat-api/chat
+  ILLINOIS_PROJECT_NAME=Subflo
 
-  Get a free key at: https://aistudio.google.com/app/apikey
+  Docs: https://docs.uiuc.chat/api/endpoints
 
   The key is loaded via django-environ (secret_environment.py)
-  and read by ai_guide_view.py using os.getenv().
+  and read from the environment by illinois_chat_client.py.
 
 
 ------------------------------------------------------------
@@ -56,13 +58,13 @@ cancellation guide feature locally.
   subscriptions/ai_guide_view.py
     - CancellationGuideView (class-based, POST-only)
     - sanitize_input(), is_safe_input(), is_valid_service_name()
-    - build_cancellation_prompt(), call_gemini()
+    - build_cancellation_prompt(), call_cancellation_llm() (UIUC.chat)
 
   subscriptions/preprocessing.py
     - strip_html(), normalize_whitespace(), clean_text()
     - prepare_email_for_classifier() — for local HuggingFace model
     - has_subscription_keywords() — heuristic pre-filter
-    - prepare_service_name() — for Gemini prompt
+    - prepare_service_name() — for LLM prompts
 
   subscriptions/urls.py
     - app_name = "subscriptions"
@@ -115,7 +117,7 @@ cancellation guide feature locally.
 6. SECURITY REMINDERS
 ------------------------------------------------------------
 
-  - GEMINI_API_KEY is in .env (gitignored) — never commit it
+  - ILLINOIS_API_KEY is in .env (gitignored) — never commit it
   - All AI views require @login_required
   - CSRF tokens are enforced on POST requests
   - Input is sanitized, blocklist-checked, and format-validated

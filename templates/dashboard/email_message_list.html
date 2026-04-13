@@ -1,64 +1,174 @@
 {% extends "base.html" %}
 
-{% block title %}All Emails | SubFlo{% endblock %}
+{% block title %}Emails | SubFlo{% endblock %}
 
 {% block content %}
 
-<div class="bg-white shadow-lg rounded-3xl border border-gray-200 overflow-hidden dark:bg-gray-800 dark:border-gray-700 dark:shadow-gray-700">
+<div class="ds-panel" style="padding: 0; overflow: hidden;">
 
-    <!-- Header Section -->
-    <div class="px-6 py-5 border-b border-gray-200 flex justify-between items-center dark:border-gray-700">
-        <div>
-            <h2 class="text-2xl font-semibold text-gray-800 dark:text-white">All Emails</h2>
-            <p class="text-sm text-gray-500 mt-1 dark:text-gray-400">
-                View and manage all received email messages.
-            </p>
-        </div>
-
-        <div class="text-sm text-gray-500 dark:text-gray-400">
-            Total: <span class="font-medium text-gray-700 dark:text-gray-300">{{ email_messages|length }}</span>
-        </div>
+  <!-- Header -->
+  <div class="ds-panel-header" style="padding: 20px 24px 16px; border-bottom: 1px solid var(--colors-black-10); margin-bottom: 0;">
+    <div>
+      <div class="ds-panel-title" style="font-size: 16px; line-height: 24px;">All Emails</div>
+      <p style="font-size: var(--12-regular-font-size); color: var(--colors-black-40); margin-top: 2px; line-height: var(--12-regular-line-height);">
+        Scraped subscription emails from your inbox
+      </p>
     </div>
-
-    <!-- Table Section -->
-    <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead class="bg-gray-50 text-gray-600 text-sm uppercase tracking-wider dark:bg-gray-700 dark:text-gray-300">
-                <tr>
-                    <th class="px-6 py-3 text-left">Subject</th>
-                    <th class="px-6 py-3 text-left">Sender</th>
-                    <th class="px-6 py-3 text-left">Received Date</th>
-                </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-100 text-sm text-gray-700 dark:bg-gray-800 dark:divide-gray-700 dark:text-gray-300">
-
-                {% for email in email_messages %}
-                <tr class="hover:bg-gray-50 transition duration-150 dark:hover:bg-gray-700">
-                    <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">
-                        <a href="{% url 'email_message_detail-url' email.id %}" class="hover:underline text-blue-500 dark:text-blue-400">
-                        {{ email.subject }}
-                        </a>
-                    </td>
-
-                    <td class="px-6 py-4">
-                        {{ email.sender }}
-                    </td>
-
-                    <td class="px-6 py-4 text-gray-500 dark:text-gray-400">
-                        {{ email.received_date|date:"M d, Y • h:i A" }}
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="3" class="px-6 py-6 text-center text-gray-500 dark:text-gray-400">
-                        No email messages found.
-                    </td>
-                </tr>
-                {% endfor %}
-
-            </tbody>
-        </table>
+    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+      <span style="
+        font-size: var(--12-regular-font-size);
+        color: var(--colors-black-40);
+        line-height: var(--12-regular-line-height);
+      ">
+        <span style="font-weight: 600; color: var(--colors-black-100);">{{ email_messages|length }}</span> message{{ email_messages|length|pluralize }}
+      </span>
     </div>
+  </div>
+
+  <!-- Table -->
+  <div class="ds-overflow-x">
+    <table class="ds-data-table" style="min-width: 600px;">
+      <thead>
+        <tr>
+          <th style="padding: 10px 24px; width: 48%;">Subject</th>
+          <th style="padding: 10px 24px; width: 32%;">Sender</th>
+          <th style="padding: 10px 24px; width: 12%;">Received</th>
+          <th style="padding: 10px 24px; width: 8%; text-align: center;">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+
+        {% for email in email_messages %}
+        <tr style="transition: background-color 0.12s ease;" onmouseover="this.style.backgroundColor='var(--colors-black-4)'" onmouseout="this.style.backgroundColor=''">
+
+          <!-- Subject -->
+          <td style="padding: 12px 24px;">
+            <a href="{% url 'email_message_detail-url' email.id %}"
+               style="
+                 display: flex;
+                 align-items: center;
+                 gap: 10px;
+                 text-decoration: none;
+                 color: inherit;
+               ">
+              <!-- Sender initial avatar -->
+              <div class="ds-avatar" style="
+                background-color: var(--colors-background-4);
+                color: #6366f1;
+                font-size: 11px;
+                font-weight: 700;
+                flex-shrink: 0;
+              ">
+                {{ email.sender|slice:":1"|upper }}
+              </div>
+              <span style="
+                font-size: var(--14-regular-font-size);
+                color: var(--colors-black-100);
+                font-weight: 500;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                max-width: 340px;
+              ">{{ email.subject }}</span>
+            </a>
+          </td>
+
+          <!-- Sender -->
+          <td style="padding: 12px 24px;">
+            <span style="
+              font-size: var(--12-regular-font-size);
+              color: var(--colors-black-40);
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+              display: block;
+              max-width: 260px;
+            ">{{ email.sender }}</span>
+          </td>
+
+          <!-- Received date -->
+          <td style="padding: 12px 24px; white-space: nowrap;">
+            <span style="font-size: var(--12-regular-font-size); color: var(--colors-black-40);">
+              {{ email.received_date|date:"M d, Y" }}
+            </span>
+            <br>
+            <span style="font-size: 11px; color: var(--colors-black-40); opacity: 0.7;">
+              {{ email.received_date|date:"h:i A" }}
+            </span>
+          </td>
+
+          <!-- Parsed status badge -->
+          <td style="padding: 12px 24px; text-align: center;">
+            {% if email.parsed_data %}
+              {% if email.parsed_data.status == "parsed" %}
+                <span style="
+                  display: inline-block;
+                  padding: 2px 8px;
+                  border-radius: 20px;
+                  background-color: #d1fae5;
+                  color: #065f46;
+                  font-size: 11px;
+                  font-weight: 600;
+                  white-space: nowrap;
+                ">Parsed</span>
+              {% elif email.parsed_data.status == "not_subscription" %}
+                <span style="
+                  display: inline-block;
+                  padding: 2px 8px;
+                  border-radius: 20px;
+                  background-color: var(--colors-black-4);
+                  color: var(--colors-black-40);
+                  font-size: 11px;
+                  font-weight: 600;
+                  white-space: nowrap;
+                ">Skipped</span>
+              {% else %}
+                <span style="
+                  display: inline-block;
+                  padding: 2px 8px;
+                  border-radius: 20px;
+                  background-color: #fef3c7;
+                  color: #92400e;
+                  font-size: 11px;
+                  font-weight: 600;
+                  white-space: nowrap;
+                ">Error</span>
+              {% endif %}
+            {% else %}
+              <span style="
+                display: inline-block;
+                padding: 2px 8px;
+                border-radius: 20px;
+                background-color: var(--colors-background-5);
+                color: var(--colors-black-40);
+                font-size: 11px;
+                font-weight: 600;
+                white-space: nowrap;
+              ">Pending</span>
+            {% endif %}
+          </td>
+
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="4" style="padding: 48px 24px; text-align: center;">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+              <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="36" height="36" rx="10" fill="var(--colors-background-5)"/>
+                <path d="M10 13a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H12a2 2 0 01-2-2V13z" stroke="rgba(0,0,0,0.3)" stroke-width="1.4"/>
+                <path d="M10 14l8 6 8-6" stroke="rgba(0,0,0,0.3)" stroke-width="1.4" stroke-linecap="round"/>
+              </svg>
+              <p style="font-size: var(--14-regular-font-size); color: var(--colors-black-40); margin: 0;">No emails scraped yet.</p>
+              <p style="font-size: var(--12-regular-font-size); color: var(--colors-black-40); opacity: 0.7; margin: 0;">Run a scrape to pull subscription emails from Gmail.</p>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+
+      </tbody>
+    </table>
+  </div>
+
 </div>
 
 {% endblock %}

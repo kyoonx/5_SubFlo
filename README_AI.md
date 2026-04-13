@@ -11,10 +11,10 @@ SubFlo uses **two AI features** working in a hybrid pipeline:
 
 | # | Feature | Model / API | Purpose |
 |---|---------|-------------|---------|
-| 1 | Subscription Extractor | HuggingFace `Josiefied-Qwen2.5-0.5B-Instruct-abliterated-v1-float32` (local) | Extracts structured subscription JSON from raw emails using many-shot prompting |
-| 2 | Cancellation Guide Generator | **Google Gemini API** (`gemini-2.5-flash`) | Generates step-by-step, service-specific cancellation guides for the user |
+| 1 | Subscription Extractor | **Illinois Chat** — model from `ILLINOIS_MODEL` (default `qwen3:32b`) | Extracts structured subscription JSON from raw email bodies via API |
+| 2 | Cancellation Guide Generator | **Illinois Chat** — same client / model env as email parser | Generates step-by-step, service-specific cancellation guides for the user |
 
-The local HuggingFace model handles the core extraction task — converting raw email text into structured subscription data (platform, price, dates, etc.) that is stored in the database. The Gemini API provides a user-facing feature: generating step-by-step cancellation guides on demand.
+**Illinois Chat** handles both the email extraction task (via `parse_email_to_json` in `subscriptions/email_parser.py`) and the user-facing cancellation guide (`POST /subscriptions/cancel-guide/` in `subscriptions/ai_guide_view.py`), using `subscriptions/illinois_chat_client.py` for HTTP calls.
 
 ---
 
@@ -36,14 +36,14 @@ User data enters SubFlo through **two pathways**:
 |-------|--------|----------|
 | `email_subject` | Gmail API | Local model classification |
 | `email_body_snippet` | Gmail API | Local model classification |
-| `subscription_name` | Extracted / Manual | Gemini cancellation guide prompt |
+| `subscription_name` | Extracted / Manual | Illinois Chat cancellation guide prompt |
 | `billing_cycle` | Extracted / Manual | Displayed in dashboard |
 
 ---
 
 ## 2. Preprocessing — How is data cleaned before sending to the LLM?
 
-All user data is preprocessed in `subscriptions/preprocessing.py` before being passed to either the local model or the Gemini API.
+All user data is preprocessed in `subscriptions/preprocessing.py` before being passed to Illinois Chat (email extraction and cancellation guide).
 
 ### Step 1 — Input Sanitization
 ```python
@@ -62,19 +62,13 @@ The email subject and body snippet are combined into a single string for the loc
 [SUBJECT]: Cancel your Netflix subscription | [BODY]: Your payment of $15.99 is due...
 ```
 
-### Step 3 — Prompt Construction for Gemini
-The subscription name goes through a keyword blocklist check (see Safety Guardrails below) before being embedded into a structured prompt template:
-```
-You are a helpful assistant. Provide a clear, numbered, step-by-step guide
-for how a user can cancel their {subscription_name} subscription.
-Include: website URL, estimated time, and what to watch out for (e.g. hidden
-cancellation flows, retention offers). Keep the guide under 300 words.
-```
+### Step 3 — Prompt construction for cancellation guide
+The subscription name goes through a keyword blocklist check (see Safety Guardrails below) before being embedded into the structured JSON prompt in `build_cancellation_prompt()` (`subscriptions/ai_guide_view.py`).
 
 ### Why this matters
 - Raw email HTML can confuse token-based models — stripping tags prevents wasted context.
 - Truncation ensures the local model stays within its 512-token limit.
-- Structured prompts make Gemini's output more predictable and easier to render in a Django template.
+- Structured prompts make the hosted model’s JSON output easier to validate and render in a Django template.
 
 ---
 
@@ -86,7 +80,7 @@ cancellation flows, retention offers). Keep the guide under 300 words.
 |--------|-----------|
 | **Prompt injection** | Subscription name is inserted as a plain string inside a fixed template. User input never directly appends instructions to the system prompt. |
 | **XSS / HTML injection** | All user-supplied text is HTML-escaped using Django's `escape()` before rendering in templates. |
-| **Excessively long inputs** | Inputs are hard-truncated to 512 characters before the local model and 200 characters before Gemini prompt construction. |
+| **Excessively long inputs** | Inputs are hard-truncated to 512 characters before the local model and 200 characters before the cancellation-guide prompt. |
 | **Keyword blocklist** | A blocklist (`BLOCKED_KEYWORDS`) rejects inputs containing words like `ignore previous instructions`, `jailbreak`, `system:`, `<script>`, etc. |
 | **Empty / whitespace-only inputs** | Views return a `400 Bad Request` with a user-friendly error message if the sanitized input is empty after stripping. |
 
@@ -106,14 +100,14 @@ def is_safe_input(text: str) -> bool:
 | Threat | Mitigation |
 |--------|-----------|
 | **Empty / null API response** | Wrapped in `try/except`; a fallback message ("Guide temporarily unavailable") is shown. |
-| **Gemini refusal response** | If the response contains phrases like `"I'm sorry"` or `"I cannot"`, the UI shows a generic fallback instead of the raw refusal. |
-| **Runaway token output** | `max_output_tokens=2048` is set in every Gemini API call. |
+| **Model refusal response** | If the response contains phrases like `"I'm sorry"` or `"I cannot"`, the UI shows a generic fallback instead of the raw refusal. |
+| **Runaway token output** | Illinois Chat request uses non-streaming mode; the prompt caps steps and the client uses a HTTP timeout. |
 | **Rate limit / quota errors** | `429` and `503` errors are caught and surfaced to the user as a friendly toast notification. |
 
 ### C. Django-Level Security
 - All AI views require `@login_required` — unauthenticated users cannot trigger API calls.
 - CSRF tokens are enforced on all POST forms.
-- The Gemini API key is stored in `.env` and loaded via `django-environ`; it is **never** committed to version control (see `.gitignore`).
+- The Illinois Chat API key (`ILLINOIS_API_KEY`) is stored in `.env` and loaded via `django-environ`; it is **never** committed to version control (see `.gitignore`).
 
 ---
 
@@ -135,11 +129,9 @@ EmailMessage stored in DB
              │
              ▼
 ┌─────────────────────────────┐
-│  LOCAL MODEL (HuggingFace)  │
-│  Qwen2.5-0.5B-Instruct     │
-│  Many-shot prompt           │
-│  "Extract subscription      │
-│   JSON from this email"     │
+│  ILLINOIS CHAT (UIUC.chat)  │
+│  Extract subscription JSON  │
+│  from email body            │
 └────────────┬────────────────┘
              │
              ▼
@@ -155,8 +147,8 @@ EmailMessage stored in DB
              │
              ▼
 ┌─────────────────────────────┐
-│  GEMINI API (on demand)     │
-│  gemini-2.5-flash           │
+│  ILLINOIS CHAT (UIUC.chat)  │
+│  e.g. qwen3:32b (ILLINOIS_MODEL) │
 │  "Generate cancellation     │
 │   guide for {service}"      │
 └────────────┬────────────────┘
@@ -174,16 +166,19 @@ EmailMessage stored in DB
 Add the following to your `.env` file (see `.env.example`):
 
 ```env
-GEMINI_API_KEY=your_google_gemini_api_key_here
+ILLINOIS_API_KEY=your_key_from_chat.illinois.edu_Settings_API_Keys
+ILLINOIS_API_URL=https://chat.illinois.edu/api/chat-api/chat
+ILLINOIS_PROJECT_NAME=Subflo
+ILLINOIS_MODEL=qwen3:32b
 ```
 
-Get a free Gemini API key at: https://aistudio.google.com/app/apikey
+`ILLINOIS_PROJECT_NAME` is the Request Builder `course_name` for your project (this app defaults to **Subflo**). Set **`ILLINOIS_MODEL`** to the exact model id from the Request Builder / LLMs tab (default **qwen3:32b**). The client always uses **streaming**. See [UIUC.chat API endpoints](https://docs.uiuc.chat/api/endpoints) and `.env.example`.
 
 ## Dependencies Added
 
 ```
-# requirements.txt additions
-google-genai>=1.0.0
+# requirements.txt (partial; see file)
+requests
 transformers>=4.40.0
 torch>=2.0.0
 accelerate>=0.30.0
@@ -252,62 +247,39 @@ Our 0.5B model takes ~43 seconds per email on CPU. At 10,000 users averaging 5 e
 | Server cost (CPU) | ~$200–400/month (e.g., AWS c6i.8xlarge) |
 | Server cost (GPU) | ~$150–300/month (1x T4 GPU handles ~17,000 req/day) |
 
-### API Alternative (Gemini 2.5 Flash)
+### API alternative (hosted cancellation guide — Illinois Chat)
 
 | Metric | Value |
 |--------|-------|
 | Daily requests | 50,000 |
 | Avg tokens per request | ~800 input + ~200 output = 1,000 tokens |
 | Daily tokens | 50,000,000 (50M) |
-| Gemini Flash pricing | ~$0.075 per 1M input tokens / ~$0.30 per 1M output tokens |
-| **Daily API cost** | ~$3.75 input + $3.00 output = **~$6.75/day** |
-| **Monthly API cost** | **~$200/month** |
+| Pricing | Depends on provider; many **UIUC.chat** hosted models are **free within campus quota** (see UIUC.chat docs). Commercial APIs (e.g. GPT‑4 class) are often ~$0.075–$0.30 per 1M tokens (illustrative). |
+| **Daily API cost** | Highly variable — **often near $0** for campus-hosted models at project scale |
+| **Monthly API cost** | Compare UIUC.chat / provider pricing vs. a fixed GPU server |
 
 ### Verdict
 
-At 10,000 daily users, **a hybrid approach is best**. The local model is competitive on cost if you already have a GPU server, but the API wins on simplicity — no model hosting, no OOM errors, no PyTorch dependency management. We would keep the local model for the bulk extraction pipeline (running on a scheduled batch job overnight) and use the API for real-time user-facing features like the cancellation guide.
-
-If forced to choose one: **move to the API** at this scale. The $200/month API bill is comparable to the server cost, but you get zero maintenance, automatic scaling, and consistently faster response times (~2s vs. ~43s on CPU).
+At 10,000 daily users, cost and quota planning depend on **UIUC.chat** terms for your project. The **current SubFlo codebase** routes **both** email JSON extraction and cancellation guides through **Illinois Chat**, so there is no separate local HF server for email in this branch—only preprocessing and Django orchestration run locally.
 
 ---
 
-## 3. Hybrid Potential
-
-Our current architecture already demonstrates the hybrid approach:
+## 3. Current pipeline (Illinois Chat for both paths)
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│              HYBRID PIPELINE                        │
+│           ILLINOIS CHAT (UIUC.chat)                 │
 │                                                     │
-│  LOCAL MODEL (free, no API costs)                   │
-│  ├── Bulk email parsing (batch/overnight)           │
-│  ├── Subscription data extraction                   │
-│  └── Runs on server CPU — no per-request cost       │
+│  ├── Email → JSON (`parse_email_to_json`)           │
+│  │     Triggered when ingesting / parsing mail      │
+│  └── Cancellation guide (`POST …/cancel-guide/`)   │
+│        On demand when the user requests a guide      │
 │                                                     │
-│  GEMINI API (pay-per-use, real-time)                │
-│  ├── Cancellation guide generation (on demand)      │
-│  ├── Only called when user clicks "Generate Guide"  │
-│  └── ~$0.0003 per guide request                     │
+│  Same API client, model, and API key configuration │
 └─────────────────────────────────────────────────────┘
 ```
 
-### How they minimize costs together:
-
-1. **The local model handles 90%+ of the workload** — every email that enters the system is parsed locally at zero marginal cost. This is the high-volume, predictable task.
-
-2. **The API handles the 10% that requires creativity** — cancellation guides need up-to-date knowledge about specific services (URLs, cancellation flows), which a static local model cannot provide. This is low-volume (only when users actively request it).
-
-3. **The local model could pre-filter for the API** — if we ever needed the API for email parsing (e.g., the local model fails on a complex email), the local model could act as a first-pass filter. Only emails where the local model returns low-confidence or malformed JSON would be escalated to the API, keeping API costs to a minimum.
-
-4. **Cost comparison at scale:**
-
-| Scenario | Monthly Cost |
-|----------|-------------|
-| All local (50K emails/day, CPU server) | ~$300 server |
-| All API (50K emails/day via Gemini) | ~$200 API |
-| **Hybrid** (50K local + 500 guides/day via API) | **~$150 server + ~$4 API = $154** |
-
-The hybrid approach saves ~25–50% compared to going all-in on either option.
+**Notes:** Volume-sensitive deployments should monitor Illinois Chat usage. Email parsing uses a longer HTTP **timeout** (180s) than the default client timeout for short guide requests (120s).
 
 ---
 
@@ -339,16 +311,16 @@ The hybrid approach saves ~25–50% compared to going all-in on either option.
 
 At our server spec ($500/month), with the local 0.5B model handling ~17,000 GPU requests/day:
 
-| Daily Requests | Local Model Cost/req | Gemini API Cost/req | Winner |
+| Daily Requests | Local Model Cost/req | Hosted API Cost/req | Winner |
 |---------------|---------------------|--------------------| -------|
-| 500 | $1.00 | $0.0003 | **API** |
-| 2,000 | $0.25 | $0.0003 | **API** |
-| 5,000 | $0.10 | $0.0003 | **API** (but close) |
-| 10,000 | $0.05 | $0.0003 | **Local** (server is amortized) |
-| 50,000 | $0.01 | $0.0003 | **Local** (3x cheaper) |
+| 500 | $1.00 | ~$0 (illustrative) | **API** |
+| 2,000 | $0.25 | ~$0 (illustrative) | **API** |
+| 5,000 | $0.10 | ~$0 (illustrative) | **API** (but close) |
+| 10,000 | $0.05 | ~$0 (illustrative) | **Local** (server is amortized) |
+| 50,000 | $0.01 | ~$0 (illustrative) | **Local** (3x cheaper) |
 
 **The break-even point is approximately 5,000–10,000 requests per day.** Below that threshold, the fixed server cost makes the local model more expensive per-request than simply calling the API. Above it, the server cost is amortized across enough requests that local inference becomes significantly cheaper.
 
 ### Our Recommendation for SubFlo
 
-For our current stage (university project, <100 users), the **API is more practical** — it requires no GPU server, costs pennies per day, and the free tier covers our usage. As SubFlo scales to production, we would transition the email extraction pipeline to a **dedicated GPU server** running the local model in batch mode, while keeping the Gemini API for the user-facing cancellation guide feature. This hybrid approach gives us the best of both worlds: low cost for high-volume extraction and high quality for on-demand generation.
+For our current stage (university project, <100 users), **Illinois Chat** for **both** extraction and guides avoids hosting large models on student hardware while keeping one integration surface (`illinois_chat_client.py`).
