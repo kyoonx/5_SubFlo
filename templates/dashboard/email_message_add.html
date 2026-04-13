@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Add Email | SubFlo{% endblock %}
+
+{% block content %}
+
+<div class="bg-white shadow-lg rounded-3xl border border-gray-200 overflow-hidden dark:bg-gray-800 dark:border-gray-700 dark:shadow-gray-700">
+    <div class="px-6 py-5 border-b border-gray-200 dark:border-gray-700">
+        <h2 class="text-2xl font-semibold text-gray-800 dark:text-white">Add Email</h2>
+        <p class="text-sm text-gray-500 mt-1 dark:text-gray-400">
+            Paste the raw email body below. The app will parse it with the local LLM and store the result.
+        </p>
+    </div>
+
+    {% if messages %}
+    <div class="px-6 py-3 space-y-1">
+        {% for message in messages %}
+        <p class="text-sm {% if message.tags == 'success' %}text-green-600 dark:text-green-400{% elif message.tags == 'warning' %}text-amber-600 dark:text-amber-400{% else %}text-gray-600 dark:text-gray-400{% endif %}">
+            {{ message }}
+        </p>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="post" class="p-6">
+        {% csrf_token %}
+        <div class="ds-form-grid ds-form-grid-cols-2">
+            <div class="ds-form-group col-span-2">
+                <label for="raw_email_body" class="ds-label">Raw Email Body *</label>
+                <textarea name="raw_email_body" id="raw_email_body" class="ds-input" rows="12" placeholder="Paste the full email content here (headers + body)…" required></textarea>
+            </div>
+            <div class="ds-form-group col-span-2">
+                <label for="subject" class="ds-label">Subject</label>
+                <input type="text" name="subject" id="subject" class="ds-input" placeholder="e.g. Your Netflix receipt">
+            </div>
+            <div class="ds-form-group">
+                <label for="sender" class="ds-label">Sender</label>
+                <input type="text" name="sender" id="sender" class="ds-input" placeholder="e.g. billing@netflix.com">
+            </div>
+            <div class="ds-form-group">
+                <label for="received_date" class="ds-label">Received Date</label>
+                <input type="datetime-local" name="received_date" id="received_date" class="ds-input" value="{{ default_received_date }}">
+            </div>
+        </div>
+        <div class="mt-4 flex gap-3">
+            <button type="submit" class="toolbar-btn toolbar-btn-primary">Parse & Save Email</button>
+            <a href="{% url 'email_message_list-url' %}" class="toolbar-btn">Cancel</a>
+        </div>
+    </form>
+</div>
+
+{% endblock %}
+
+{% block vega-lite-main %}
+{% endblock %}

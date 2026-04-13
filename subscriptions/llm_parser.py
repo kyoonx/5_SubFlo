@@ -8,13 +8,12 @@
 # Flow:
 #   GmailScrapeView saves EmailMessage rows
 #       └─► parse_emails_into_subscriptions(user, email_messages)
-#               ├─► For each EmailMessage, build prompt + run local LLM
+#               ├─► For each EmailMessage, build prompt + run Illinois Chat
 #               ├─► If LLM says not_subscription → mark parsed_data, skip
 #               └─► Else → upsert Subscription row, update EmailMessage.parsed_data
 #
-# The local LLM used:
-#   mlx-community/Josiefied-Qwen2.5-0.5B-Instruct-abliterated-v1-float32
-#   (lazy-loaded and shared with email_parser_view.py via get_model_and_tokenizer)
+# LLM calls go to Illinois Chat (UIUC.chat) via illinois_chat_client — same stack as
+# the cancellation guide and subscriptions/email_parser.py.
 #
 # Returns a summary dict consumed by GmailScrapeView to include in its JSON response.
 
@@ -134,43 +133,31 @@ OUTPUT:"""
 
 
 # ---------------------------------------------------------------------------
-# LLM inference (reuses the lazy-loaded model from email_parser_view.py)
+# LLM inference (Illinois Chat / UIUC.chat)
 # ---------------------------------------------------------------------------
 
 def _run_llm(prompt: str) -> str:
     """
-    Run the local LLM and return its raw string output.
-    Raises RuntimeError if the model cannot be loaded.
+    Run Illinois Chat and return raw assistant text (JSON or NOT_SUBSCRIPTION).
     """
-    # Import lazily — same model instance as email_parser_view.py
-    from .email_parser_view import get_model_and_tokenizer
+    from .illinois_chat_client import call_illinois_chat_messages
 
-    model, tokenizer = get_model_and_tokenizer()
-
-    messages = [{"role": "user", "content": prompt}]
-
-    if hasattr(tokenizer, "apply_chat_template") and tokenizer.chat_template is not None:
-        text = tokenizer.apply_chat_template(
-            messages, tokenize=False, add_generation_prompt=True
-        )
-    else:
-        text = prompt
-
-    model_inputs = tokenizer([text], return_tensors="pt", padding=True).to(model.device)
-
-    generated_ids = model.generate(
-        **model_inputs,
-        max_new_tokens=300,
-        do_sample=False,        # greedy — deterministic output
+    raw = call_illinois_chat_messages(
+        [
+            {
+                "role": "system",
+                "content": (
+                    "You follow the user's instructions exactly. "
+                    "Output ONLY a JSON object OR the exact line NOT_SUBSCRIPTION — no other text."
+                ),
+            },
+            {"role": "user", "content": prompt},
+        ],
+        temperature=0.2,
+        timeout=180,
     )
-
-    output_ids = generated_ids[0][len(model_inputs.input_ids[0]):]
-    raw = tokenizer.decode(output_ids, skip_special_tokens=True).strip()
-
-    # Strip markdown fences if model wraps output in ```json ... ```
-    raw = re.sub(r"^```(?:json)?\s*", "", raw)
+    raw = re.sub(r"^```(?:json)?\s*", "", raw.strip())
     raw = re.sub(r"\s*```$", "", raw).strip()
-
     return raw
 
 
