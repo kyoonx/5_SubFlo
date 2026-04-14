@@ -60,8 +60,10 @@
       </div>
     </div>
 
-    <!-- Status badge -->
-    <div style="flex-shrink: 0;">
+    <!-- Right side: Status badge + Delete button -->
+    <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0;">
+
+      <!-- Status badge -->
       {% if email_message.parsed_data %}
         {% if email_message.parsed_data.status == "parsed" %}
           <span style="display: inline-block; padding: 4px 12px; border-radius: 20px; background-color: #d1fae5; color: #065f46; font-size: 12px; font-weight: 600;">✓ Parsed</span>
@@ -73,6 +75,34 @@
       {% else %}
         <span style="display: inline-block; padding: 4px 12px; border-radius: 20px; background-color: var(--colors-background-5); color: var(--colors-black-40); font-size: 12px; font-weight: 600;">Pending</span>
       {% endif %}
+
+      <!-- Delete button -->
+      <button
+        onclick="document.getElementById('delete-modal').style.display = 'flex';"
+        style="
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 7px 14px;
+          border-radius: var(--corner-radius-8-duplicate);
+          background-color: #fee2e2;
+          color: #dc2626;
+          border: 1px solid #fca5a5;
+          font-size: var(--12-regular-font-size);
+          font-weight: 600;
+          cursor: pointer;
+          transition: background-color 0.15s;
+        "
+        onmouseover="this.style.backgroundColor='#fecaca'"
+        onmouseout="this.style.backgroundColor='#fee2e2'"
+      >
+        <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+          <path d="M2 3.5h10M5.5 3.5V2.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 .5.5v1M11.5 3.5l-.7 8a1 1 0 0 1-1 .93H4.2a1 1 0 0 1-1-.93l-.7-8" stroke="#dc2626" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M7 6.5v3M5.5 6.5l.2 3M8.5 6.5l-.2 3" stroke="#dc2626" stroke-width="1.2" stroke-linecap="round"/>
+        </svg>
+        Delete
+      </button>
+
     </div>
 
   </div>
@@ -236,12 +266,113 @@
 
 </div>
 
+<!-- ═══ Delete Confirmation Modal ═══ -->
+<div
+  id="delete-modal"
+  style="
+    display: none;
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.45);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  "
+  onclick="if (event.target === this) this.style.display = 'none';"
+>
+  <div style="
+    background-color: var(--colors-background-1, #fff);
+    border-radius: 16px;
+    padding: 28px 28px 24px;
+    max-width: 420px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+    animation: modal-in 0.18s ease;
+  ">
+
+    <!-- Icon + title -->
+    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+      <div style="
+        width: 40px; height: 40px;
+        border-radius: 12px;
+        background-color: #fee2e2;
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+      ">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <path d="M2.5 4.5h13M7 4.5V3.25a.75.75 0 0 1 .75-.75h2.5A.75.75 0 0 1 11 3.25V4.5M14.5 4.5l-.9 10.25a1.25 1.25 0 0 1-1.25 1.15H5.65a1.25 1.25 0 0 1-1.25-1.15L3.5 4.5" stroke="#dc2626" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M9 8v4M7 8l.25 4M11 8l-.25 4" stroke="#dc2626" stroke-width="1.3" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div>
+        <div style="font-size: 15px; font-weight: 700; color: var(--colors-black-100);">Delete Email Message</div>
+        <div style="font-size: var(--12-regular-font-size); color: var(--colors-black-40); margin-top: 2px;">This action cannot be undone.</div>
+      </div>
+    </div>
+
+    <!-- Body text -->
+    <div style="
+      background-color: var(--colors-background-5);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 20px;
+    ">
+      <p style="font-size: var(--12-regular-font-size); color: var(--colors-black-100); margin: 0; line-height: 1.6;">
+        Are you sure you want to permanently delete <strong style="font-weight: 600;">{{ email_message.subject|truncatechars:60 }}</strong> from <strong style="font-weight: 600;">{{ email_message.sender }}</strong>? Any linked parsed data will also be removed.
+      </p>
+    </div>
+
+    <!-- Actions -->
+    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+      <button
+        onclick="document.getElementById('delete-modal').style.display = 'none';"
+        class="ds-btn"
+        style="padding: 8px 18px; font-size: var(--12-regular-font-size); border-radius: 10px;"
+      >
+        Cancel
+      </button>
+      <form method="post" action="{% url 'email_message_delete-url' email_message.id %}" style="margin: 0;">
+        {% csrf_token %}
+        <button
+          type="submit"
+          style="
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 18px;
+            border-radius: 10px;
+            background-color: #dc2626;
+            color: #fff;
+            border: none;
+            font-size: var(--12-regular-font-size);
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.15s;
+          "
+          onmouseover="this.style.backgroundColor='#b91c1c'"
+          onmouseout="this.style.backgroundColor='#dc2626'"
+        >
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+            <path d="M2 3.5h10M5.5 3.5V2.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 .5.5v1M11.5 3.5l-.7 8a1 1 0 0 1-1 .93H4.2a1 1 0 0 1-1-.93l-.7-8" stroke="#fff" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Delete permanently
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
 <!-- Responsive: stack columns on narrow screens -->
 <style>
   @media (max-width: 720px) {
     .detail-grid {
       grid-template-columns: 1fr !important;
     }
+  }
+  @keyframes modal-in {
+    from { opacity: 0; transform: scale(0.96) translateY(6px); }
+    to   { opacity: 1; transform: scale(1)    translateY(0);   }
   }
 </style>
 

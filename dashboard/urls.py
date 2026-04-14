@@ -1,5 +1,6 @@
 from django.urls import path
 from dashboard.views import (
+    EmailMessageDeleteView,
     SubscriptionList,
     VegaLiteBarAPI,
     VegaLiteLineAPI,
@@ -31,6 +32,8 @@ urlpatterns = [
     
     path("email_message/", email_message_list, name="email_message_list-url"),
     path("email_message/<uuid:pk>", email_message_detail, name="email_message_detail-url"),
+    
+    path("email_message/<uuid:pk>/delete/", EmailMessageDeleteView.as_view(), name='email_message_delete-url'),
     
     path("api/subscriptions/active/", api_all_active_subscriptions, name="api-active-subscriptions-url"),
     path("api/subscriptions/cost_per_month/", api_cost_per_month, name="api-cost-per-month-url"),
