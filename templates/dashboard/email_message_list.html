@@ -42,7 +42,7 @@
               <th style="padding: 12px 24px; width: 48%;">Subject</th>
               <th style="padding: 12px 24px; width: 32%;">Sender</th>
               <th style="padding: 12px 24px; width: 12%;">Received</th>
-              <th style="padding: 12px 24px; width: 8%; text-align:center;">Status</th>
+              <!-- <th style="padding: 12px 24px; width: 8%; text-align:center;">Status</th> -->
             </tr>
           </thead>
 
@@ -100,13 +100,13 @@
                 <div style="font-size: var(--12-regular-font-size); color: var(--colors-black-40);">
                   {{ email.received_date|date:"M d, Y" }}
                 </div>
-                <div style="font-size: 11px; color: var(--colors-black-40); opacity:0.7;">
+                <div style="font-size: 11px; color: var(--colors-black-40); opacity:0.7; margin-top:3px;">
                   {{ email.received_date|date:"h:i A" }}
                 </div>
               </td>
 
               <!-- Status -->
-              <td style="padding: 12px 24px; text-align:center;">
+              <!-- <td style="padding: 12px 24px; text-align:center;">
                 {% if email.parsed_data %}
                   {% if email.parsed_data.status == "parsed" %}
                     <span class="type-tag subscription" style="font-size:11px; padding:2px 8px;">
@@ -128,7 +128,7 @@
                     Pending
                   </span>
                 {% endif %}
-              </td>
+              </td> -->
 
             </tr>
 
