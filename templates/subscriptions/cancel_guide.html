@@ -123,7 +123,6 @@ tailwind.config = { corePlugins: { preflight: false } }
 
 {% block scripts %}
 <script>
-  const CSRF_TOKEN = "{{ csrf_token }}";
 
   async function generateGuide() {
     const input = document.getElementById("service-input");
