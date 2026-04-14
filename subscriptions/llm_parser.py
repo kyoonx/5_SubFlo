@@ -45,7 +45,7 @@ NOT_SUBSCRIPTION_SENTINEL = "NOT_SUBSCRIPTION"
 # Prompt
 # ---------------------------------------------------------------------------
 
-def build_parse_prompt(subject: str, sender: str, body: str) -> str:
+def build_parse_prompt(subject: str, sender: str, received_date: str, body: str) -> str:
     """
     Many-shot prompt that instructs the LLM to either extract subscription
     fields as JSON, or return the sentinel string if the email is irrelevant.
@@ -56,9 +56,14 @@ def build_parse_prompt(subject: str, sender: str, body: str) -> str:
     - Explicit null rules prevent the model from inventing data
     - JSON-only output with no preamble makes parsing deterministic
     """
-    return f"""You are a subscription data extractor. Read the email below and decide:
+    return f"""You are an AI assistant for SubFlo, a personal subscription tracking app.
+SubFlo helps users automatically discover and manage all their recurring subscriptions by
+scanning their Gmail inbox. Your job is to read a single email and decide whether it
+represents an active subscription event (a sign-up, renewal, payment, trial, or cancellation).
+If it does, extract the key subscription fields into a structured JSON object so SubFlo can
+track it. If it does not, return a sentinel value so SubFlo can safely ignore it.
 
-CASE A — The email is about a subscription, billing, payment, trial, renewal, or cancellation:
+CASE A — The email IS about a subscription, billing, payment, trial, renewal, or cancellation:
 Return ONLY a JSON object with exactly these fields (use null for unknown values):
 {{
   "platform_name":    "<company name, e.g. Netflix>",
@@ -73,337 +78,164 @@ Return ONLY a JSON object with exactly these fields (use null for unknown values
   "unsubscribe_link": "<full URL to manage or cancel subscription, or null>"
 }}
 
-CASE B — The email is NOT about a subscription (it is a newsletter, advertisement,
-promotional offer, social notification, or anything unrelated to billing/subscription):
+CASE B — The email is NOT about a subscription (it is a one-time purchase confirmation,
+newsletter, advertisement, promotional offer, social notification, shipping update, or
+anything unrelated to a recurring billing/subscription relationship):
 Return ONLY this exact string with no other text:
 NOT_SUBSCRIPTION
 
 Rules:
 - Output ONLY the JSON object or the string NOT_SUBSCRIPTION. No explanation, no markdown.
 - Do NOT invent data. Use null when a field is not stated in the email.
-- For start_date/end-date: only fill if an explicit date appears. Do not calculate dates.
-- For price: extract the recurring charge amount (monthly/annual), NOT a one-time fee.
-- already_canceled = true if the email says the subscription was canceled/cancelled.
+- Date extraction priority rules:
+    - start_date rules:
+        - Use explicit start/order/trial date from body if present.
+        - Otherwise, if the email is a subscription activation event (signup, order confirmation, trial start), set start_date = Received Date.
+
+    - end_date rules:
+        - Use explicit cancellation end/access date from body if present.
+        - Otherwise, if the email explicitly confirms cancellation, set end_date = Received Date.
+- Received Date is ONLY used as a fallback anchor date for lifecycle events (activation or cancellation), never for marketing or non-subscription emails.
+- Never invent dates that are not either explicitly stated or derived from Received Date under the above rules.
+- For price: extract the recurring charge amount (monthly/annual fee). Do NOT use a one-time purchase price.
+- already_canceled = true only if the email explicitly confirms the subscription was canceled/cancelled.
 - is_trial = true only if the email explicitly mentions a free trial or trial period.
+- Use received_date as a hint for context only — do not copy it directly into start_date or end_date unless the body confirms it.
 
 --- EXAMPLES ---
 
-Example 1 (active subscription confirmation):
-Subject: Your Netflix subscription
-Sender: info@mailer.netflix.com
-Body: 
+Example 1 (CASE A — free trial with future recurring charge):
+Subject: Your YouTube Music Premium membership has started
+Sender: noreply@youtube.com
+Received Date: 2021-01-22
+Body:
+Hi Smiles Davis,
+Welcome to your 1 month free trial of Music Premium membership! The payment method you provided will be charged monthly starting Feb 22, 2021.
+As a member you can explore, manage, and cancel your membership any time by visiting YouTube account settings.
+Welcome aboard!
+The YouTube Team
+Order Date
+Jan 22, 2021
+Order Number
+65000055650650
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Notification</title>
- 
-</head>
-<body>
-  <div class="container">
-    Hi, your Netflix Standard plan is active at $15.49/month. Next billing: March 15, 2026. Manage: 
-    <a href="https://netflix.com/account">https://netflix.com/account</a>
-  </div>
-</body>
-</html>
+Billing and cancellations: Billing for your membership will be handled by Apple. You'll receive an email from Apple with your order confirmation and billing details. At the end of your free trial, if any, Apple will automatically charge you $12.99/month, plus applicable taxes. You may cancel your Music Premium membership anytime from your Apple ID account settings. Refund policy
 
-Then, you should return this pure JSON object (as a string, not a dict):
+Need help? Contact support or go to our Help Center. Please don't reply to this email.
 
-{{"platform_name":"Netflix","service_name":"Netflix Standard","start_date":null,"end_date":"2026-03-15","is_trial":false,"already_canceled":false,"price":15.49,"currency":"USD","payment_method":null,"unsubscribe_link":"https://netflix.com/account"}}
+Help Center Email options
+You received this email to provide information and updates around your YouTube product or account.
+2021 Google LLC d/b/a YouTube, 901 Cherry Ave, San Bruno, CA 94066
+Paid Service Terms of Service
 
-Below is the explaination. Note that you should NOT return the explanation — only the JSON object above.
-**CHAIN-OF-THOUGHT:**
+Expected output:
+{{"platform_name":"YouTube","service_name":"YouTube Music Premium","start_date":"2021-01-22","end_date":"2021-02-22","is_trial":true,"already_canceled":false,"price":12.99,"currency":"USD","payment_method":null,"unsubscribe_link":null}}
 
-1.  **Email Type Identification**: The email is about an active subscription, specifically confirming the user's Netflix Standard plan. This aligns with CASE A.
-2.  **Field Extraction**:
-    *   `platform_name`:  Identified as "Netflix" from the subject and body.
-    *   `service_name`:  Identified as "Netflix Standard" from the body.
-    *   `start_date`:  Not explicitly mentioned in the body, so it's `null`.
-    *   `end_date`:  The email explicitly states "Next billing: March 15, 2026," so the end date is "2026-03-15".
-    *   `is_trial`:  The email does not mention a trial, so it's `false`.
-    *   `already_canceled`: The email confirms the subscription is active, so it's `false`.
-    *   `price`: The email states the price is $15.49/month, so it's `15.49`.
-    *   `currency`: The currency is not mentioned, the default is USD, so it's `USD`.
-    *   `payment_method`: Not mentioned, so it's `null`.
-    *   `unsubscribe_link`: The email contains a link to manage the account, so it's `https://netflix.com/account`.
-3.  **JSON Formation**: The extracted values are formatted into the required JSON object.
-
----
-
-Example 2 (free trial started):
-Subject: Your Spotify Premium trial has started
-Sender: noreply@spotify.com
-Body: 
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Receipt</title>
- 
-</head>
-<body>
-  <div class="container">
-    <div class="header">Thanks for your order!</div>
-    <div class="subtext">You'll find your receipt attached.</div>
-
-    <div class="details">
-      <div><span class="label">Item(s):</span> Premium Individual</div>
-      <div><span class="label">Date:</span> January 02, 2026</div>
-    </div>
-
-    <div class="footer">
-      You agree that if you do not cancel your subscription before the end of your trial period,
-      you will automatically be charged the $12.99 subscription fee + applicable tax for Premium
-      every month until you cancel. You can cancel your Spotify Premium subscription at any time
-      on your Account page following the instructions here. No partial refunds. Terms & Conditions apply.
-    </div>
-  </div>
-</body>
-</html>
-
-Then, you should return this pure JSON object (as a string, not a dict):
-
-{{"platform_name":"Spotify","service_name":"Spotify Premium","start_date":"2026-01-02","end_date":"2026-02-02","is_trial":true,"already_canceled":false,"price":null,"currency":"USD","payment_method":null,"unsubscribe_link":null}}
-
-Below is the explaination. Note that you should NOT return the explanation — only the JSON object above.
-**CHAIN-OF-THOUGHT:**
-
-1.  **Email Type Identification**: The email confirms a trial has started for Spotify Premium, matching CASE A.
-2.  **Field Extraction**:
-    *   `platform_name`:  Identified as "Spotify" from the subject.
-    *   `service_name`:  Identified as "Spotify Premium" from the body.
-    *   `start_date`:  The body mentions the date as "January 02, 2026," so it's "2026-01-02".
-    *   `end_date`: Since it is a trial, the end date should be a month after, "2026-02-02".
-    *   `is_trial`:  The subject clearly indicates a trial has started, so it's `true`.
-    *   `already_canceled`:  The email doesn't mention cancellation, so it's `false`.
-    *   `price`:  Although the footer mentions a future price, there is no recurring charge amount present now so it is `null`.
-    *   `currency`: Not explicitly mentioned, so it defaults to "USD".
-    *   `payment_method`: Not mentioned, so it's `null`.
-    *   `unsubscribe_link`: There is no manage or cancel link, so it's `null`.
-3.  **JSON Formation**: The extracted values are formatted into the required JSON object.
+Reasoning (for training only, do not output):
+1. Classification: The email explicitly says "free trial of Music Premium membership" and mentions a future monthly charge. This is a subscription trial start event — CASE A.
+2. platform_name: The email is from YouTube / Google LLC and the product is "Music Premium". Platform = "YouTube".
+3. service_name: The full product name stated in the email is "Music Premium membership" but the subject says "YouTube Music Premium", so service_name = "YouTube Music Premium".
+4. start_date: The email states "Order Date: Jan 22, 2021" which is the explicit start of the trial. That maps to "2021-01-22". The received_date also confirms 2021-01-22, consistent.
+5. end_date: The email says "charged monthly starting Feb 22, 2021", meaning the trial ends when billing begins — "2021-02-22". This is explicitly stated, so we can use it.
+6. is_trial: The email says "1 month free trial" — explicitly a trial, so true.
+7. already_canceled: No cancellation language anywhere. false.
+8. price: The future recurring charge is "$12.99/month". Even though it hasn't been charged yet, this IS the recurring subscription price, so price = 12.99. We do NOT use a one-time fee here.
+9. currency: Not explicitly stated as a currency code, but "$" indicates USD. Default to "USD".
+10. payment_method: "The payment method you provided" — vague, no card or service named. null.
+11. unsubscribe_link: No URL for managing/canceling subscription is provided in the body. null.
 
 ---
 
-Example 3 (cancellation confirmed):
-Subject: Your Dropbox subscription has been canceled
-Sender: no-reply@dropbox.com
-Body: 
+Example 2 (CASE A — subscription order confirmation with trial):
+Subject: Your order confirmation for "Premium Individual"
+Sender: Spotify <no-reply@spotify.com>
+Received Date: 2026-04-14
 
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" style="margin: 0; padding: 0">
-<head>
-    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title></title>
+Body:
+Thanks for your order!
+You'll find your receipt attached.
+Item(s)
+Premium Individual
+Invoice ID
+7f8c2323-5ea2-40ef-bc96-95ef1d273780
+You agree that if you do not cancel your subscription before the end of your trial period, you will automatically be charged the $12.99 subscription fee + applicable tax for Premium every month until you cancel. You can cancel your Spotify Premium subscription at any time on your Account page following the instructions here. No partial refunds. Terms & Conditions apply.
 
-</head>
+Get Spotify for: iPhone iPad Android Other
+This message was sent to p.michelle@gmail.com. If you have questions or complaints, please contact us.
+Terms of Use Technical requirements Contact Us
+Spotify USA Inc., 4 World Trade Center, 150 Greenwich Street, 62nd Floor, New York, NY 10007, United States
+Tax Reg Number: 80-0555431
 
-<body style="-webkit-font-smoothing: antialiased; width: 100% !important; margin: 0; padding: 0; background-color:#ffffff;">
-<table cellpadding="0" cellspacing="0" border="0" width="100%" align="center" style="width:100%; max-width:480px;">
-    <tr>
-        <td align="center" style="font-family:'Circular','Helvetica Neue',Helvetica,Arial,sans-serif; font-size:14px; color:#555555;">
+Expected output:
+{{"platform_name":"Spotify","service_name":"Premium Individual","start_date":"2026-04-14","end_date":null,"is_trial":true,"already_canceled":false,"price":12.99,"currency":"USD","payment_method":null,"unsubscribe_link":null}}
 
-            <div id="main">
-
-                <!-- Header -->
-                <table width="100%" cellpadding="0" cellspacing="0">
-                    <tr><td height="30"></td></tr>
-                    <tr>
-                        <td style="padding:0 6.25%;">
-                            <h2 style="margin:0; font-size:28px; line-height:36px; color:#555555;">
-                                Subscription Update
-                            </h2>
-                        </td>
-                    </tr>
-                    <tr><td height="20"></td></tr>
-                </table>
-
-                <!-- Body Content -->
-                <table width="100%" cellpadding="0" cellspacing="0">
-                    <tr>
-                        <td style="padding:0 6.25%; font-size:14px; line-height:20px; color:#616467;">
-                            
-                            You've canceled Dropbox Plus. You'll keep access until May 31, 2026. Annual price was $119.99. Cancel was successful.
-                        
-                        </td>
-                    </tr>
-                    <tr><td height="30"></td></tr>
-                </table>
-
-                <!-- Footer divider -->
-                <table width="100%" cellpadding="0" cellspacing="0">
-                    <tr>
-                        <td style="padding:0 6.25%;">
-                            <hr style="border:none; height:1px; background:#D1D5D9;">
-                        </td>
-                    </tr>
-                    <tr><td height="20"></td></tr>
-                </table>
-
-                <!-- Footer -->
-                <table width="100%" cellpadding="0" cellspacing="0">
-                    <tr>
-                        <td style="padding:0 6.25%; font-size:11px; color:#88898c; line-height:1.6;">
-                            This is an automated message regarding your subscription status.
-                        </td>
-                    </tr>
-                    <tr><td height="30"></td></tr>
-                </table>
-
-            </div>
-
-        </td>
-    </tr>
-</table>
-</body>
-</html>
-
-
-Then, you should return this pure JSON object (as a string, not a dict):
-
-{{"platform_name":"Dropbox","service_name":"Dropbox Plus","start_date":null,"end_date":"2026-05-31","is_trial":false,"already_canceled":true,"price":119.99,"currency":"USD","payment_method":null,"unsubscribe_link":null}}
-
-Below is the explaination. Note that you should NOT return the explanation — only the JSON object above.
-**CHAIN-OF-THOUGHT:**
-
-1.  **Email Type Identification**: This email confirms the cancellation of a Dropbox subscription, aligning with CASE A.
-2.  **Field Extraction**:
-    *   `platform_name`: Identified as "Dropbox" from the subject and body.
-    *   `service_name`: Identified as "Dropbox Plus" from the body.
-    *   `start_date`: Not explicitly mentioned, so `null`.
-    *   `end_date`: The email states, "You'll keep access until May 31, 2026," so it's "2026-05-31".
-    *   `is_trial`:  The email doesn't mention a trial, so it's `false`.
-    *   `already_canceled`: The email explicitly states "You've canceled Dropbox Plus" and "Cancel was successful", so it's `true`.
-    *   `price`:  The email indicates "Annual price was $119.99," so it's `119.99`.
-    *   `currency`: Not explicitly mentioned, so it defaults to "USD".
-    *   `payment_method`: Not mentioned, so it's `null`.
-    *   `unsubscribe_link`: There is no manage or cancel link, so it's `null`.
-3.  **JSON Formation**: The extracted values are formatted into the required JSON object.
+Reasoning (for training only, do not output):
+1. Classification: The email is a subscription order confirmation for Spotify Premium Individual. It explicitly mentions a subscription, a trial period, and a future recurring monthly charge. This is a clear CASE A subscription event.
+2. platform_name: Sender is Spotify <no-reply@spotify.com>, so platform_name = "Spotify".
+3. service_name: The item listed is "Premium Individual", which is the subscription plan name.
+4. start_date: The body doesn't say the exact date, so we use the Received Date as the fallback.
+5. end_date: No explicit end date is provided for trial or subscription term. The trial is open-ended until cancellation or billing, so end_date = null.
+6. is_trial: The email explicitly states "before the end of your trial period" and describes a free/initial trial condition, so is_trial = true.
+7. already_canceled: No cancellation confirmation is present. false.
+8. price: The recurring subscription fee is clearly stated as "$12.99 subscription fee + applicable tax for Premium every month", so price = 12.99.
+9. currency: Dollar symbol implies USD (US-based Spotify entity), so currency = "USD".
+10. payment_method: No card or payment instrument is specified. null.
+11. unsubscribe_link: No direct URL is provided in the body. null.
 
 ---
 
+Example 3 (CASE B — one-time order confirmation, not a subscription):
+Subject: Order Confirmation
+Sender: noreply@parchment.com
+Received Date: 2024-02-23
+Body:
+Order Confirmation Thank you for your order! Hi Jack, Your order was placed successfully on 02/23/2024. Here is your order summary: Item Ordered: Transcript For: Pitupoom Soontornthanon Document ID: TEYKYUJQ Delivery Method: Electronic FROM: Elgin Community College TO: University of Illinois Urbana-Champaign Once your order has been processed, we will send the official document to its destination. Thank you, The Parchment Team Turn Credentials into Opportunities Parchment's Privacy Policy and Terms of Use
 
-Example 4 (payment receipt):
-Subject: Receipt for Adobe Creative Cloud
-Sender: message@adobe.com
-Body: 
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" style="margin: 0; padding: 0">
-<head>
-    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title></title>
-
-</head>
-
-<body style="-webkit-font-smoothing: antialiased; width: 100% !important; margin: 0; padding: 0; background-color:#ffffff;">
-<table cellpadding="0" cellspacing="0" border="0" width="100%" align="center" style="width:100%; max-width:480px;">
-    <tr>
-        <td align="center" style="font-family:'Circular','Helvetica Neue',Helvetica,Arial,sans-serif; font-size:14px; color:#555555;">
-
-            <div id="main">
-
-                <!-- Header -->
-                <table width="100%" cellpadding="0" cellspacing="0">
-                    <tr><td height="30"></td></tr>
-                    <tr>
-                        <td style="padding:0 6.25%;">
-                            <h2 style="margin:0; font-size:28px; line-height:36px; color:#555555;">
-                                Payment Confirmation
-                            </h2>
-                        </td>
-                    </tr>
-                    <tr><td height="20"></td></tr>
-                </table>
-
-                <!-- Body Content -->
-                <table width="100%" cellpadding="0" cellspacing="0">
-                    <tr>
-                        <td style="padding:0 6.25%; font-size:14px; line-height:20px; color:#616467;">
-                            
-                            Thank you for your payment of $54.99 on Feb 1, 2026 for Creative Cloud All Apps. Paid with Mastercard 5678. Manage your plan: 
-                            <a href="https://account.adobe.com/plans" style="color:#1a73e8; text-decoration:none;">https://account.adobe.com/plans</a>
-                        
-                        </td>
-                    </tr>
-                    <tr><td height="30"></td></tr>
-                </table>
-
-                <!-- Footer divider -->
-                <table width="100%" cellpadding="0" cellspacing="0">
-                    <tr>
-                        <td style="padding:0 6.25%;">
-                            <hr style="border:none; height:1px; background:#D1D5D9;">
-                        </td>
-                    </tr>
-                    <tr><td height="20"></td></tr>
-                </table>
-
-                <!-- Footer -->
-                <table width="100%" cellpadding="0" cellspacing="0">
-                    <tr>
-                        <td style="padding:0 6.25%; font-size:11px; color:#88898c; line-height:1.6;">
-                            This is an automated message regarding your recent payment.
-                        </td>
-                    </tr>
-                    <tr><td height="30"></td></tr>
-                </table>
-
-            </div>
-
-        </td>
-    </tr>
-</table>
-</body>
-</html>
-
-Then, you should return this pure JSON object (as a string, not a dict):
-
-{{"platform_name":"Adobe","service_name":"Creative Cloud All Apps","start_date":"2026-02-01","end_date":null,"is_trial":false,"already_canceled":false,"price":54.99,"currency":"USD","payment_method":"Mastercard 5678","unsubscribe_link":"https://account.adobe.com/plans"}}
-
-Below is the explaination. Note that you should NOT return the explanation — only the JSON object above.
-**CHAIN-OF-THOUGHT:**
-
-1.  **Email Type Identification**: The email is a payment receipt for Adobe Creative Cloud, which is related to a subscription, thus matching CASE A.
-2.  **Field Extraction**:
-    *   `platform_name`: Identified as "Adobe" from the subject and body.
-    *   `service_name`:  Identified as "Creative Cloud All Apps" from the body.
-    *   `start_date`: The payment date is Feb 1, 2026 so it should be "2026-02-01".
-    *   `end_date`: Not explicitly stated, so `null`.
-    *   `is_trial`:  The email doesn't mention a trial, so it's `false`.
-    *   `already_canceled`:  The email doesn't mention cancellation, so it's `false`.
-    *   `price`: The payment is $54.99, so it's `54.99`.
-    *   `currency`: Not explicitly mentioned, so it defaults to "USD".
-    *   `payment_method`: The payment method is "Mastercard 5678" per the email, so it's "Mastercard 5678".
-    *   `unsubscribe_link`: The email provides a link "https://account.adobe.com/plans" to manage the account, so it's `https://account.adobe.com/plans`.
-3.  **JSON Formation**: The extracted values are formatted into the required JSON object.
-
----
-
-Example 5 (not a subscription — advertisement):
-Subject: 50% off all plans this week only!
-Sender: deals@someapp.com
-Body: Don't miss our biggest sale of the year. Subscribe now and save 50%. Limited time offer.
-
-Then, you should return this pure string with no JSON:
-
+Expected output:
 NOT_SUBSCRIPTION
 
-Below is the explaination. Note that you should NOT return the explanation — only the JSON object above.
-**CHAIN-OF-THOUGHT:**
+Reasoning (for training only, do not output):
+1. Classification: At first glance, "Order Confirmation" could look like a subscription. However, reading carefully: the email is confirming a one-time order for an academic transcript delivery from Elgin Community College to University of Illinois. There is no mention of a recurring charge, a plan, a billing cycle, a trial, or a renewal. This is a single transaction for a document delivery service — not a subscription. CASE B.
+2. Key signals that rule out CASE A:
+   - No recurring billing language ("monthly", "annual", "renews", "next billing date").
+   - No plan or membership name.
+   - The "item ordered" is a physical/electronic document (a transcript), not a software plan or membership.
+   - No price or payment amount mentioned at all.
+   - No cancel or manage subscription link.
+3. Output: NOT_SUBSCRIPTION — SubFlo should ignore this email entirely.
 
-1.  **Email Type Identification**: This is an advertisement offering a discount, not a subscription confirmation, bill, or cancellation. This matches CASE B.
-2.  **Output**:  The correct output is the string "NOT_SUBSCRIPTION".
+---
+
+Example 4 (CASE B — promotional advertisement):
+Subject: 50% off all plans this week only!
+Sender: deals@someapp.com
+Received Date: 2026-04-01
+Body:
+Don't miss our biggest sale of the year. Subscribe now and save 50% on any plan. Limited time offer. Click here to grab the deal before it expires!
+
+Expected output:
+NOT_SUBSCRIPTION
+
+Reasoning (for training only, do not output):
+1. Classification: The subject and body are purely promotional. The email is trying to sell a subscription, but the user has NOT yet subscribed. There is no confirmation of an active subscription, no billing date, no payment, no plan name, and no account details. Simply urging someone to subscribe is not the same as confirming they have one. CASE B.
+2. Key signals that rule out CASE A:
+   - "Subscribe now" — future tense call-to-action, not a confirmation of an existing subscription.
+   - No order number, account ID, charge amount, or renewal date.
+   - No plan details or service name tied to the user's account.
+   - The word "offer" and "sale" indicate marketing, not billing.
+3. Output: NOT_SUBSCRIPTION — SubFlo should ignore this email entirely.
 
 --- NOW PROCESS THIS EMAIL ---
 
 Subject: {subject}
 Sender: {sender}
+Received Date: {received_date}
+
 Body:
 {body}
 """
+
+
 
 
 # ---------------------------------------------------------------------------
@@ -635,9 +467,11 @@ def parse_emails_into_subscriptions(user, email_messages: list[EmailMessage]) ->
 
         # --- Prepare input ---
         cleaned_body = clean_text(em.raw_email_body, max_chars=EMAIL_BODY_MAX_CHARS)
+        received_date_str = em.received_date.strftime("%Y-%m-%d") if em.received_date else "Unknown"
         prompt = build_parse_prompt(
             subject=em.subject,
             sender=em.sender,
+            received_date=received_date_str,
             body=cleaned_body,
         )
 
