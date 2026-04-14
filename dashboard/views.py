@@ -257,8 +257,43 @@ class SubscriptionList(LoginRequiredMixin, ListView):
 
 @login_required(login_url='login_urlpattern')
 def subscription_detail(request, pk):
-    subscription = get_object_or_404(Subscription, pk=pk)
+    subscription = get_object_or_404(Subscription, pk=pk, user=request.user)
     return render(request, "dashboard/subscription_detail.html", {"subscription": subscription})
+
+
+@login_required(login_url='login_urlpattern')
+def subscription_edit(request, pk):
+    subscription = get_object_or_404(Subscription, pk=pk, user=request.user)
+    if request.method == 'POST':
+        subscription.platform_name = request.POST.get('platform_name', '').strip() or subscription.platform_name
+        subscription.service_name = request.POST.get('service_name', '').strip() or subscription.service_name
+        subscription.currency = request.POST.get('currency', 'USD').strip() or 'USD'
+        subscription.payment_method = request.POST.get('payment_method', '').strip() or None
+        subscription.unsubscribe_link = request.POST.get('unsubscribe_link', '').strip() or None
+        subscription.notes = request.POST.get('notes', '').strip() or None
+        subscription.is_trial = request.POST.get('is_trial') == 'on'
+        subscription.already_canceled = request.POST.get('already_canceled') == 'on'
+        price_str = request.POST.get('price', '').strip()
+        start_date_str = request.POST.get('start_date', '').strip()
+        end_date_str = request.POST.get('end_date', '').strip()
+        try:
+            subscription.price = Decimal(price_str) if price_str else None
+            subscription.start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date() if start_date_str else None
+            subscription.end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date() if end_date_str else None
+            subscription.save()
+        except (ValueError, TypeError):
+            pass
+        return redirect('subscription-detail-url', pk=pk)
+    return redirect('subscription-detail-url', pk=pk)
+
+
+@login_required(login_url='login_urlpattern')
+def subscription_delete(request, pk):
+    subscription = get_object_or_404(Subscription, pk=pk, user=request.user)
+    if request.method == 'POST':
+        subscription.delete()
+        return redirect('subscription-list-url')
+    return redirect('subscription-detail-url', pk=pk)
 
 @login_required(login_url='login_urlpattern')
 def _subscription_export_queryset(request):

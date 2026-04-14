@@ -12,7 +12,7 @@
   <div class="dash-left">
 
     <!-- Back button row -->
-    <div style="margin-bottom: 14px;">
+    <div style="margin-bottom: 14px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
       <a href="{% url 'subscription-list-url' %}"
          class="toolbar-btn"
          style="display:inline-flex; align-items:center; gap:6px; text-decoration:none;">
@@ -21,6 +21,45 @@
         </svg>
         Back to Subscriptions
       </a>
+
+      <!-- Edit + Delete action buttons -->
+      <div style="display:flex; gap:8px;">
+        <button onclick="openEditModal()"
+          style="
+            display:inline-flex; align-items:center; gap:6px;
+            padding:8px 14px; border-radius:12px;
+            background:#eef2ff; color:#6366f1;
+            font-size:12px; font-weight:600;
+            border:1px solid #c7d2fe; cursor:pointer;
+            transition: all 0.15s ease;
+          "
+          onmouseover="this.style.background='#e0e7ff'"
+          onmouseout="this.style.background='#eef2ff'">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M8.5 1.5a1.207 1.207 0 0 1 1.707 1.707L3.5 9.914 1 10.5l.586-2.5L8.5 1.5z"
+                  stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Edit
+        </button>
+
+        <button onclick="openDeleteModal()"
+          style="
+            display:inline-flex; align-items:center; gap:6px;
+            padding:8px 14px; border-radius:12px;
+            background:#fff1f2; color:#e11d48;
+            font-size:12px; font-weight:600;
+            border:1px solid #fecdd3; cursor:pointer;
+            transition: all 0.15s ease;
+          "
+          onmouseover="this.style.background='#ffe4e6'"
+          onmouseout="this.style.background='#fff1f2'">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M1.5 3h9M4 3V2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v1M5 5.5v3M7 5.5v3M2 3l.667 7a1 1 0 0 0 .996.916h4.674A1 1 0 0 0 9.333 10L10 3"
+                  stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Delete
+        </button>
+      </div>
     </div>
 
     <!-- ═══ HERO PANEL ═══ -->
@@ -260,14 +299,297 @@
     {% endif %}
 
   </div>
-
 </div>
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!--                  EDIT MODAL                    -->
+<!-- ═══════════════════════════════════════════════ -->
+<div id="editModal" style="
+  display:none; position:fixed; inset:0; z-index:1000;
+  background:rgba(0,0,0,0.35); backdrop-filter:blur(3px);
+  align-items:center; justify-content:center; padding:20px;
+">
+  <div style="
+    background:#fff; border-radius:20px;
+    width:100%; max-width:560px; max-height:90vh;
+    overflow-y:auto; box-shadow:0 24px 64px rgba(0,0,0,0.18);
+  ">
+    <!-- Modal Header -->
+    <div style="
+      display:flex; align-items:center; justify-content:space-between;
+      padding:20px 24px 16px; border-bottom:1px solid var(--colors-black-10);
+      position:sticky; top:0; background:#fff; border-radius:20px 20px 0 0; z-index:1;
+    ">
+      <div>
+        <div style="font-size:16px; font-weight:700; color:var(--colors-black-100);">Edit Subscription</div>
+        <div style="font-size:12px; color:var(--colors-black-40); margin-top:2px;">Update the details below and save.</div>
+      </div>
+      <button onclick="closeEditModal()" style="
+        background:var(--colors-black-10); border:none; border-radius:50%;
+        width:30px; height:30px; display:flex; align-items:center; justify-content:center;
+        cursor:pointer; color:var(--colors-black-60); font-size:16px; line-height:1;
+        transition:background 0.15s;
+      " onmouseover="this.style.background='var(--colors-black-20)'" onmouseout="this.style.background='var(--colors-black-10)'">
+        ✕
+      </button>
+    </div>
+
+    <!-- Modal Form -->
+    <form method="POST" action="{% url 'subscription-edit-url' subscription.pk %}" style="padding:20px 24px 24px;">
+      {% csrf_token %}
+
+      <!-- Platform + Service -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+        <div>
+          <label style="font-size:11px; font-weight:600; color:var(--colors-black-40); text-transform:uppercase; display:block; margin-bottom:5px;">Platform Name *</label>
+          <input type="text" name="platform_name" value="{{ subscription.platform_name }}" required style="
+            width:100%; padding:9px 12px; border-radius:10px;
+            border:1px solid var(--colors-black-20); font-size:13px;
+            color:var(--colors-black-100); outline:none; box-sizing:border-box;
+            transition:border-color 0.15s;
+          " onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='var(--colors-black-20)'">
+        </div>
+        <div>
+          <label style="font-size:11px; font-weight:600; color:var(--colors-black-40); text-transform:uppercase; display:block; margin-bottom:5px;">Service Name *</label>
+          <input type="text" name="service_name" value="{{ subscription.service_name }}" required style="
+            width:100%; padding:9px 12px; border-radius:10px;
+            border:1px solid var(--colors-black-20); font-size:13px;
+            color:var(--colors-black-100); outline:none; box-sizing:border-box;
+            transition:border-color 0.15s;
+          " onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='var(--colors-black-20)'">
+        </div>
+      </div>
+
+      <!-- Price + Currency -->
+      <div style="display:grid; grid-template-columns:2fr 1fr; gap:12px; margin-bottom:12px;">
+        <div>
+          <label style="font-size:11px; font-weight:600; color:var(--colors-black-40); text-transform:uppercase; display:block; margin-bottom:5px;">Price</label>
+          <input type="number" name="price" step="0.01" min="0"
+            value="{% if subscription.price %}{{ subscription.price }}{% endif %}"
+            placeholder="e.g. 9.99"
+            style="
+              width:100%; padding:9px 12px; border-radius:10px;
+              border:1px solid var(--colors-black-20); font-size:13px;
+              color:var(--colors-black-100); outline:none; box-sizing:border-box;
+              transition:border-color 0.15s;
+            " onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='var(--colors-black-20)'">
+        </div>
+        <div>
+          <label style="font-size:11px; font-weight:600; color:var(--colors-black-40); text-transform:uppercase; display:block; margin-bottom:5px;">Currency</label>
+          <input type="text" name="currency" value="{{ subscription.currency }}" maxlength="10" placeholder="USD" style="
+            width:100%; padding:9px 12px; border-radius:10px;
+            border:1px solid var(--colors-black-20); font-size:13px;
+            color:var(--colors-black-100); outline:none; box-sizing:border-box;
+            transition:border-color 0.15s;
+          " onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='var(--colors-black-20)'">
+        </div>
+      </div>
+
+      <!-- Start + End Date -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+        <div>
+          <label style="font-size:11px; font-weight:600; color:var(--colors-black-40); text-transform:uppercase; display:block; margin-bottom:5px;">Start Date</label>
+          <input type="date" name="start_date"
+            value="{% if subscription.start_date %}{{ subscription.start_date|date:'Y-m-d' }}{% endif %}"
+            style="
+              width:100%; padding:9px 12px; border-radius:10px;
+              border:1px solid var(--colors-black-20); font-size:13px;
+              color:var(--colors-black-100); outline:none; box-sizing:border-box;
+              transition:border-color 0.15s;
+            " onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='var(--colors-black-20)'">
+        </div>
+        <div>
+          <label style="font-size:11px; font-weight:600; color:var(--colors-black-40); text-transform:uppercase; display:block; margin-bottom:5px;">End / Renewal Date</label>
+          <input type="date" name="end_date"
+            value="{% if subscription.end_date %}{{ subscription.end_date|date:'Y-m-d' }}{% endif %}"
+            style="
+              width:100%; padding:9px 12px; border-radius:10px;
+              border:1px solid var(--colors-black-20); font-size:13px;
+              color:var(--colors-black-100); outline:none; box-sizing:border-box;
+              transition:border-color 0.15s;
+            " onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='var(--colors-black-20)'">
+        </div>
+      </div>
+
+      <!-- Payment Method -->
+      <div style="margin-bottom:12px;">
+        <label style="font-size:11px; font-weight:600; color:var(--colors-black-40); text-transform:uppercase; display:block; margin-bottom:5px;">Payment Method</label>
+        <input type="text" name="payment_method"
+          value="{% if subscription.payment_method %}{{ subscription.payment_method }}{% endif %}"
+          placeholder="e.g. Visa ••••4242"
+          style="
+            width:100%; padding:9px 12px; border-radius:10px;
+            border:1px solid var(--colors-black-20); font-size:13px;
+            color:var(--colors-black-100); outline:none; box-sizing:border-box;
+            transition:border-color 0.15s;
+          " onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='var(--colors-black-20)'">
+      </div>
+
+      <!-- Unsubscribe Link -->
+      <div style="margin-bottom:12px;">
+        <label style="font-size:11px; font-weight:600; color:var(--colors-black-40); text-transform:uppercase; display:block; margin-bottom:5px;">Cancel / Unsubscribe Link</label>
+        <input type="text" name="unsubscribe_link"
+          value="{% if subscription.unsubscribe_link %}{{ subscription.unsubscribe_link }}{% endif %}"
+          placeholder="https://..."
+          style="
+            width:100%; padding:9px 12px; border-radius:10px;
+            border:1px solid var(--colors-black-20); font-size:13px;
+            color:var(--colors-black-100); outline:none; box-sizing:border-box;
+            transition:border-color 0.15s;
+          " onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='var(--colors-black-20)'">
+      </div>
+
+      <!-- Notes -->
+      <div style="margin-bottom:16px;">
+        <label style="font-size:11px; font-weight:600; color:var(--colors-black-40); text-transform:uppercase; display:block; margin-bottom:5px;">Notes</label>
+        <textarea name="notes" rows="3" placeholder="Any additional info..."
+          style="
+            width:100%; padding:9px 12px; border-radius:10px;
+            border:1px solid var(--colors-black-20); font-size:13px;
+            color:var(--colors-black-100); outline:none; box-sizing:border-box;
+            resize:vertical; font-family:inherit; line-height:1.5;
+            transition:border-color 0.15s;
+          " onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='var(--colors-black-20)'">{% if subscription.notes %}{{ subscription.notes }}{% endif %}</textarea>
+      </div>
+
+      <!-- Toggles: Free Trial + Already Canceled -->
+      <div style="display:flex; gap:20px; margin-bottom:20px; flex-wrap:wrap;">
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px; color:var(--colors-black-100);">
+          <input type="checkbox" name="is_trial" {% if subscription.is_trial %}checked{% endif %}
+            style="width:15px; height:15px; accent-color:#6366f1; cursor:pointer;">
+          Free Trial
+        </label>
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px; color:var(--colors-black-100);">
+          <input type="checkbox" name="already_canceled" {% if subscription.already_canceled %}checked{% endif %}
+            style="width:15px; height:15px; accent-color:#e11d48; cursor:pointer;">
+          Already Canceled
+        </label>
+      </div>
+
+      <!-- Form Actions -->
+      <div style="display:flex; gap:10px; justify-content:flex-end;">
+        <button type="button" onclick="closeEditModal()" style="
+          padding:9px 18px; border-radius:12px;
+          background:var(--colors-black-10); color:var(--colors-black-60);
+          font-size:13px; font-weight:600; border:none; cursor:pointer;
+          transition:background 0.15s;
+        " onmouseover="this.style.background='var(--colors-black-20)'" onmouseout="this.style.background='var(--colors-black-10)'">
+          Cancel
+        </button>
+        <button type="submit" style="
+          padding:9px 22px; border-radius:12px;
+          background:#6366f1; color:#fff;
+          font-size:13px; font-weight:600; border:none; cursor:pointer;
+          transition:background 0.15s;
+        " onmouseover="this.style.background='#4f46e5'" onmouseout="this.style.background='#6366f1'">
+          Save Changes
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!--                 DELETE MODAL                   -->
+<!-- ═══════════════════════════════════════════════ -->
+<div id="deleteModal" style="
+  display:none; position:fixed; inset:0; z-index:1000;
+  background:rgba(0,0,0,0.35); backdrop-filter:blur(3px);
+  align-items:center; justify-content:center; padding:20px;
+">
+  <div style="
+    background:#fff; border-radius:20px;
+    width:100%; max-width:420px;
+    box-shadow:0 24px 64px rgba(0,0,0,0.18);
+    overflow:hidden;
+  ">
+    <!-- Icon + Title -->
+    <div style="padding:28px 28px 0; text-align:center;">
+      <div style="
+        width:52px; height:52px; border-radius:50%;
+        background:#fff1f2; display:inline-flex;
+        align-items:center; justify-content:center; margin-bottom:14px;
+      ">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+          <path d="M3 6h16M8 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M9 10.5v5M13 10.5v5M4 6l1.2 12.7A1 1 0 0 0 6.2 19.7h9.6a1 1 0 0 0 1-.9L18 6"
+                stroke="#e11d48" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div style="font-size:17px; font-weight:700; color:var(--colors-black-100); margin-bottom:8px;">Delete Subscription?</div>
+      <div style="font-size:13px; color:var(--colors-black-40); line-height:1.5; margin-bottom:24px;">
+        You're about to permanently delete <strong style="color:var(--colors-black-80);">{{ subscription.platform_name }} — {{ subscription.service_name }}</strong>.
+        This action cannot be undone.
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div style="display:flex; gap:10px; padding:0 28px 28px;">
+      <button onclick="closeDeleteModal()" style="
+        flex:1; padding:10px; border-radius:12px;
+        background:var(--colors-black-10); color:var(--colors-black-60);
+        font-size:13px; font-weight:600; border:none; cursor:pointer;
+        transition:background 0.15s;
+      " onmouseover="this.style.background='var(--colors-black-20)'" onmouseout="this.style.background='var(--colors-black-10)'">
+        Keep It
+      </button>
+
+      <form method="POST" action="{% url 'subscription-delete-url' subscription.pk %}" style="flex:1;">
+        {% csrf_token %}
+        <button type="submit" style="
+          width:100%; padding:10px; border-radius:12px;
+          background:#e11d48; color:#fff;
+          font-size:13px; font-weight:600; border:none; cursor:pointer;
+          transition:background 0.15s;
+        " onmouseover="this.style.background='#be123c'" onmouseout="this.style.background='#e11d48'">
+          Yes, Delete
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
 
 <style>
   @media (max-width: 720px) {
     .sub-detail-grid { grid-template-columns: 1fr !important; }
   }
 </style>
+
+<script>
+  function openEditModal() {
+    const m = document.getElementById('editModal');
+    m.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+  function closeEditModal() {
+    const m = document.getElementById('editModal');
+    m.style.display = 'none';
+    document.body.style.overflow = '';
+  }
+  function openDeleteModal() {
+    const m = document.getElementById('deleteModal');
+    m.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+  function closeDeleteModal() {
+    const m = document.getElementById('deleteModal');
+    m.style.display = 'none';
+    document.body.style.overflow = '';
+  }
+  // Close on backdrop click
+  document.getElementById('editModal').addEventListener('click', function(e) {
+    if (e.target === this) closeEditModal();
+  });
+  document.getElementById('deleteModal').addEventListener('click', function(e) {
+    if (e.target === this) closeDeleteModal();
+  });
+  // Close on Escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') { closeEditModal(); closeDeleteModal(); }
+  });
+</script>
 
 {% endblock %}
 

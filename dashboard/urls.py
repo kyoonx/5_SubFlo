@@ -8,6 +8,8 @@ from dashboard.views import (
     currency_convert,
     email_message_list,
     subscription_detail,
+    subscription_edit,
+    subscription_delete,
     email_message_detail,
     subscription_chart,
     subscriptions_per_month_chart,
@@ -20,6 +22,8 @@ urlpatterns = [
     path("", SubscriptionList.as_view(), name="subscription-list-url"),  
     
     path("<uuid:pk>", subscription_detail, name="subscription-detail-url"),
+    path("<uuid:pk>/edit/", subscription_edit, name="subscription-edit-url"),
+    path("<uuid:pk>/delete/", subscription_delete, name="subscription-delete-url"),
     
     path("subscriptions/export/csv/", subscription_export_csv, name="subscription-export-csv-url"),
     path("subscriptions/export/json/", subscription_export_json, name="subscription-export-json-url"),
