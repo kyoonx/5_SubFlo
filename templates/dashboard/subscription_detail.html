@@ -6,212 +6,263 @@
 
 {% block content %}
 
-<!-- Back link -->
-<div style="margin-bottom: 16px;">
-  <a href="{% url 'subscription-list-url' %}" class="ds-btn" style="padding: 7px 14px; font-size: var(--12-regular-font-size); border-radius: var(--corner-radius-8-duplicate); gap: 6px;">
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-      <path d="M9 11L5 7l4-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-    Back to Subscriptions
-  </a>
-</div>
+<div class="dash-grid">
 
-<!-- ═══ Hero panel: platform name + status badges + action button ═══ -->
-<div class="ds-panel" style="margin-bottom: 16px;">
-  <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+  <!-- ═══ LEFT COLUMN (main SubFlo-style layout) ═══ -->
+  <div class="dash-left">
 
-    <!-- Avatar + name -->
-    <div style="display: flex; align-items: center; gap: 14px;">
-      <div class="ds-avatar" style="
-        width: 52px; height: 52px; min-width: 52px; min-height: 52px;
-        border-radius: 14px;
-        background-color: var(--colors-background-4);
-        color: #6366f1;
-        font-size: 20px;
-        font-weight: 700;
-      ">{{ subscription.platform_name|slice:":1"|upper }}</div>
-      <div>
-        <div style="font-size: 20px; font-weight: 700; color: var(--colors-black-100); line-height: 1.3;">
-          {{ subscription.platform_name }}
+    <!-- Back button row -->
+    <div style="margin-bottom: 14px;">
+      <a href="{% url 'subscription-list-url' %}"
+         class="toolbar-btn"
+         style="display:inline-flex; align-items:center; gap:6px; text-decoration:none;">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M9 11L5 7l4-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Back to Subscriptions
+      </a>
+    </div>
+
+    <!-- ═══ HERO PANEL ═══ -->
+    <div class="panel" style="min-width:0; overflow:hidden; padding:18px 24px;">
+
+      <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+
+        <!-- Avatar + Name -->
+        <div style="display:flex; align-items:center; gap:14px;">
+
+          <div class="avatar-sq" style="
+            width:52px; height:52px;
+            border-radius:14px;
+            background:#eef2ff;
+            color:#6366f1;
+            font-size:20px;
+            font-weight:700;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+          ">
+            {{ subscription.platform_name|slice:":1"|upper }}
+          </div>
+
+          <div>
+            <div style="font-size:20px; font-weight:700; color:var(--colors-black-100); line-height:1.2;">
+              {{ subscription.platform_name }}
+            </div>
+            <div style="font-size: var(--14-regular-font-size); color: var(--colors-black-40); margin-top:2px;">
+              {{ subscription.service_name }}
+            </div>
+          </div>
+
         </div>
-        <div style="font-size: var(--14-regular-font-size); color: var(--colors-black-40); margin-top: 2px;">
-          {{ subscription.service_name }}
-        </div>
-      </div>
-    </div>
 
-    <!-- Status badges + cancel button -->
-    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+        <!-- Badges + CTA -->
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
 
-      {% if subscription.is_trial %}
-        <span style="display: inline-block; padding: 4px 12px; border-radius: 20px; background-color: #e0f2fe; color: #0369a1; font-size: 12px; font-weight: 600;">Free Trial</span>
-      {% endif %}
-
-      {% if subscription.already_canceled %}
-        <span style="display: inline-block; padding: 4px 12px; border-radius: 20px; background-color: #fee2e2; color: #991b1b; font-size: 12px; font-weight: 600;">Canceled</span>
-      {% else %}
-        <span style="display: inline-block; padding: 4px 12px; border-radius: 20px; background-color: #d1fae5; color: #065f46; font-size: 12px; font-weight: 600;">Active</span>
-      {% endif %}
-
-      {% if subscription.unsubscribe_link %}
-        <a href="{% if subscription.unsubscribe_link|slice:':4' != 'http' %}https://{% endif %}{{ subscription.unsubscribe_link }}"
-           target="_blank" rel="noopener"
-           style="
-             display: inline-flex; align-items: center; gap: 6px;
-             padding: 7px 16px; border-radius: 9999px;
-             background-color: #ef4444; color: #fff;
-             font-size: var(--12-regular-font-size); font-weight: 600;
-             text-decoration: none; border: none;
-             transition: background-color 0.15s ease;
-           "
-           onmouseover="this.style.backgroundColor='#dc2626'"
-           onmouseout="this.style.backgroundColor='#ef4444'">
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-            <path d="M2 6h8M6 2l4 4-4 4" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          Cancel Subscription
-        </a>
-      {% else %}
-        <button disabled style="
-          display: inline-flex; align-items: center; gap: 6px;
-          padding: 7px 16px; border-radius: 9999px;
-          background-color: var(--colors-black-10); color: var(--colors-black-40);
-          font-size: var(--12-regular-font-size); font-weight: 600;
-          border: none; cursor: not-allowed;
-        ">Cancel Subscription</button>
-      {% endif %}
-
-    </div>
-  </div>
-</div>
-
-<!-- ═══ Two-column detail grid ═══ -->
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;" class="sub-detail-grid">
-
-  <!-- Billing info -->
-  <div class="ds-panel" style="padding: 0; overflow: hidden;">
-    <div style="padding: 14px 20px; border-bottom: 1px solid var(--colors-black-10);">
-      <span class="ds-panel-title" style="font-size: 14px;">Billing</span>
-    </div>
-    <div style="padding: 4px 0;">
-
-      <!-- Price (hero stat) -->
-      <div style="
-        display: flex; align-items: center; justify-content: space-between;
-        padding: 16px 20px; border-bottom: 1px solid var(--colors-black-10);
-      ">
-        <span style="font-size: 11px; font-weight: 600; color: var(--colors-black-40); text-transform: uppercase; letter-spacing: 0.06em;">Amount</span>
-        <div style="text-align: right;">
-          {% if subscription.price %}
-            <span style="font-size: 22px; font-weight: 700; color: var(--colors-black-100);">
-              {{ subscription.currency }} {{ subscription.price|floatformat:2 }}
+          {% if subscription.is_trial %}
+            <span class="type-tag trial" style="background:#dbeafe; color:#1d4ed8;">
+              Free Trial
             </span>
-            <span style="font-size: var(--12-regular-font-size); color: var(--colors-black-40); display: block;">per billing cycle</span>
-          {% else %}
-            <span style="font-size: var(--14-regular-font-size); color: var(--colors-black-40);">—</span>
           {% endif %}
+
+          {% if subscription.already_canceled %}
+            <span class="type-tag trial" style="background:#fee2e2; color:#b91c1c;">
+              Canceled
+            </span>
+          {% else %}
+            <span class="type-tag subscription" style="background:#dcfce7; color:#166534;">
+              Active
+            </span>
+          {% endif %}
+
+          {% if subscription.unsubscribe_link %}
+            <a href="{% if subscription.unsubscribe_link|slice:':4' != 'http' %}https://{% endif %}{{ subscription.unsubscribe_link }}"
+               target="_blank"
+               rel="noopener"
+               style="
+                 display:inline-flex;
+                 align-items:center;
+                 gap:6px;
+                 padding:8px 14px;
+                 border-radius:12px;
+                 background:#fb7185;
+                 color:white;
+                 font-size:12px;
+                 font-weight:600;
+                 text-decoration:none;
+                 transition: all 0.15s ease;
+               "
+               onmouseover="this.style.background='#f43f5e'"
+               onmouseout="this.style.background='#fb7185'">
+
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M2 6h8M6 2l4 4-4 4" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              Cancel Subscription
+            </a>
+          {% else %}
+            <button disabled
+              style="
+                padding:8px 14px;
+                border-radius:12px;
+                background:var(--colors-black-10);
+                color:var(--colors-black-40);
+                font-size:12px;
+                font-weight:600;
+                border:none;
+                cursor:not-allowed;
+              ">
+              Cancel Subscription
+            </button>
+          {% endif %}
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ GRID ═══ -->
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:16px;" class="sub-detail-grid">
+
+      <!-- Billing -->
+      <div class="panel" style="padding:0; overflow:hidden;">
+
+        <div class="table-toolbar" style="padding:14px 20px; border-bottom:1px solid var(--colors-black-10);">
+          <div class="panel-title" style="margin:0;">Billing</div>
+        </div>
+
+        <div>
+
+          <!-- Amount -->
+          <div style="display:flex; justify-content:space-between; padding:16px 20px; border-bottom:1px solid var(--colors-black-10);">
+            <span style="font-size:11px; text-transform:uppercase; color:var(--colors-black-40); font-weight:600;">Amount</span>
+            <div style="text-align:right;">
+              {% if subscription.price %}
+                <div style="font-size:22px; font-weight:700; color:var(--colors-black-100);">
+                  {{ subscription.currency }} {{ subscription.price|floatformat:2 }}
+                </div>
+                <div style="font-size:11px; color:var(--colors-black-40);">
+                  per billing cycle
+                </div>
+              {% else %}
+                <span style="color:var(--colors-black-40);">—</span>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Start -->
+          <div style="display:flex; justify-content:space-between; padding:12px 20px; border-bottom:1px solid var(--colors-black-10);">
+            <span style="font-size:11px; text-transform:uppercase; color:var(--colors-black-40); font-weight:600;">Start Date</span>
+            <span style="font-size:13px; color:var(--colors-black-100);">
+              {% if subscription.start_date %}{{ subscription.start_date|date:"M d, Y" }}{% else %}<span style="color:var(--colors-black-40)">—</span>{% endif %}
+            </span>
+          </div>
+
+          <!-- End -->
+          <div style="display:flex; justify-content:space-between; padding:12px 20px;">
+            <span style="font-size:11px; text-transform:uppercase; color:var(--colors-black-40); font-weight:600;">End / Renewal</span>
+            <span style="font-size:13px; color:var(--colors-black-100);">
+              {% if subscription.end_date %}{{ subscription.end_date|date:"M d, Y" }}{% else %}<span style="color:var(--colors-black-40)">—</span>{% endif %}
+            </span>
+          </div>
+
         </div>
       </div>
 
-      
+      <!-- Details -->
+      <div class="panel" style="padding:0; overflow:hidden;">
 
-      <!-- Start date -->
-      <div style="display: flex; align-items: center; justify-content: space-between; padding: 11px 20px; border-bottom: 1px solid var(--colors-black-10);">
-        <span style="font-size: 11px; font-weight: 600; color: var(--colors-black-40); text-transform: uppercase; letter-spacing: 0.06em;">Start Date</span>
-        <span style="font-size: var(--14-regular-font-size); color: var(--colors-black-100);">
-          {% if subscription.start_date %}{{ subscription.start_date|date:"M d, Y" }}{% else %}<span style="color:var(--colors-black-40)">—</span>{% endif %}
-        </span>
-      </div>
+        <div class="table-toolbar" style="padding:14px 20px; border-bottom:1px solid var(--colors-black-10);">
+          <div class="panel-title" style="margin:0;">Details</div>
+        </div>
 
-      <!-- End date -->
-      <div style="display: flex; align-items: center; justify-content: space-between; padding: 11px 20px; border-bottom: 1px solid var(--colors-black-10);">
-        <span style="font-size: 11px; font-weight: 600; color: var(--colors-black-40); text-transform: uppercase; letter-spacing: 0.06em;">End / Renewal Date</span>
-        <span style="font-size: var(--14-regular-font-size); color: var(--colors-black-100);">
-          {% if subscription.end_date %}{{ subscription.end_date|date:"M d, Y" }}{% else %}<span style="color:var(--colors-black-40)">—</span>{% endif %}
-        </span>
-      </div>
+        <div>
 
-    </div>
-  </div>
+          <!-- Email -->
+          <div style="display:flex; justify-content:space-between; padding:12px 20px; border-bottom:1px solid var(--colors-black-10);">
+            <span style="font-size:11px; text-transform:uppercase; color:var(--colors-black-40); font-weight:600;">Source Email</span>
 
-  <!-- Metadata -->
-  <div class="ds-panel" style="padding: 0; overflow: hidden;">
-    <div style="padding: 14px 20px; border-bottom: 1px solid var(--colors-black-10);">
-      <span class="ds-panel-title" style="font-size: 14px;">Details</span>
-    </div>
-    <div style="padding: 4px 0;">
+            {% if subscription.email_message_id %}
+              <a href="{% url 'email_message_detail-url' subscription.email_message_id.id %}"
+                 style="font-size:12px; color:#6366f1; text-decoration:none; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                {{ subscription.email_message_id.id }}
+              </a>
+            {% else %}
+              <span style="color:var(--colors-black-40);">—</span>
+            {% endif %}
+          </div>
 
-      <!-- Source email -->
-      <div style="display: flex; align-items: center; justify-content: space-between; padding: 11px 20px; border-bottom: 1px solid var(--colors-black-10);">
-        <span style="font-size: 11px; font-weight: 600; color: var(--colors-black-40); text-transform: uppercase; letter-spacing: 0.06em;">Source Email</span>
-        {% if subscription.email_message_id %}
-          <a href="{% url 'email_message_detail-url' subscription.email_message_id.id %}"
-             style="font-size: var(--12-regular-font-size); color: #465fff; text-decoration: none; font-family: monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px; display: block;">
-            {{ subscription.email_message_id.id }}
-          </a>
-        {% else %}
-          <span style="font-size: var(--14-regular-font-size); color: var(--colors-black-40);">—</span>
-        {% endif %}
-      </div>
+          <!-- Trial -->
+          <div style="display:flex; justify-content:space-between; padding:12px 20px; border-bottom:1px solid var(--colors-black-10);">
+            <span style="font-size:11px; text-transform:uppercase; color:var(--colors-black-40); font-weight:600;">Free Trial</span>
+            {% if subscription.is_trial %}
+              <span style="color:#1d4ed8; font-weight:600;">Yes</span>
+            {% else %}
+              <span style="color:var(--colors-black-40);">No</span>
+            {% endif %}
+          </div>
 
-      <!-- Trial -->
-      <div style="display: flex; align-items: center; justify-content: space-between; padding: 11px 20px; border-bottom: 1px solid var(--colors-black-10);">
-        <span style="font-size: 11px; font-weight: 600; color: var(--colors-black-40); text-transform: uppercase; letter-spacing: 0.06em;">Free Trial</span>
-        {% if subscription.is_trial %}
-          <span style="font-size: var(--14-regular-font-size); color: #0369a1; font-weight: 600;">Yes</span>
-        {% else %}
-          <span style="font-size: var(--14-regular-font-size); color: var(--colors-black-40);">No</span>
-        {% endif %}
-      </div>
+          <!-- Canceled -->
+          <div style="display:flex; justify-content:space-between; padding:12px 20px; border-bottom:1px solid var(--colors-black-10);">
+            <span style="font-size:11px; text-transform:uppercase; color:var(--colors-black-40); font-weight:600;">Canceled</span>
+            {% if subscription.already_canceled %}
+              <span style="color:#b91c1c; font-weight:600;">Yes</span>
+            {% else %}
+              <span style="color:var(--colors-black-40);">No</span>
+            {% endif %}
+          </div>
 
-      <!-- Canceled -->
-      <div style="display: flex; align-items: center; justify-content: space-between; padding: 11px 20px; border-bottom: 1px solid var(--colors-black-10);">
-        <span style="font-size: 11px; font-weight: 600; color: var(--colors-black-40); text-transform: uppercase; letter-spacing: 0.06em;">Canceled</span>
-        {% if subscription.already_canceled %}
-          <span style="font-size: var(--14-regular-font-size); color: #991b1b; font-weight: 600;">Yes</span>
-        {% else %}
-          <span style="font-size: var(--14-regular-font-size); color: var(--colors-black-40);">No</span>
-        {% endif %}
-      </div>
+          <!-- Cancel link -->
+          <div style="display:flex; justify-content:space-between; padding:12px 20px; border-bottom:1px solid var(--colors-black-10); gap:10px;">
+            <span style="font-size:11px; text-transform:uppercase; color:var(--colors-black-40); font-weight:600;">Cancel Link</span>
 
-      <!-- Unsubscribe link -->
-      <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 20px; border-bottom: 1px solid var(--colors-black-10);">
-        <span style="font-size: 11px; font-weight: 600; color: var(--colors-black-40); text-transform: uppercase; letter-spacing: 0.06em; flex-shrink: 0;">Cancel Link</span>
-        {% if subscription.unsubscribe_link %}
-          <a href="{% if subscription.unsubscribe_link|slice:':4' != 'http' %}https://{% endif %}{{ subscription.unsubscribe_link }}"
-             target="_blank" rel="noopener"
-             style="font-size: var(--12-regular-font-size); color: #465fff; text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px; display: block;">
-            {{ subscription.unsubscribe_link|truncatechars:42 }}
-          </a>
-        {% else %}
-          <span style="font-size: var(--14-regular-font-size); color: var(--colors-black-40);">—</span>
-        {% endif %}
-      </div>
+            {% if subscription.unsubscribe_link %}
+              <a href="{% if subscription.unsubscribe_link|slice:':4' != 'http' %}https://{% endif %}{{ subscription.unsubscribe_link }}"
+                 target="_blank"
+                 style="font-size:12px; color:#6366f1; text-decoration:none; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                {{ subscription.unsubscribe_link|truncatechars:42 }}
+              </a>
+            {% else %}
+              <span style="color:var(--colors-black-40);">—</span>
+            {% endif %}
+          </div>
 
-      <!-- Created / Updated -->
-      <div style="display: flex; align-items: center; justify-content: space-between; padding: 11px 20px; border-bottom: 1px solid var(--colors-black-10);">
-        <span style="font-size: 11px; font-weight: 600; color: var(--colors-black-40); text-transform: uppercase; letter-spacing: 0.06em;">Created</span>
-        <span style="font-size: var(--12-regular-font-size); color: var(--colors-black-40);">{{ subscription.created_at|date:"M d, Y • h:i A" }}</span>
-      </div>
-      <div style="display: flex; align-items: center; justify-content: space-between; padding: 11px 20px;">
-        <span style="font-size: 11px; font-weight: 600; color: var(--colors-black-40); text-transform: uppercase; letter-spacing: 0.06em;">Last Updated</span>
-        <span style="font-size: var(--12-regular-font-size); color: var(--colors-black-40);">{{ subscription.updated_at|date:"M d, Y • h:i A" }}</span>
+          <!-- Created -->
+          <div style="display:flex; justify-content:space-between; padding:12px 20px; border-bottom:1px solid var(--colors-black-10);">
+            <span style="font-size:11px; text-transform:uppercase; color:var(--colors-black-40); font-weight:600;">Created</span>
+            <span style="font-size:12px; color:var(--colors-black-40);">
+              {{ subscription.created_at|date:"M d, Y • h:i A" }}
+            </span>
+          </div>
+
+          <!-- Updated -->
+          <div style="display:flex; justify-content:space-between; padding:12px 20px;">
+            <span style="font-size:11px; text-transform:uppercase; color:var(--colors-black-40); font-weight:600;">Last Updated</span>
+            <span style="font-size:12px; color:var(--colors-black-40);">
+              {{ subscription.updated_at|date:"M d, Y • h:i A" }}
+            </span>
+          </div>
+
+        </div>
       </div>
 
     </div>
+
+    <!-- Notes -->
+    {% if subscription.notes %}
+    <div class="panel" style="margin-top:16px;">
+      <div style="font-size:11px; font-weight:600; color:var(--colors-black-40); text-transform:uppercase; margin-bottom:10px;">
+        Notes
+      </div>
+      <p style="margin:0; font-size:14px; color:var(--colors-black-100); line-height:1.6;">
+        {{ subscription.notes }}
+      </p>
+    </div>
+    {% endif %}
+
   </div>
 
 </div>
 
-<!-- ═══ Notes (full width, only if present) ═══ -->
-{% if subscription.notes %}
-<div class="ds-panel" style="margin-top: 16px;">
-  <div style="font-size: 11px; font-weight: 600; color: var(--colors-black-40); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px;">Notes</div>
-  <p style="font-size: var(--14-regular-font-size); color: var(--colors-black-100); line-height: 1.7; margin: 0;">{{ subscription.notes }}</p>
-</div>
-{% endif %}
-
-<!-- Responsive -->
 <style>
   @media (max-width: 720px) {
     .sub-detail-grid { grid-template-columns: 1fr !important; }

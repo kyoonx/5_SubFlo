@@ -3,90 +3,177 @@
 {% block title %}Reports{% endblock %}
 
 {% block content %}
-<div class="space-y-5 sm:space-y-6">
-    <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white px-4 pb-3 pt-4 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6">
-        <div class="flex flex-col gap-2 mb-4 sm:flex-row sm:items-center sm:justify-between">
-            <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Reports</h3>
-            <div class="flex items-center gap-3">
-                <a
-                    href="{% url 'subscription-export-csv-url' %}"
-                    class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200"
-                >
-                    Download CSV
-                </a>
-                <a
-                    href="{% url 'subscription-export-json-url' %}"
-                    class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200"
-                >
-                    Download JSON
-                </a>
-            </div>
+
+<div class="dash-grid">
+
+  <!-- ═══ LEFT COLUMN (main panel styled like SubFlo dashboard) ═══ -->
+  <div class="dash-left">
+
+    <div class="panel" style="min-width:0; padding:0; overflow:hidden;">
+
+      <!-- Header -->
+      <div class="table-toolbar" style="padding: 18px 24px; border-bottom: 1px solid var(--colors-black-10); display:flex; align-items:flex-start; justify-content:space-between; gap:16px;">
+
+        <div>
+          <div class="panel-title" style="margin-bottom:2px;">Reports</div>
+          <div style="font-size: var(--12-regular-font-size); color: var(--colors-black-40); line-height: var(--12-regular-line-height);">
+            Aggregated subscription analytics and summaries
+          </div>
         </div>
 
-        <!-- Totals line -->
-        <div class="mb-6 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-800 dark:bg-gray-800/50">
-            <p class="text-theme-sm font-medium text-gray-800 dark:text-white/90">
-                Totals: {{ total_subscriptions }} total subscriptions; {{ total_active_subscriptions }} active; {{ total_active_trial_subscriptions }} active trial.
-            </p>
+        <div class="table-toolbar-actions" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+
+          <a
+            href="{% url 'subscription-export-csv-url' %}"
+            class="toolbar-btn"
+            style="text-decoration:none;"
+          >
+            Download CSV
+          </a>
+
+          <a
+            href="{% url 'subscription-export-json-url' %}"
+            class="toolbar-btn"
+            style="text-decoration:none;"
+          >
+            Download JSON
+          </a>
+
         </div>
 
-        <!-- Summary 1: Subscriptions per platform -->
-        <h4 class="mb-2 text-base font-semibold text-gray-800 dark:text-white/90">Subscriptions per platform</h4>
-        <div class="w-full overflow-x-auto">
-            <table class="min-w-full">
-                <thead>
-                    <tr class="border-y border-gray-100 dark:border-gray-800">
-                        <th class="py-3 text-left">
-                            <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Platform</p>
-                        </th>
-                        <th class="py-3 text-left">
-                            <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Count</p>
-                        </th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-                    {% for row in subscriptions_per_platform %}
-                    <tr>
-                        <td class="py-3 text-theme-sm text-gray-800 dark:text-white/90">{{ row.platform_name }}</td>
-                        <td class="py-3 text-theme-sm text-gray-500 dark:text-gray-400">{{ row.count }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="2" class="py-6 text-center text-gray-500 dark:text-gray-400">No subscriptions by platform.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+      </div>
+
+      <!-- Totals -->
+      <div style="padding: 16px 24px;">
+        <div style="
+          border-radius: 12px;
+          background: var(--colors-background-2);
+          border: 1px solid var(--colors-black-10);
+          padding: 12px 14px;
+        ">
+          <p style="margin:0; font-size: var(--12-regular-font-size); color: var(--colors-black-100);">
+            <span style="font-weight:600;">Totals:</span>
+            {{ total_subscriptions }} total subscriptions;
+            {{ total_active_subscriptions }} active;
+            {{ total_active_trial_subscriptions }} active trial.
+          </p>
+        </div>
+      </div>
+
+      <!-- ═══ TABLE 1 ═══ -->
+      <div style="padding: 0 24px 18px;">
+        <div class="panel-title" style="font-size:14px; margin-bottom:10px;">
+          Subscriptions per platform
         </div>
 
-        <!-- Summary 2: Subscriptions by status -->
-        <h4 class="mt-6 mb-2 text-base font-semibold text-gray-800 dark:text-white/90">Subscriptions by status</h4>
-        <div class="w-full overflow-x-auto">
-            <table class="min-w-full">
-                <thead>
-                    <tr class="border-y border-gray-100 dark:border-gray-800">
-                        <th class="py-3 text-left">
-                            <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Status</p>
-                        </th>
-                        <th class="py-3 text-left">
-                            <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Count</p>
-                        </th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-                    {% for row in by_status %}
-                    <tr>
-                        <td class="py-3 text-theme-sm text-gray-800 dark:text-white/90">{{ row.status }}</td>
-                        <td class="py-3 text-theme-sm text-gray-500 dark:text-gray-400">{{ row.count }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="2" class="py-6 text-center text-gray-500 dark:text-gray-400">No subscriptions by status.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <div class="table-wrap" style="overflow-x:auto;">
+          <table class="ds-data-table" style="min-width: 420px; width:100%;">
+
+            <thead>
+              <tr>
+                <th style="padding: 10px 12px;">Platform</th>
+                <th style="padding: 10px 12px;">Count</th>
+              </tr>
+            </thead>
+
+            <tbody>
+
+              {% for row in subscriptions_per_platform %}
+              <tr style="transition: background-color 0.12s ease;"
+                  onmouseover="this.style.backgroundColor='var(--colors-black-4)'"
+                  onmouseout="this.style.backgroundColor=''">
+
+                <td style="padding: 10px 12px;">
+                  <div style="display:flex; align-items:center; gap:10px;">
+                    <div class="avatar-sq" style="background: var(--colors-background-4); color:#6366f1;">
+                      {{ row.platform_name|slice:":1"|upper }}
+                    </div>
+                    <span style="font-size: var(--14-regular-font-size); color: var(--colors-black-100); font-weight:500;">
+                      {{ row.platform_name }}
+                    </span>
+                  </div>
+                </td>
+
+                <td style="padding: 10px 12px; color: var(--colors-black-40); font-size: var(--12-regular-font-size);">
+                  {{ row.count }}
+                </td>
+
+              </tr>
+
+              {% empty %}
+              <tr>
+                <td colspan="2" style="padding: 28px 12px; text-align:center; color: var(--colors-black-40); font-size: var(--12-regular-font-size);">
+                  No subscriptions by platform.
+                </td>
+              </tr>
+              {% endfor %}
+
+            </tbody>
+
+          </table>
         </div>
+      </div>
+
+      <!-- ═══ TABLE 2 ═══ -->
+      <div style="padding: 0 24px 24px;">
+        <div class="panel-title" style="font-size:14px; margin-bottom:10px;">
+          Subscriptions by status
+        </div>
+
+        <div class="table-wrap" style="overflow-x:auto;">
+          <table class="ds-data-table" style="min-width: 420px; width:100%;">
+
+            <thead>
+              <tr>
+                <th style="padding: 10px 12px;">Status</th>
+                <th style="padding: 10px 12px;">Count</th>
+              </tr>
+            </thead>
+
+            <tbody>
+
+              {% for row in by_status %}
+              <tr style="transition: background-color 0.12s ease;"
+                  onmouseover="this.style.backgroundColor='var(--colors-black-4)'"
+                  onmouseout="this.style.backgroundColor=''">
+
+                <td style="padding: 10px 12px;">
+                  {% if row.status == "active" %}
+                    <span class="type-tag subscription">{{ row.status }}</span>
+                  {% elif row.status == "trial" %}
+                    <span class="type-tag trial">{{ row.status }}</span>
+                  {% else %}
+                    <span class="type-tag trial" style="background:var(--colors-background-5); color:var(--colors-black-40);">
+                      {{ row.status }}
+                    </span>
+                  {% endif %}
+                </td>
+
+                <td style="padding: 10px 12px; color: var(--colors-black-40); font-size: var(--12-regular-font-size);">
+                  {{ row.count }}
+                </td>
+
+              </tr>
+
+              {% empty %}
+              <tr>
+                <td colspan="2" style="padding: 28px 12px; text-align:center; color: var(--colors-black-40); font-size: var(--12-regular-font-size);">
+                  No subscriptions by status.
+                </td>
+              </tr>
+              {% endfor %}
+
+            </tbody>
+
+          </table>
+        </div>
+
+      </div>
+
     </div>
+
+  </div>
+
 </div>
+
 {% endblock %}

@@ -9,6 +9,127 @@
   <link href="{% static 'css/styleguide.css' %}" rel="stylesheet">
   <link href="{% static 'css/design-system.css' %}" rel="stylesheet">
   <link href="{% static 'css/dashboard.css' %}" rel="stylesheet">
+
+  <!-- ✨ Sidebar Enhancement -->
+  <style>
+    .sidebar {
+      background: #ffffff;
+      border-right: 1px solid rgba(0,0,0,0.06);
+      padding: 18px 14px;
+    }
+
+    .sidebar-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      color: #111827;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.18s ease;
+    }
+
+    .sidebar-item svg {
+      width: 16px;
+      height: 16px;
+      opacity: 0.75;
+    }
+
+    .sidebar-item:hover {
+      background: rgba(0,0,0,0.04);
+      transform: translateX(2px);
+    }
+
+    .sidebar-item:hover svg {
+      opacity: 1;
+    }
+
+    .sidebar-item.active {
+      background: rgba(0,0,0,0.06);
+      font-weight: 600;
+    }
+
+    .sidebar-group {
+      margin-bottom: 14px;
+    }
+
+    .sidebar-btn {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #6b7280;
+      margin-bottom: 6px;
+    }
+
+    .sidebar-divider {
+      margin: 14px 0;
+      height: 1px;
+      background: rgba(0,0,0,0.06);
+    }
+
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .avatar-sm {
+      background: #111827;
+      color: white;
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+    }
+
+    /* ✨ Logout button */
+    .sidebar form button {
+      width: 100%;
+      margin-top: 16px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(0,0,0,0.08);
+      background: #fafafa;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .sidebar form button:hover {
+      background: #f3f4f6;
+    }
+
+    .sidebar-login-btn {
+      width: 100%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 16px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(0,0,0,0.08);
+      background: #fafafa;
+      font-size: 12px;
+      font-weight: 500;
+      color: #111827;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .sidebar-login-btn:hover {
+      background: #f3f4f6;
+    }
+  </style>
+
   {% block stylesheets %}{% endblock %}
 </head>
 <body data-spacing-mode="standard" data-colors-mode="snowui-light" data-corner-radius-mode="standard">
@@ -17,33 +138,39 @@
   <!-- ════ SIDEBAR ════ -->
   <aside class="sidebar">
     <a href="{% url 'subscription-list-url' %}" class="sidebar-logo">
-      <div class="avatar-sm">S</div>
+      <!-- <div class="avatar-sm">S</div> -->
+       <img src="{% static 'subflo_logo.jpg' %}" alt="SubFlo Logo" style="width:26px; height:26px; border-radius:8px;">
       <span class="sidebar-name">SubFlo</span>
     </a>
     <div class="sidebar-divider"></div>
-    <div class="sidebar-group">
+    <!-- <div class="sidebar-group">
       <button class="sidebar-btn">Favorites</button>
       <button class="sidebar-btn muted">Recently</button>
-    </div>
+    </div> -->
     {% if user.is_authenticated %}
       <a href="{% url 'subscription-list-url' %}" class="sidebar-item">
-        <div class="dot-icon"></div>
+        <!-- Overview icon -->
+        <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.2"/><rect x="9" y="2" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.2"/><rect x="2" y="9" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.2"/><rect x="9" y="9" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.2"/></svg>
         <span>Overview</span>
       </a>
       <a href="{% url 'reports-url' %}" class="sidebar-item">
-        <div class="dot-icon"></div>
+        <!-- Reports icon -->
+        <svg viewBox="0 0 16 16" fill="none"><path d="M3 13V3h10v10H3z" stroke="currentColor" stroke-width="1.2"/><path d="M6 10V6M9 10V5M12 10V7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
         <span>Reports</span>
       </a>
       <a href="{% url 'email_message_list-url' %}" class="sidebar-item">
-        <div class="dot-icon"></div>
+        <!-- Email icon -->
+        <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="2" stroke="currentColor" stroke-width="1.2"/><path d="M3 5l5 4 5-4" stroke="currentColor" stroke-width="1.2"/></svg>
         <span>Emails</span>
       </a>
       <a href="{% url 'subscriptions:parse_email' %}" class="sidebar-item">
-        <div class="dot-icon"></div>
+        <!-- Parse icon -->
+        <svg viewBox="0 0 16 16" fill="none"><path d="M4 2h6l2 2v10H4V2z" stroke="currentColor" stroke-width="1.2"/><path d="M6 7h4M6 10h3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
         <span>Parse Email</span>
       </a>
       <a href="{% url 'subscriptions:cancel_guide' %}" class="sidebar-item">
-        <div class="dot-icon"></div>
+        <!-- Cancel icon -->
+        <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.2"/><path d="M5 5l6 6M11 5l-6 6" stroke="currentColor" stroke-width="1.2"/></svg>
         <span>Cancel Guide</span>
       </a>
     {% endif %}
@@ -51,14 +178,21 @@
     {% if user.is_authenticated %}
       <form action="{% url 'logout_urlpattern' %}" method="post" class="ms-auto">
           {% csrf_token %}
-        <button class="btn btn-sm btn-outline-light" type="submit">
+        <button type="submit">
           Log Out, {{ user.get_username }}
         </button>
       </form>
     {% else %}
-      <a class="btn btn-sm btn-outline-light ms-auto" href="{% url 'login_urlpattern' %}">Log In</a>
+      <a class="sidebar-login-btn ms-auto" href="{% url 'login_urlpattern' %}">
+        Log In
+      </a>
     {% endif %}
   </aside>
+
+  <!-- ════ MAIN ════ -->
+  <div class="main">
+
+    <!-- (UNCHANGED REST OF FILE) -->
 
   <!-- ════ MAIN ════ -->
   <div class="main">
@@ -142,10 +276,10 @@
     {% block page_title %}
     <div class="page-title-row">
       <span class="page-title">Overview</span>
-      <button class="today-btn" type="button">
+      <!-- <button class="today-btn" type="button">
         Today
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 5l3 3 3-3" stroke="#000" stroke-width="1.2" stroke-linecap="round"/></svg>
-      </button>
+      </button> -->
     </div>
     {% endblock %}
 
@@ -157,7 +291,7 @@
         {% endblock %}
       </div>
 
-      <!-- ════ RIGHT BAR ════ -->
+      <!-- ════ RIGHT BAR ════
       <aside class="right-bar">
         <div class="notif-title">Notifications</div>
         <div class="notif-item">
@@ -184,7 +318,7 @@
           </div>
           <div class="notif-text"><span class="title">Andi Lane subscribed to you.</span><span class="time">Today, 11:59 AM</span></div>
         </div>
-      </aside>
+      </aside> -->
     </div>
 
   </div><!-- /main -->

@@ -1,172 +1,167 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Emails | SubFlo{% endblock %}
 
 {% block content %}
 
-<div class="ds-panel" style="padding: 0; overflow: hidden;">
+<div class="dash-grid">
 
-  <!-- Header -->
-  <div class="ds-panel-header" style="padding: 20px 24px 16px; border-bottom: 1px solid var(--colors-black-10); margin-bottom: 0;">
-    <div>
-      <div class="ds-panel-title" style="font-size: 16px; line-height: 24px;">All Emails</div>
-      <p style="font-size: var(--12-regular-font-size); color: var(--colors-black-40); margin-top: 2px; line-height: var(--12-regular-line-height);">
-        Scraped subscription emails from your inbox
-      </p>
-    </div>
-    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-      <span style="
-        font-size: var(--12-regular-font-size);
-        color: var(--colors-black-40);
-        line-height: var(--12-regular-line-height);
-      ">
-        <span style="font-weight: 600; color: var(--colors-black-100);">{{ email_messages|length }}</span> message{{ email_messages|length|pluralize }}
-      </span>
-    </div>
-  </div>
+  <!-- ═══ LEFT COLUMN (full width like main dashboard panel) ═══ -->
+  <div class="dash-left">
 
-  <!-- Table -->
-  <div class="ds-overflow-x">
-    <table class="ds-data-table" style="min-width: 600px;">
-      <thead>
-        <tr>
-          <th style="padding: 10px 24px; width: 48%;">Subject</th>
-          <th style="padding: 10px 24px; width: 32%;">Sender</th>
-          <th style="padding: 10px 24px; width: 12%;">Received</th>
-          <th style="padding: 10px 24px; width: 8%; text-align: center;">Status</th>
-        </tr>
-      </thead>
-      <tbody>
+    <!-- Panel: Emails Table -->
+    <div class="panel" style="min-width:0; overflow:hidden; padding:0;">
 
-        {% for email in email_messages %}
-        <tr style="transition: background-color 0.12s ease;" onmouseover="this.style.backgroundColor='var(--colors-black-4)'" onmouseout="this.style.backgroundColor=''">
+      <!-- Header / Toolbar (mimics Subscriptions page style) -->
+      <div class="table-toolbar" style="padding: 18px 24px; border-bottom: 1px solid var(--colors-black-10); display:flex; align-items:flex-start; justify-content:space-between; gap:16px;">
 
-          <!-- Subject -->
-          <td style="padding: 12px 24px;">
-            <a href="{% url 'email_message_detail-url' email.id %}"
-               style="
-                 display: flex;
-                 align-items: center;
-                 gap: 10px;
-                 text-decoration: none;
-                 color: inherit;
-               ">
-              <!-- Sender initial avatar -->
-              <div class="ds-avatar" style="
-                background-color: var(--colors-background-4);
-                color: #6366f1;
-                font-size: 11px;
-                font-weight: 700;
-                flex-shrink: 0;
-              ">
-                {{ email.sender|slice:":1"|upper }}
-              </div>
-              <span style="
-                font-size: var(--14-regular-font-size);
-                color: var(--colors-black-100);
-                font-weight: 500;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-                max-width: 340px;
-              ">{{ email.subject }}</span>
-            </a>
-          </td>
+        <div>
+          <div class="panel-title" style="margin-bottom:2px;">All Emails</div>
+          <div style="font-size: var(--12-regular-font-size); color: var(--colors-black-40); line-height: var(--12-regular-line-height);">
+            Scraped subscription emails from your inbox
+          </div>
+        </div>
 
-          <!-- Sender -->
-          <td style="padding: 12px 24px;">
-            <span style="
-              font-size: var(--12-regular-font-size);
-              color: var(--colors-black-40);
-              overflow: hidden;
-              text-overflow: ellipsis;
-              white-space: nowrap;
-              display: block;
-              max-width: 260px;
-            ">{{ email.sender }}</span>
-          </td>
+        <div class="table-toolbar-actions" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+          <span style="font-size: var(--12-regular-font-size); color: var(--colors-black-40); line-height: var(--12-regular-line-height);">
+            <span style="font-weight:600; color: var(--colors-black-100);">{{ email_messages|length }}</span>
+            message{{ email_messages|length|pluralize }}
+          </span>
+        </div>
 
-          <!-- Received date -->
-          <td style="padding: 12px 24px; white-space: nowrap;">
-            <span style="font-size: var(--12-regular-font-size); color: var(--colors-black-40);">
-              {{ email.received_date|date:"M d, Y" }}
-            </span>
-            <br>
-            <span style="font-size: 11px; color: var(--colors-black-40); opacity: 0.7;">
-              {{ email.received_date|date:"h:i A" }}
-            </span>
-          </td>
+      </div>
 
-          <!-- Parsed status badge -->
-          <td style="padding: 12px 24px; text-align: center;">
-            {% if email.parsed_data %}
-              {% if email.parsed_data.status == "parsed" %}
+      <!-- Table -->
+      <div class="table-wrap" style="overflow-x:auto;">
+
+        <table class="ds-data-table" style="min-width: 700px; width:100%;">
+
+          <thead>
+            <tr>
+              <th style="padding: 12px 24px; width: 48%;">Subject</th>
+              <th style="padding: 12px 24px; width: 32%;">Sender</th>
+              <th style="padding: 12px 24px; width: 12%;">Received</th>
+              <th style="padding: 12px 24px; width: 8%; text-align:center;">Status</th>
+            </tr>
+          </thead>
+
+          <tbody>
+
+            {% for email in email_messages %}
+            <tr style="transition: background-color 0.12s ease;"
+                onmouseover="this.style.backgroundColor='var(--colors-black-4)'"
+                onmouseout="this.style.backgroundColor=''">
+
+              <!-- Subject -->
+              <td style="padding: 12px 24px;">
+                <a href="{% url 'email_message_detail-url' email.id %}"
+                   style="display:flex; align-items:center; gap:10px; text-decoration:none; color:inherit;">
+
+                  <!-- Avatar (mimics subscription avatar-square) -->
+                  <div class="avatar-sq" style="flex-shrink:0; background: var(--colors-background-4); color:#6366f1;">
+                    {{ email.sender|slice:":1"|upper }}
+                  </div>
+
+                  <div style="min-width:0;">
+                    <div style="
+                      font-size: var(--14-regular-font-size);
+                      font-weight: 500;
+                      color: var(--colors-black-100);
+                      white-space: nowrap;
+                      overflow: hidden;
+                      text-overflow: ellipsis;
+                      max-width: 360px;
+                    ">
+                      {{ email.subject }}
+                    </div>
+                  </div>
+
+                </a>
+              </td>
+
+              <!-- Sender -->
+              <td style="padding: 12px 24px;">
                 <span style="
-                  display: inline-block;
-                  padding: 2px 8px;
-                  border-radius: 20px;
-                  background-color: #d1fae5;
-                  color: #065f46;
-                  font-size: 11px;
-                  font-weight: 600;
-                  white-space: nowrap;
-                ">Parsed</span>
-              {% elif email.parsed_data.status == "not_subscription" %}
-                <span style="
-                  display: inline-block;
-                  padding: 2px 8px;
-                  border-radius: 20px;
-                  background-color: var(--colors-black-4);
+                  font-size: var(--12-regular-font-size);
                   color: var(--colors-black-40);
-                  font-size: 11px;
-                  font-weight: 600;
                   white-space: nowrap;
-                ">Skipped</span>
-              {% else %}
-                <span style="
-                  display: inline-block;
-                  padding: 2px 8px;
-                  border-radius: 20px;
-                  background-color: #fef3c7;
-                  color: #92400e;
-                  font-size: 11px;
-                  font-weight: 600;
-                  white-space: nowrap;
-                ">Error</span>
-              {% endif %}
-            {% else %}
-              <span style="
-                display: inline-block;
-                padding: 2px 8px;
-                border-radius: 20px;
-                background-color: var(--colors-background-5);
-                color: var(--colors-black-40);
-                font-size: 11px;
-                font-weight: 600;
-                white-space: nowrap;
-              ">Pending</span>
-            {% endif %}
-          </td>
+                  overflow: hidden;
+                  text-overflow: ellipsis;
+                  display:block;
+                  max-width: 280px;
+                ">
+                  {{ email.sender }}
+                </span>
+              </td>
 
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="4" style="padding: 48px 24px; text-align: center;">
-            <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
-              <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect width="36" height="36" rx="10" fill="var(--colors-background-5)"/>
-                <path d="M10 13a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H12a2 2 0 01-2-2V13z" stroke="rgba(0,0,0,0.3)" stroke-width="1.4"/>
-                <path d="M10 14l8 6 8-6" stroke="rgba(0,0,0,0.3)" stroke-width="1.4" stroke-linecap="round"/>
-              </svg>
-              <p style="font-size: var(--14-regular-font-size); color: var(--colors-black-40); margin: 0;">No emails scraped yet.</p>
-              <p style="font-size: var(--12-regular-font-size); color: var(--colors-black-40); opacity: 0.7; margin: 0;">Run a scrape to pull subscription emails from Gmail.</p>
-            </div>
-          </td>
-        </tr>
-        {% endfor %}
+              <!-- Received -->
+              <td style="padding: 12px 24px; white-space:nowrap;">
+                <div style="font-size: var(--12-regular-font-size); color: var(--colors-black-40);">
+                  {{ email.received_date|date:"M d, Y" }}
+                </div>
+                <div style="font-size: 11px; color: var(--colors-black-40); opacity:0.7;">
+                  {{ email.received_date|date:"h:i A" }}
+                </div>
+              </td>
 
-      </tbody>
-    </table>
+              <!-- Status -->
+              <td style="padding: 12px 24px; text-align:center;">
+                {% if email.parsed_data %}
+                  {% if email.parsed_data.status == "parsed" %}
+                    <span class="type-tag subscription" style="font-size:11px; padding:2px 8px;">
+                      Parsed
+                    </span>
+
+                  {% elif email.parsed_data.status == "not_subscription" %}
+                    <span class="type-tag trial" style="font-size:11px; padding:2px 8px; background:var(--colors-black-4); color:var(--colors-black-40);">
+                      Skipped
+                    </span>
+
+                  {% else %}
+                    <span class="type-tag trial" style="font-size:11px; padding:2px 8px; background:#fef3c7; color:#92400e;">
+                      Error
+                    </span>
+                  {% endif %}
+                {% else %}
+                  <span class="type-tag trial" style="font-size:11px; padding:2px 8px; background:var(--colors-background-5); color:var(--colors-black-40);">
+                    Pending
+                  </span>
+                {% endif %}
+              </td>
+
+            </tr>
+
+            {% empty %}
+            <tr>
+              <td colspan="4" style="padding: 60px 24px; text-align:center;">
+                <div style="display:flex; flex-direction:column; align-items:center; gap:10px;">
+                  <svg width="40" height="40" viewBox="0 0 36 36" fill="none">
+                    <rect width="36" height="36" rx="10" fill="var(--colors-background-5)"/>
+                    <path d="M10 13a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H12a2 2 0 01-2-2V13z"
+                          stroke="rgba(0,0,0,0.3)" stroke-width="1.4"/>
+                    <path d="M10 14l8 6 8-6"
+                          stroke="rgba(0,0,0,0.3)" stroke-width="1.4" stroke-linecap="round"/>
+                  </svg>
+
+                  <div style="font-size: var(--14-regular-font-size); color: var(--colors-black-40);">
+                    No emails scraped yet.
+                  </div>
+                  <div style="font-size: var(--12-regular-font-size); color: var(--colors-black-40); opacity:0.7;">
+                    Run a scrape to pull subscription emails from Gmail.
+                  </div>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+
+          </tbody>
+
+        </table>
+      </div>
+
+    </div>
+
   </div>
 
 </div>
