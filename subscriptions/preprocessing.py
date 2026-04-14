@@ -35,9 +35,16 @@ SUBSCRIPTION_KEYWORDS = [
 # ---------------------------------------------------------------------------
 
 def strip_html(text: str) -> str:
-    """Remove HTML tags from email body snippets."""
+    """Remove HTML tags from email body snippets, excluding style/script content."""
     if BS4_AVAILABLE:
-        return BeautifulSoup(text, "html.parser").get_text(separator=" ")
+        soup = BeautifulSoup(text, "html.parser")
+        # Remove <style>, <script>, <head> blocks entirely — their text is noise
+        for tag in soup(["style", "script", "head"]):
+            tag.decompose()
+        return soup.get_text(separator=" ")
+    # Fallback: strip inline style blocks and all tags via regex
+    text = re.sub(r"<style[^>]*>.*?</style>", " ", text, flags=re.DOTALL | re.IGNORECASE)
+    text = re.sub(r"<script[^>]*>.*?</script>", " ", text, flags=re.DOTALL | re.IGNORECASE)
     return re.sub(r"<[^>]+>", " ", text)
 
 
@@ -50,6 +57,10 @@ def clean_text(text: str, max_chars: int = LOCAL_MODEL_MAX_CHARS) -> str:
     """Full cleaning pipeline: HTML strip -> normalize -> truncate."""
     text = strip_html(text)
     text = normalize_whitespace(text)
+    
+    logger.info(f"Cleaned text: {text}")
+    logger.info(f"Cleaned text (truncated to {max_chars} chars): {text[:max_chars]}")
+    
     return text[:max_chars]
 
 
