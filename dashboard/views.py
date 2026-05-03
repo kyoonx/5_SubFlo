@@ -1,9 +1,10 @@
 from datetime import timedelta, datetime
+from django.urls import reverse_lazy
 from django.utils import timezone
 from django.http import HttpResponse, JsonResponse
 from django.template import loader
 from django.shortcuts import render, get_object_or_404, redirect
-from django.views.generic import ListView, TemplateView
+from django.views.generic import ListView, TemplateView, DeleteView
 from subscriptions.models import Subscription, EmailMessage
 from accounts.models import UserProfile
 from django.db.models import Q, Sum, Count
@@ -744,3 +745,8 @@ def currency_convert(request):
         },
         "subscriptions": converted_subs,
     })
+    
+
+class EmailMessageDeleteView(LoginRequiredMixin, DeleteView):
+    model = EmailMessage
+    success_url = reverse_lazy('email_message_list-url')

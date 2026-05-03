@@ -8,12 +8,13 @@
 # Flow:
 #   GmailScrapeView saves EmailMessage rows
 #       └─► parse_emails_into_subscriptions(user, email_messages)
-#               ├─► For each EmailMessage, build prompt + run Illinois Chat
+#               ├─► For each EmailMessage, build prompt + run local LLM
 #               ├─► If LLM says not_subscription → mark parsed_data, skip
 #               └─► Else → upsert Subscription row, update EmailMessage.parsed_data
 #
-# LLM calls go to Illinois Chat (UIUC.chat) via illinois_chat_client — same stack as
-# the cancellation guide and subscriptions/email_parser.py.
+# The local LLM used:
+#   mlx-community/Josiefied-Qwen2.5-0.5B-Instruct-abliterated-v1-float32
+#   (lazy-loaded and shared with email_parser_view.py via get_model_and_tokenizer)
 #
 # Returns a summary dict consumed by GmailScrapeView to include in its JSON response.
 
@@ -44,7 +45,7 @@ NOT_SUBSCRIPTION_SENTINEL = "NOT_SUBSCRIPTION"
 # Prompt
 # ---------------------------------------------------------------------------
 
-def build_parse_prompt(subject: str, sender: str, body: str) -> str:
+def build_parse_prompt(subject: str, sender: str, received_date: str, body: str) -> str:
     """
     Many-shot prompt that instructs the LLM to either extract subscription
     fields as JSON, or return the sentinel string if the email is irrelevant.
@@ -55,9 +56,14 @@ def build_parse_prompt(subject: str, sender: str, body: str) -> str:
     - Explicit null rules prevent the model from inventing data
     - JSON-only output with no preamble makes parsing deterministic
     """
-    return f"""You are a subscription data extractor. Read the email below and decide:
+    return f"""You are an AI assistant for SubFlo, a personal subscription tracking app.
+SubFlo helps users automatically discover and manage all their recurring subscriptions by
+scanning their Gmail inbox. Your job is to read a single email and decide whether it
+represents an active subscription event (a sign-up, renewal, payment, trial, or cancellation).
+If it does, extract the key subscription fields into a structured JSON object so SubFlo can
+track it. If it does not, return a sentinel value so SubFlo can safely ignore it.
 
-CASE A — The email is about a subscription, billing, payment, trial, renewal, or cancellation:
+CASE A — The email IS about a subscription, billing, payment, trial, renewal, or cancellation:
 Return ONLY a JSON object with exactly these fields (use null for unknown values):
 {{
   "platform_name":    "<company name, e.g. Netflix>",
@@ -72,92 +78,204 @@ Return ONLY a JSON object with exactly these fields (use null for unknown values
   "unsubscribe_link": "<full URL to manage or cancel subscription, or null>"
 }}
 
-CASE B — The email is NOT about a subscription (it is a newsletter, advertisement,
-promotional offer, social notification, or anything unrelated to billing/subscription):
+CASE B — The email is NOT about a subscription (it is a one-time purchase confirmation,
+newsletter, advertisement, promotional offer, social notification, shipping update, or
+anything unrelated to a recurring billing/subscription relationship):
 Return ONLY this exact string with no other text:
 NOT_SUBSCRIPTION
 
 Rules:
 - Output ONLY the JSON object or the string NOT_SUBSCRIPTION. No explanation, no markdown.
 - Do NOT invent data. Use null when a field is not stated in the email.
-- For start_date/end_date: only fill if an explicit date appears. Do not calculate dates.
-- For price: extract the recurring charge amount (monthly/annual), NOT a one-time fee.
-- already_canceled = true if the email says the subscription was canceled/cancelled.
+- Date extraction priority rules:
+    - start_date rules:
+        - Use explicit start/order/trial date from body if present.
+        - Otherwise, if the email is a subscription activation event (signup, order confirmation, trial start), set start_date = Received Date.
+
+    - end_date rules:
+        - Use explicit cancellation end/access date from body if present.
+        - Otherwise, if the email explicitly confirms cancellation, set end_date = Received Date.
+- Received Date is ONLY used as a fallback anchor date for lifecycle events (activation or cancellation), never for marketing or non-subscription emails.
+- Never invent dates that are not either explicitly stated or derived from Received Date under the above rules.
+- For price: extract the recurring charge amount (monthly/annual fee). Do NOT use a one-time purchase price.
+- already_canceled = true only if the email explicitly confirms the subscription was canceled/cancelled.
 - is_trial = true only if the email explicitly mentions a free trial or trial period.
+- Use received_date as a hint for context only — do not copy it directly into start_date or end_date unless the body confirms it.
 
 --- EXAMPLES ---
 
-Example 1 (active subscription confirmation):
-Subject: Your Netflix subscription
-Sender: info@mailer.netflix.com
-Body: Hi, your Netflix Standard plan is active at $15.49/month. Next billing: March 15, 2026. Manage: https://netflix.com/account
-OUTPUT:
-{{"platform_name":"Netflix","service_name":"Netflix Standard","start_date":null,"end_date":"2026-03-15","is_trial":false,"already_canceled":false,"price":15.49,"currency":"USD","payment_method":null,"unsubscribe_link":"https://netflix.com/account"}}
+Example 1 (CASE A — free trial with future recurring charge):
+Subject: Your YouTube Music Premium membership has started
+Sender: noreply@youtube.com
+Received Date: 2021-01-22
+Body:
+Hi Smiles Davis,
+Welcome to your 1 month free trial of Music Premium membership! The payment method you provided will be charged monthly starting Feb 22, 2021.
+As a member you can explore, manage, and cancel your membership any time by visiting YouTube account settings.
+Welcome aboard!
+The YouTube Team
+Order Date
+Jan 22, 2021
+Order Number
+65000055650650
 
-Example 2 (free trial started):
-Subject: Your Spotify Premium trial has started
-Sender: noreply@spotify.com
-Body: Your 3-month free trial of Spotify Premium starts Jan 10, 2026 and ends Apr 10, 2026. After that: $9.99/month. Payment method: Visa ending 4242.
-OUTPUT:
-{{"platform_name":"Spotify","service_name":"Spotify Premium","start_date":"2026-01-10","end_date":"2026-04-10","is_trial":true,"already_canceled":false,"price":9.99,"currency":"USD","payment_method":"Visa 4242","unsubscribe_link":null}}
+Billing and cancellations: Billing for your membership will be handled by Apple. You'll receive an email from Apple with your order confirmation and billing details. At the end of your free trial, if any, Apple will automatically charge you $12.99/month, plus applicable taxes. You may cancel your Music Premium membership anytime from your Apple ID account settings. Refund policy
 
-Example 3 (cancellation confirmed):
-Subject: Your Dropbox subscription has been canceled
-Sender: no-reply@dropbox.com
-Body: You've canceled Dropbox Plus. You'll keep access until May 31, 2026. Annual price was $119.99. Cancel was successful.
-OUTPUT:
-{{"platform_name":"Dropbox","service_name":"Dropbox Plus","start_date":null,"end_date":"2026-05-31","is_trial":false,"already_canceled":true,"price":119.99,"currency":"USD","payment_method":null,"unsubscribe_link":null}}
+Need help? Contact support or go to our Help Center. Please don't reply to this email.
 
-Example 4 (payment receipt):
-Subject: Receipt for Adobe Creative Cloud
-Sender: message@adobe.com
-Body: Thank you for your payment of $54.99 on Feb 1, 2026 for Creative Cloud All Apps. Paid with Mastercard 5678. Manage your plan: https://account.adobe.com/plans
-OUTPUT:
-{{"platform_name":"Adobe","service_name":"Creative Cloud All Apps","start_date":"2026-02-01","end_date":null,"is_trial":false,"already_canceled":false,"price":54.99,"currency":"USD","payment_method":"Mastercard 5678","unsubscribe_link":"https://account.adobe.com/plans"}}
+Help Center Email options
+You received this email to provide information and updates around your YouTube product or account.
+2021 Google LLC d/b/a YouTube, 901 Cherry Ave, San Bruno, CA 94066
+Paid Service Terms of Service
 
-Example 5 (not a subscription — advertisement):
+Expected output:
+{{"platform_name":"YouTube","service_name":"YouTube Music Premium","start_date":"2021-01-22","end_date":"2021-02-22","is_trial":true,"already_canceled":false,"price":12.99,"currency":"USD","payment_method":null,"unsubscribe_link":null}}
+
+Reasoning (for training only, do not output):
+1. Classification: The email explicitly says "free trial of Music Premium membership" and mentions a future monthly charge. This is a subscription trial start event — CASE A.
+2. platform_name: The email is from YouTube / Google LLC and the product is "Music Premium". Platform = "YouTube".
+3. service_name: The full product name stated in the email is "Music Premium membership" but the subject says "YouTube Music Premium", so service_name = "YouTube Music Premium".
+4. start_date: The email states "Order Date: Jan 22, 2021" which is the explicit start of the trial. That maps to "2021-01-22". The received_date also confirms 2021-01-22, consistent.
+5. end_date: The email says "charged monthly starting Feb 22, 2021", meaning the trial ends when billing begins — "2021-02-22". This is explicitly stated, so we can use it.
+6. is_trial: The email says "1 month free trial" — explicitly a trial, so true.
+7. already_canceled: No cancellation language anywhere. false.
+8. price: The future recurring charge is "$12.99/month". Even though it hasn't been charged yet, this IS the recurring subscription price, so price = 12.99. We do NOT use a one-time fee here.
+9. currency: Not explicitly stated as a currency code, but "$" indicates USD. Default to "USD".
+10. payment_method: "The payment method you provided" — vague, no card or service named. null.
+11. unsubscribe_link: No URL for managing/canceling subscription is provided in the body. null.
+
+---
+
+Example 2 (CASE A — subscription order confirmation with trial):
+Subject: Your order confirmation for "Premium Individual"
+Sender: Spotify <no-reply@spotify.com>
+Received Date: 2026-04-14
+
+Body:
+Thanks for your order!
+You'll find your receipt attached.
+Item(s)
+Premium Individual
+Invoice ID
+7f8c2323-5ea2-40ef-bc96-95ef1d273780
+You agree that if you do not cancel your subscription before the end of your trial period, you will automatically be charged the $12.99 subscription fee + applicable tax for Premium every month until you cancel. You can cancel your Spotify Premium subscription at any time on your Account page following the instructions here. No partial refunds. Terms & Conditions apply.
+
+Get Spotify for: iPhone iPad Android Other
+This message was sent to p.michelle@gmail.com. If you have questions or complaints, please contact us.
+Terms of Use Technical requirements Contact Us
+Spotify USA Inc., 4 World Trade Center, 150 Greenwich Street, 62nd Floor, New York, NY 10007, United States
+Tax Reg Number: 80-0555431
+
+Expected output:
+{{"platform_name":"Spotify","service_name":"Premium Individual","start_date":"2026-04-14","end_date":null,"is_trial":true,"already_canceled":false,"price":12.99,"currency":"USD","payment_method":null,"unsubscribe_link":null}}
+
+Reasoning (for training only, do not output):
+1. Classification: The email is a subscription order confirmation for Spotify Premium Individual. It explicitly mentions a subscription, a trial period, and a future recurring monthly charge. This is a clear CASE A subscription event.
+2. platform_name: Sender is Spotify <no-reply@spotify.com>, so platform_name = "Spotify".
+3. service_name: The item listed is "Premium Individual", which is the subscription plan name.
+4. start_date: The body doesn't say the exact date, so we use the Received Date as the fallback.
+5. end_date: No explicit end date is provided for trial or subscription term. The trial is open-ended until cancellation or billing, so end_date = null.
+6. is_trial: The email explicitly states "before the end of your trial period" and describes a free/initial trial condition, so is_trial = true.
+7. already_canceled: No cancellation confirmation is present. false.
+8. price: The recurring subscription fee is clearly stated as "$12.99 subscription fee + applicable tax for Premium every month", so price = 12.99.
+9. currency: Dollar symbol implies USD (US-based Spotify entity), so currency = "USD".
+10. payment_method: No card or payment instrument is specified. null.
+11. unsubscribe_link: No direct URL is provided in the body. null.
+
+---
+
+Example 3 (CASE B — one-time order confirmation, not a subscription):
+Subject: Order Confirmation
+Sender: noreply@parchment.com
+Received Date: 2024-02-23
+Body:
+Order Confirmation Thank you for your order! Hi Jack, Your order was placed successfully on 02/23/2024. Here is your order summary: Item Ordered: Transcript For: Pitupoom Soontornthanon Document ID: TEYKYUJQ Delivery Method: Electronic FROM: Elgin Community College TO: University of Illinois Urbana-Champaign Once your order has been processed, we will send the official document to its destination. Thank you, The Parchment Team Turn Credentials into Opportunities Parchment's Privacy Policy and Terms of Use
+
+Expected output:
+NOT_SUBSCRIPTION
+
+Reasoning (for training only, do not output):
+1. Classification: At first glance, "Order Confirmation" could look like a subscription. However, reading carefully: the email is confirming a one-time order for an academic transcript delivery from Elgin Community College to University of Illinois. There is no mention of a recurring charge, a plan, a billing cycle, a trial, or a renewal. This is a single transaction for a document delivery service — not a subscription. CASE B.
+2. Key signals that rule out CASE A:
+   - No recurring billing language ("monthly", "annual", "renews", "next billing date").
+   - No plan or membership name.
+   - The "item ordered" is a physical/electronic document (a transcript), not a software plan or membership.
+   - No price or payment amount mentioned at all.
+   - No cancel or manage subscription link.
+3. Output: NOT_SUBSCRIPTION — SubFlo should ignore this email entirely.
+
+---
+
+Example 4 (CASE B — promotional advertisement):
 Subject: 50% off all plans this week only!
 Sender: deals@someapp.com
-Body: Don't miss our biggest sale of the year. Subscribe now and save 50%. Limited time offer.
-OUTPUT:
+Received Date: 2026-04-01
+Body:
+Don't miss our biggest sale of the year. Subscribe now and save 50% on any plan. Limited time offer. Click here to grab the deal before it expires!
+
+Expected output:
 NOT_SUBSCRIPTION
+
+Reasoning (for training only, do not output):
+1. Classification: The subject and body are purely promotional. The email is trying to sell a subscription, but the user has NOT yet subscribed. There is no confirmation of an active subscription, no billing date, no payment, no plan name, and no account details. Simply urging someone to subscribe is not the same as confirming they have one. CASE B.
+2. Key signals that rule out CASE A:
+   - "Subscribe now" — future tense call-to-action, not a confirmation of an existing subscription.
+   - No order number, account ID, charge amount, or renewal date.
+   - No plan details or service name tied to the user's account.
+   - The word "offer" and "sale" indicate marketing, not billing.
+3. Output: NOT_SUBSCRIPTION — SubFlo should ignore this email entirely.
 
 --- NOW PROCESS THIS EMAIL ---
 
 Subject: {subject}
 Sender: {sender}
+Received Date: {received_date}
+
 Body:
 {body}
+"""
 
-OUTPUT:"""
+
 
 
 # ---------------------------------------------------------------------------
-# LLM inference (Illinois Chat / UIUC.chat)
+# LLM inference (reuses the lazy-loaded model from email_parser_view.py)
 # ---------------------------------------------------------------------------
 
 def _run_llm(prompt: str) -> str:
     """
-    Run Illinois Chat and return raw assistant text (JSON or NOT_SUBSCRIPTION).
+    Run the local LLM and return its raw string output.
+    Raises RuntimeError if the model cannot be loaded.
     """
-    from .illinois_chat_client import call_illinois_chat_messages
+    # Import lazily — same model instance as email_parser_view.py
+    from .email_parser_view import get_model_and_tokenizer
 
-    raw = call_illinois_chat_messages(
-        [
-            {
-                "role": "system",
-                "content": (
-                    "You follow the user's instructions exactly. "
-                    "Output ONLY a JSON object OR the exact line NOT_SUBSCRIPTION — no other text."
-                ),
-            },
-            {"role": "user", "content": prompt},
-        ],
-        temperature=0.2,
-        timeout=180,
+    model, tokenizer = get_model_and_tokenizer()
+
+    messages = [{"role": "user", "content": prompt}]
+
+    if hasattr(tokenizer, "apply_chat_template") and tokenizer.chat_template is not None:
+        text = tokenizer.apply_chat_template(
+            messages, tokenize=False, add_generation_prompt=True
+        )
+    else:
+        text = prompt
+
+    model_inputs = tokenizer([text], return_tensors="pt", padding=True).to(model.device)
+
+    generated_ids = model.generate(
+        **model_inputs,
+        max_new_tokens=300,
+        do_sample=False,        # greedy — deterministic output
     )
-    raw = re.sub(r"^```(?:json)?\s*", "", raw.strip())
+
+    output_ids = generated_ids[0][len(model_inputs.input_ids[0]):]
+    raw = tokenizer.decode(output_ids, skip_special_tokens=True).strip()
+
+    # Strip markdown fences if model wraps output in ```json ... ```
+    raw = re.sub(r"^```(?:json)?\s*", "", raw)
     raw = re.sub(r"\s*```$", "", raw).strip()
+
     return raw
 
 
@@ -349,9 +467,11 @@ def parse_emails_into_subscriptions(user, email_messages: list[EmailMessage]) ->
 
         # --- Prepare input ---
         cleaned_body = clean_text(em.raw_email_body, max_chars=EMAIL_BODY_MAX_CHARS)
+        received_date_str = em.received_date.strftime("%Y-%m-%d") if em.received_date else "Unknown"
         prompt = build_parse_prompt(
             subject=em.subject,
             sender=em.sender,
+            received_date=received_date_str,
             body=cleaned_body,
         )
 

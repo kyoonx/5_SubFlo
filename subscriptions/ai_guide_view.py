@@ -1,6 +1,6 @@
 # subscriptions/ai_guide_view.py
 #
-# External API: Illinois Chat (chat.illinois.edu)
+# Part 2 #3 — External API Integration: Google Gemini
 # Feature: AI-powered step-by-step cancellation guide generator
 #
 # Usage:
@@ -9,11 +9,8 @@
 #   Returns: JSON with a numbered cancellation guide
 #
 # Setup:
-#   pip install requests beautifulsoup4
-#   Add to .env (chat.illinois.edu → Settings → API Keys):
-#     ILLINOIS_API_KEY=...
-#     ILLINOIS_API_URL=https://chat.illinois.edu/api/chat-api/chat
-#     ILLINOIS_PROJECT_NAME=Subflo
+#   pip install google-genai beautifulsoup4
+#   Add GEMINI_API_KEY=your_key to .env
 
 import os
 import re
@@ -25,17 +22,21 @@ from django.shortcuts import render
 from django.views import View
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
+from django.utils.html import escape
 
-from subscriptions.illinois_chat_client import call_illinois_chat_messages
+from google import genai
 
 logger = logging.getLogger(__name__)
 
-MAX_INPUT_LENGTH = 200
+# ---------------------------------------------------------------------------
+# Configuration
+# ---------------------------------------------------------------------------
 
-_REDACTED_THINKING = re.compile(
-    r"<redacted_thinking\b[^>]*>.*?</think>",
-    re.IGNORECASE | re.DOTALL,
-)
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+gemini_client = genai.Client(api_key=GEMINI_API_KEY)
+
+MAX_INPUT_LENGTH = 200
+MAX_OUTPUT_TOKENS = 2048
 
 BLOCKED_KEYWORDS = [
     "ignore previous",
@@ -50,6 +51,10 @@ BLOCKED_KEYWORDS = [
     "bypass",
 ]
 
+
+# ---------------------------------------------------------------------------
+# Safety helpers
+# ---------------------------------------------------------------------------
 
 def sanitize_input(text: str) -> str:
     """Strip dangerous characters, collapse whitespace, truncate."""
@@ -71,6 +76,10 @@ def is_valid_service_name(text: str) -> bool:
     """
     return bool(re.match(r"^[a-zA-Z0-9 \-\.\+\&]{1,100}$", text))
 
+
+# ---------------------------------------------------------------------------
+# Gemini prompt builder
+# ---------------------------------------------------------------------------
 
 def build_cancellation_prompt(subscription_name: str) -> str:
     """
@@ -101,33 +110,35 @@ def build_cancellation_prompt(subscription_name: str) -> str:
     )
 
 
-def call_cancellation_llm(prompt: str) -> dict:
-    """
-    Call Illinois Chat (UIUC.chat) and parse the JSON cancellation guide.
-    Raises on HTTP errors, missing key, or invalid JSON.
-    """
-    system = (
-        "You output only one valid JSON object matching the user's schema. "
-        "No markdown code fences, no text before or after the JSON."
-    )
-    raw = call_illinois_chat_messages(
-        [
-            {"role": "system", "content": system},
-            {"role": "user", "content": prompt},
-        ],
-        temperature=0.3,
-    )
-    raw = _REDACTED_THINKING.sub("", raw).strip()
-    raw = re.sub(r"^```(?:json)?\s*", "", raw)
-    raw = re.sub(r"\s*```$", "", raw)
-    if not raw.startswith("{"):
-        i, j = raw.find("{"), raw.rfind("}")
-        if i != -1 and j != -1 and j > i:
-            raw = raw[i : j + 1]
-    # Models sometimes emit trailing commas before ] or } (invalid strict JSON).
-    raw = re.sub(r",(\s*[\]}])", r"\1", raw)
-    return json.loads(raw)
+# ---------------------------------------------------------------------------
+# Gemini API call
+# ---------------------------------------------------------------------------
 
+def call_gemini(prompt: str) -> dict:
+    """
+    Call the Gemini 1.5 Flash model and parse the JSON response.
+    Returns a dict on success, raises an exception on failure.
+    """
+    response = gemini_client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=prompt,
+        config={
+            "max_output_tokens": MAX_OUTPUT_TOKENS,
+            "temperature": 0.3,
+        },
+    )
+    raw_text = response.text.strip()
+
+    raw_text = re.sub(r"^```(?:json)?\s*", "", raw_text)
+    raw_text = re.sub(r"\s*```$", "", raw_text)
+
+    parsed = json.loads(raw_text)
+    return parsed
+
+
+# ---------------------------------------------------------------------------
+# Django View
+# ---------------------------------------------------------------------------
 
 @method_decorator(login_required, name="dispatch")
 class CancellationGuideView(View):
@@ -150,6 +161,7 @@ class CancellationGuideView(View):
 
         raw_name = body.get("subscription_name", "")
 
+        # Layer 1: Sanitize
         clean_name = sanitize_input(raw_name)
 
         if not clean_name:
@@ -157,6 +169,7 @@ class CancellationGuideView(View):
                 {"error": "Subscription name cannot be empty."}, status=400
             )
 
+        # Layer 2: Safety check
         if not is_safe_input(clean_name):
             logger.warning(
                 "Blocked potentially malicious input from user %s: %s",
@@ -167,6 +180,7 @@ class CancellationGuideView(View):
                 {"error": "Input contains disallowed content."}, status=400
             )
 
+        # Layer 3: Format validation
         if not is_valid_service_name(clean_name):
             return JsonResponse(
                 {
@@ -178,12 +192,13 @@ class CancellationGuideView(View):
                 status=400,
             )
 
+        # Build prompt and call Gemini
         prompt = build_cancellation_prompt(clean_name)
 
         try:
-            guide = call_cancellation_llm(prompt)
+            guide = call_gemini(prompt)
         except json.JSONDecodeError:
-            logger.error("Illinois Chat returned non-JSON for: %s", clean_name)
+            logger.error("Gemini returned non-JSON response for: %s", clean_name)
             return JsonResponse(
                 {
                     "error": (
@@ -194,17 +209,18 @@ class CancellationGuideView(View):
                 status=503,
             )
         except Exception as exc:
-            logger.exception("Illinois Chat API call failed: %s", exc)
+            logger.exception("Gemini API call failed: %s", exc)
             return JsonResponse(
                 {
                     "error": (
                         "Failed to generate guide. "
-                        "Check ILLINOIS_API_KEY, ILLINOIS_PROJECT_NAME, and network connection."
+                        "Check your API key and network connection."
                     )
                 },
                 status=503,
             )
 
+        # Output guardrails
         steps = guide.get("steps", [])
         if not steps or any(
             phrase in str(steps).lower()

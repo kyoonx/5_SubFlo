@@ -2,7 +2,7 @@
 #
 # Part 2 — Preprocessing pipeline shared by:
 #   - Local HuggingFace classifier (is_subscription_related)
-#   - Cancellation guide prompt (build_cancellation_prompt in ai_guide_view.py)
+#   - Gemini prompt builder (build_cancellation_prompt in ai_guide_view.py)
 
 import re
 import logging
@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 LOCAL_MODEL_MAX_CHARS = 512   # DistilBERT's practical input window
-GEMINI_NAME_MAX_CHARS = 200   # Hard cap on service name sent to cancellation-guide LLM prompt
+GEMINI_NAME_MAX_CHARS = 200   # Hard cap on service name sent to Gemini prompt
 
 SUBSCRIPTION_KEYWORDS = [
     "subscription", "billing", "renew", "renewal", "invoice",
@@ -35,9 +35,16 @@ SUBSCRIPTION_KEYWORDS = [
 # ---------------------------------------------------------------------------
 
 def strip_html(text: str) -> str:
-    """Remove HTML tags from email body snippets."""
+    """Remove HTML tags from email body snippets, excluding style/script content."""
     if BS4_AVAILABLE:
-        return BeautifulSoup(text, "html.parser").get_text(separator=" ")
+        soup = BeautifulSoup(text, "html.parser")
+        # Remove <style>, <script>, <head> blocks entirely — their text is noise
+        for tag in soup(["style", "script", "head"]):
+            tag.decompose()
+        return soup.get_text(separator=" ")
+    # Fallback: strip inline style blocks and all tags via regex
+    text = re.sub(r"<style[^>]*>.*?</style>", " ", text, flags=re.DOTALL | re.IGNORECASE)
+    text = re.sub(r"<script[^>]*>.*?</script>", " ", text, flags=re.DOTALL | re.IGNORECASE)
     return re.sub(r"<[^>]+>", " ", text)
 
 
@@ -50,6 +57,10 @@ def clean_text(text: str, max_chars: int = LOCAL_MODEL_MAX_CHARS) -> str:
     """Full cleaning pipeline: HTML strip -> normalize -> truncate."""
     text = strip_html(text)
     text = normalize_whitespace(text)
+    
+    logger.info(f"Cleaned text: {text}")
+    logger.info(f"Cleaned text (truncated to {max_chars} chars): {text[:max_chars]}")
+    
     return text[:max_chars]
 
 
@@ -86,13 +97,13 @@ def has_subscription_keywords(text: str) -> bool:
 
 
 # ---------------------------------------------------------------------------
-# Service name preprocessing (for cancellation-guide LLM prompt)
+# Service name preprocessing (for Gemini prompt)
 # ---------------------------------------------------------------------------
 
 def prepare_service_name(raw_name: str) -> str:
     """
     Clean and normalize a subscription/service name before injecting
-    it into the cancellation guide prompt.
+    it into the Gemini cancellation guide prompt.
     """
     name = strip_html(raw_name)
     name = normalize_whitespace(name)
